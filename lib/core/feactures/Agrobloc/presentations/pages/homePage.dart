@@ -55,7 +55,8 @@ class _HomePageState extends State<HomePage> {
   List<Widget> get pages => [
         _buildHomeContent(),
         const Center(child: Text("Annonces", style: TextStyle(fontSize: 24))),
-        const Center(child: Text("Transactions", style: TextStyle(fontSize: 24))),
+        const Center(
+            child: Text("Transactions", style: TextStyle(fontSize: 24))),
         const Center(child: Text("Profil", style: TextStyle(fontSize: 24))),
       ];
 
@@ -75,7 +76,8 @@ class _HomePageState extends State<HomePage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Top offres", style: Theme.of(context).textTheme.titleLarge),
+                Text("Top offres",
+                    style: Theme.of(context).textTheme.titleLarge),
                 TextButton(
                   onPressed: () {
                     // Action si besoin
