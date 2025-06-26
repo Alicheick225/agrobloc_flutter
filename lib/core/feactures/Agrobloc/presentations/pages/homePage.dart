@@ -1,12 +1,14 @@
+import 'package:flutter/material.dart';
+import 'package:agrobloc/core/themes/app_colors.dart';
+import 'package:agrobloc/core/feactures/Agrobloc/data/models/financementModel.dart';
 import 'package:agrobloc/core/feactures/Agrobloc/data/models/offreModels.dart';
 import 'package:agrobloc/core/feactures/Agrobloc/data/models/offreRecommandeModels.dart';
-import 'package:agrobloc/core/feactures/Agrobloc/presentations/widgets/recommande.dart';
-import 'package:flutter/material.dart';
 import 'package:agrobloc/core/feactures/Agrobloc/presentations/widgets/filter_boutton.dart';
 import 'package:agrobloc/core/feactures/Agrobloc/presentations/widgets/nav_bar.dart';
 import 'package:agrobloc/core/feactures/Agrobloc/presentations/widgets/recherche_bar.dart';
+import 'package:agrobloc/core/feactures/Agrobloc/presentations/widgets/recommande.dart';
 import 'package:agrobloc/core/feactures/Agrobloc/presentations/widgets/top_offres_card.dart';
-import 'package:agrobloc/core/themes/app_colors.dart';
+import 'package:agrobloc/core/feactures/Agrobloc/presentations/widgets/financementCard.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -19,6 +21,7 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   int _currentPage = 0;
   final int _pageSize = 2;
+  int _selectedFilterIndex = 0;
 
   final List<OfferModel> offers = [
     OfferModel(
@@ -68,6 +71,18 @@ class _HomePageState extends State<HomePage> {
     ),
   ];
 
+  final financement = FinancementModel(
+    avatar: 'assets/images/avatar.jpg',
+    nom: 'Antoine Kouassi',
+    region: "Région de l’Iffou, Daoukro",
+    culture: 'Cacao',
+    superficie: '8 hectares',
+    productionEstimee: '50 tonnes',
+    valeurProduction: '20 Millions de FCFA',
+    prixPreferentiel: '2.200 FCFA / Kg',
+    montantPreFinancer: '1.5 Millions de FCFA',
+  );
+
   List<OfferModel> get paginatedOffers {
     final int start = _currentPage * _pageSize;
     final int end = (_currentPage + 1) * _pageSize;
@@ -90,8 +105,26 @@ class _HomePageState extends State<HomePage> {
           children: [
             const SearchBarWidget(),
             const SizedBox(height: 16),
-            const FilterButtons(),
+            FilterButtons(
+              onFilterSelected: (index) {
+                setState(() => _selectedFilterIndex = index);
+              },
+            ),
             const SizedBox(height: 24),
+            _buildFilteredContent(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilteredContent() {
+    switch (_selectedFilterIndex) {
+      case 0:
+        // Offre de vente
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -102,17 +135,11 @@ class _HomePageState extends State<HomePage> {
                       if ((_currentPage + 1) * _pageSize < offers.length) {
                         _currentPage++;
                       } else {
-                        _currentPage = 0; // retour au début
+                        _currentPage = 0;
                       }
                     });
                   },
-                  child: const Text(
-                    "Suivant >",
-                    style: TextStyle(
-                      color: Colors.green,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  child: const Text("Suivant >", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -139,9 +166,16 @@ class _HomePageState extends State<HomePage> {
               }).toList(),
             ),
           ],
-        ),
-      ),
-    );
+        );
+      case 1:
+        // Financements
+        return FinancementCard(data: financement);
+      case 2:
+        // Mes offres
+        return const Center(child: Text("Mes offres en cours de développement."));
+      default:
+        return const SizedBox();
+    }
   }
 
   @override

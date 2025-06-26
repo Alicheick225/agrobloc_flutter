@@ -1,8 +1,10 @@
-import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:agrobloc/core/themes/app_colors.dart';
 
 class FilterButtons extends StatefulWidget {
-  const FilterButtons({super.key});
+  final void Function(int index) onFilterSelected;
+
+  const FilterButtons({super.key, required this.onFilterSelected});
 
   @override
   State<FilterButtons> createState() => _FilterButtonsState();
@@ -17,6 +19,11 @@ class _FilterButtonsState extends State<FilterButtons> {
     'Mes offres',
   ];
 
+  void _handleTap(int index) {
+    setState(() => selectedIndex = index);
+    widget.onFilterSelected(index); // Notifie le parent
+  }
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -28,7 +35,7 @@ class _FilterButtonsState extends State<FilterButtons> {
         itemBuilder: (context, index) {
           final isSelected = index == selectedIndex;
           return GestureDetector(
-            onTap: () => setState(() => selectedIndex = index),
+            onTap: () => _handleTap(index),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
