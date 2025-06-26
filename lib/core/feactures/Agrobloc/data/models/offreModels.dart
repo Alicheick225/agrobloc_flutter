@@ -5,6 +5,7 @@ class OfferModel {
   final String product;
   final String quantity;
   final String price;
+  
 
   OfferModel({
     required this.image,

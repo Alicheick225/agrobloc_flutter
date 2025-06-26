@@ -17,11 +17,13 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
+  int _currentPage = 0;
+  final int _pageSize = 2;
 
   final List<OfferModel> offers = [
     OfferModel(
       image: 'assets/images/image.png',
-      location: 'Agboville',
+      location: 'Agboville, Cote D`Ivoire',
       type: 'Disponible',
       product: 'Hévéa',
       quantity: '40 tonnes',
@@ -29,7 +31,15 @@ class _HomePageState extends State<HomePage> {
     ),
     OfferModel(
       image: 'assets/images/image copy.png',
-      location: 'Bouaké',
+      location: 'Bouaké, Cote D`Ivoire',
+      type: 'Disponible',
+      product: 'Maïs',
+      quantity: '25 tonnes',
+      price: '1100 FCFA / kg',
+    ),
+    OfferModel(
+      image: 'assets/images/image copy.png',
+      location: 'Bouaké, Cote D`Ivoire',
       type: 'Disponible',
       product: 'Maïs',
       quantity: '25 tonnes',
@@ -41,22 +51,33 @@ class _HomePageState extends State<HomePage> {
     RecommendationModel(
       image: 'assets/images/image.png',
       name: 'Maïs Jaune',
-      location: 'Korhogo',
+      location: 'Korhogo, Cote D`Ivoire',
       quantity: '40 tonnes',
+      price: '1700 FCFA / kg',
+      timeAgo: 'il y a 1 jour',
+      status: 'Disponible',
     ),
     RecommendationModel(
       image: 'assets/images/image copy.png',
       name: 'Hévéa Séché',
-      location: 'Gagnoa',
+      location: 'Gagnoa, Cote D`Ivoire',
       quantity: '10 tonnes',
+      price: '1700 FCFA / kg',
+      timeAgo: 'il y a 2 jours',
+      status: 'Prévisionnel',
     ),
   ];
+
+  List<OfferModel> get paginatedOffers {
+    final int start = _currentPage * _pageSize;
+    final int end = (_currentPage + 1) * _pageSize;
+    return offers.sublist(start, end.clamp(0, offers.length));
+  }
 
   List<Widget> get pages => [
         _buildHomeContent(),
         const Center(child: Text("Annonces", style: TextStyle(fontSize: 24))),
-        const Center(
-            child: Text("Transactions", style: TextStyle(fontSize: 24))),
+        const Center(child: Text("Transactions", style: TextStyle(fontSize: 24))),
         const Center(child: Text("Profil", style: TextStyle(fontSize: 24))),
       ];
 
@@ -71,41 +92,48 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 16),
             const FilterButtons(),
             const SizedBox(height: 24),
-
-            // 🟢 Titre + bouton "Suivant"
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Top offres",
-                    style: Theme.of(context).textTheme.titleLarge),
+                Text("Top offres", style: Theme.of(context).textTheme.titleLarge),
                 TextButton(
                   onPressed: () {
-                    // Action si besoin
+                    setState(() {
+                      if ((_currentPage + 1) * _pageSize < offers.length) {
+                        _currentPage++;
+                      } else {
+                        _currentPage = 0; // retour au début
+                      }
+                    });
                   },
-                  child: const Text("Suivant >"),
+                  child: const Text(
+                    "Suivant >",
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ],
             ),
-
             const SizedBox(height: 10),
             SizedBox(
               height: 200,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                itemCount: offers.length,
+                itemCount: paginatedOffers.length,
                 itemBuilder: (context, index) {
-                  return TopOffersCard(offer: offers[index]);
+                  return TopOffersCard(offer: paginatedOffers[index]);
                 },
               ),
             ),
-
-            const SizedBox(height: 32),
+            const SizedBox(height: 45),
             Text("Recommandé", style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 12),
+            const SizedBox(height: 5),
             Column(
               children: recommendations.map((recommendation) {
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.only(bottom: 16),
                   child: RecommendationCard(recommendation: recommendation),
                 );
               }).toList(),
