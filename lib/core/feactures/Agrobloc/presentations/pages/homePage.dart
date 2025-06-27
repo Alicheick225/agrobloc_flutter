@@ -1,3 +1,4 @@
+import 'package:agrobloc/core/feactures/Agrobloc/presentations/pages/detailFinancement.dart';
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:agrobloc/core/feactures/Agrobloc/data/models/financementModel.dart';
@@ -71,17 +72,30 @@ class _HomePageState extends State<HomePage> {
     ),
   ];
 
-  final financement = FinancementModel(
-    avatar: 'assets/images/avatar.jpg',
-    nom: 'Antoine Kouassi',
-    region: "Région de l’Iffou, Daoukro",
-    culture: 'Cacao',
-    superficie: '8 hectares',
-    productionEstimee: '50 tonnes',
-    valeurProduction: '20 Millions de FCFA',
-    prixPreferentiel: '2.200 FCFA / Kg',
-    montantPreFinancer: '1.5 Millions de FCFA',
-  );
+  final List<FinancementModel> financements = [
+      FinancementModel(
+        avatar: 'assets/images/avatar.jpg',
+        nom: 'Antoine Kouassi',
+        region: "Région de l’Iffou, Daoukro",
+        culture: 'Cacao',
+        superficie: '8 hectares',
+        productionEstimee: '50 tonnes',
+        valeurProduction: '20 Millions de FCFA',
+        prixPreferentiel: '2.200 FCFA / Kg',
+        montantPreFinancer: '1.5 Millions de FCFA',
+      ),
+      FinancementModel(
+        avatar: 'assets/images/avatar.jpg',
+        nom: 'Kouamé Akissi',
+        region: "Région du Gôh, Gagnoa",
+        culture: 'Maïs',
+        superficie: '6 hectares',
+        productionEstimee: '30 tonnes',
+        valeurProduction: '10 Millions de FCFA',
+        prixPreferentiel: '1.800 FCFA / Kg',
+        montantPreFinancer: '800 000 FCFA',
+      ),
+    ];
 
   List<OfferModel> get paginatedOffers {
     final int start = _currentPage * _pageSize;
@@ -168,8 +182,25 @@ class _HomePageState extends State<HomePage> {
           ],
         );
       case 1:
-        // Financements
-        return FinancementCard(data: financement);
+  // Financements
+  return Column(
+    children: financements.map((financement) => 
+      Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const FinancementDetailsPage(),
+              ),
+            );
+          },
+          child: FinancementCard(data: financement),
+        ),
+      ),
+    ).toList(),
+  );
       case 2:
         // Mes offres
         return const Center(child: Text("Mes offres en cours de développement."));
