@@ -29,7 +29,7 @@ class _TopOffersCardState extends State<TopOffersCard> {
         );
       },
       child: Container(
-        width: 170,
+        width: 180,
         margin: const EdgeInsets.only(right: 16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),

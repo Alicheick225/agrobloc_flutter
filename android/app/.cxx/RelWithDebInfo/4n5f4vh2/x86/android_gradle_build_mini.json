@@ -1,0 +1,20 @@
+{
+  "buildFiles": [
+    "/Users/alicheick/Documents/exo_echauffement/flutter/packages/flutter_tools/gradle/src/main/groovy/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/alicheick/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/alicheick/Documents/Agrobloc/agrobloc_flutter/android/app/.cxx/RelWithDebInfo/4n5f4vh2/x86",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/alicheick/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/alicheick/Documents/Agrobloc/agrobloc_flutter/android/app/.cxx/RelWithDebInfo/4n5f4vh2/x86",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {}
+}
