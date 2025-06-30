@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
+import 'package:flutter/material.dart';
 
 class FilterButtons extends StatefulWidget {
   final void Function(int index) onFilterSelected;

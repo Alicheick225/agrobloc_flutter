@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
+import 'package:flutter/material.dart';
 
 class FinancementDetailsPage extends StatelessWidget {
   const FinancementDetailsPage({super.key});
@@ -38,7 +38,7 @@ class FinancementDetailsPage extends StatelessWidget {
 
   Widget _buildProducteurCard() {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade300),

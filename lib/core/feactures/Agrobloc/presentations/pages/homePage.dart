@@ -1,15 +1,16 @@
-import 'package:agrobloc/core/feactures/Agrobloc/presentations/pages/detailFinancement.dart';
+import 'package:agrobloc/core/feactures/Agrobloc/data/dataSources/annonceService.dart';
 import 'package:flutter/material.dart';
-import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:agrobloc/core/feactures/Agrobloc/data/models/financementModel.dart';
 import 'package:agrobloc/core/feactures/Agrobloc/data/models/offreModels.dart';
-import 'package:agrobloc/core/feactures/Agrobloc/data/models/offreRecommandeModels.dart';
+import 'package:agrobloc/core/feactures/Agrobloc/data/models/AnnonceVenteModel.dart';
+import 'package:agrobloc/core/feactures/Agrobloc/presentations/pages/detailFinancement.dart';
 import 'package:agrobloc/core/feactures/Agrobloc/presentations/widgets/filter_boutton.dart';
+import 'package:agrobloc/core/feactures/Agrobloc/presentations/widgets/financementCard.dart';
 import 'package:agrobloc/core/feactures/Agrobloc/presentations/widgets/nav_bar.dart';
 import 'package:agrobloc/core/feactures/Agrobloc/presentations/widgets/recherche_bar.dart';
 import 'package:agrobloc/core/feactures/Agrobloc/presentations/widgets/recommande.dart';
 import 'package:agrobloc/core/feactures/Agrobloc/presentations/widgets/top_offres_card.dart';
-import 'package:agrobloc/core/feactures/Agrobloc/presentations/widgets/financementCard.dart';
+import 'package:agrobloc/core/themes/app_colors.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,92 +21,68 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
+  int _selectedFilterIndex = 0;
   int _currentPage = 0;
   final int _pageSize = 2;
-  int _selectedFilterIndex = 0;
 
-  final List<OfferModel> offers = [
-    OfferModel(
-      image: 'assets/images/image.png',
-      location: 'Agboville, Cote D`Ivoire',
-      type: 'Disponible',
-      product: 'Hévéa',
-      quantity: '40 tonnes',
-      price: '1700 FCFA / kg',
-    ),
-    OfferModel(
-      image: 'assets/images/image copy.png',
-      location: 'Bouaké, Cote D`Ivoire',
-      type: 'Disponible',
-      product: 'Maïs',
-      quantity: '25 tonnes',
-      price: '1100 FCFA / kg',
-    ),
-    OfferModel(
-      image: 'assets/images/image copy.png',
-      location: 'Bouaké, Cote D`Ivoire',
-      type: 'Disponible',
-      product: 'Maïs',
-      quantity: '25 tonnes',
-      price: '1100 FCFA / kg',
-    ),
-  ];
-
-  final List<RecommendationModel> recommendations = [
-    RecommendationModel(
-      image: 'assets/images/image.png',
-      name: 'Maïs Jaune',
-      location: 'Korhogo, Cote D`Ivoire',
-      quantity: '40 tonnes',
-      price: '1700 FCFA / kg',
-      timeAgo: 'il y a 1 jour',
-      status: 'Disponible',
-    ),
-    RecommendationModel(
-      image: 'assets/images/image copy.png',
-      name: 'Hévéa Séché',
-      location: 'Gagnoa, Cote D`Ivoire',
-      quantity: '10 tonnes',
-      price: '1700 FCFA / kg',
-      timeAgo: 'il y a 2 jours',
-      status: 'Prévisionnel',
-    ),
-  ];
+  List<AnnonceVenteModel> annonces = [];
+  List<AnnonceVenteModel> paginatedAnnonces = [];
+  bool isLoading = true;
 
   final List<FinancementModel> financements = [
-      FinancementModel(
-        avatar: 'assets/images/avatar.jpg',
-        nom: 'Antoine Kouassi',
-        region: "Région de l’Iffou, Daoukro",
-        culture: 'Cacao',
-        superficie: '8 hectares',
-        productionEstimee: '50 tonnes',
-        valeurProduction: '20 Millions de FCFA',
-        prixPreferentiel: '2.200 FCFA / Kg',
-        montantPreFinancer: '1.5 Millions de FCFA',
-      ),
-      FinancementModel(
-        avatar: 'assets/images/avatar.jpg',
-        nom: 'Kouamé Akissi',
-        region: "Région du Gôh, Gagnoa",
-        culture: 'Maïs',
-        superficie: '6 hectares',
-        productionEstimee: '30 tonnes',
-        valeurProduction: '10 Millions de FCFA',
-        prixPreferentiel: '1.800 FCFA / Kg',
-        montantPreFinancer: '800 000 FCFA',
-      ),
-    ];
+    FinancementModel(
+      avatar: 'assets/images/avatar.jpg',
+      nom: 'Antoine Kouassi',
+      region: "Région de l’Iffou, Daoukro",
+      culture: 'Cacao',
+      superficie: '8 hectares',
+      productionEstimee: '50 tonnes',
+      valeurProduction: '20 Millions de FCFA',
+      prixPreferentiel: '2.200 FCFA / Kg',
+      montantPreFinancer: '1.5 Millions de FCFA',
+    ),
+    FinancementModel(
+      avatar: 'assets/images/avatar.jpg',
+      nom: 'Kouamé Akissi',
+      region: "Région du Gôh, Gagnoa",
+      culture: 'Maïs',
+      superficie: '6 hectares',
+      productionEstimee: '30 tonnes',
+      valeurProduction: '10 Millions de FCFA',
+      prixPreferentiel: '1.800 FCFA / Kg',
+      montantPreFinancer: '800 000 FCFA',
+    ),
+  ];
 
-  List<OfferModel> get paginatedOffers {
-    final int start = _currentPage * _pageSize;
-    final int end = (_currentPage + 1) * _pageSize;
-    return offers.sublist(start, end.clamp(0, offers.length));
+  @override
+  void initState() {
+    super.initState();
+    loadAnnonces();
+  }
+
+  void loadAnnonces() async {
+    try {
+      final data = await AnnonceService.fetchAnnonces();
+      setState(() {
+        annonces = data;
+        isLoading = false;
+        _updatePagination();
+      });
+    } catch (e) {
+      print("Erreur de chargement des annonces : $e");
+      setState(() => isLoading = false);
+    }
+  }
+
+  void _updatePagination() {
+    final start = _currentPage * _pageSize;
+    final end = (_currentPage + 1) * _pageSize;
+    paginatedAnnonces = annonces.sublist(start, end.clamp(0, annonces.length));
   }
 
   List<Widget> get pages => [
         _buildHomeContent(),
-        const Center(child: Text("Annonces", style: TextStyle(fontSize: 24))),
+        const Center(child: Text("Annonces", style: TextStyle(fontSize: 50))),
         const Center(child: Text("Transactions", style: TextStyle(fontSize: 24))),
         const Center(child: Text("Profil", style: TextStyle(fontSize: 24))),
       ];
@@ -113,29 +90,30 @@ class _HomePageState extends State<HomePage> {
   Widget _buildHomeContent() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SearchBarWidget(),
-            const SizedBox(height: 16),
-            FilterButtons(
-              onFilterSelected: (index) {
-                setState(() => _selectedFilterIndex = index);
-              },
+      child: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SearchBarWidget(),
+                  const SizedBox(height: 16),
+                  FilterButtons(
+                    onFilterSelected: (index) {
+                      setState(() => _selectedFilterIndex = index);
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  _buildFilteredContent(),
+                ],
+              ),
             ),
-            const SizedBox(height: 24),
-            _buildFilteredContent(),
-          ],
-        ),
-      ),
     );
   }
 
   Widget _buildFilteredContent() {
     switch (_selectedFilterIndex) {
       case 0:
-        // Offre de vente
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -146,11 +124,12 @@ class _HomePageState extends State<HomePage> {
                 TextButton(
                   onPressed: () {
                     setState(() {
-                      if ((_currentPage + 1) * _pageSize < offers.length) {
+                      if ((_currentPage + 1) * _pageSize < annonces.length) {
                         _currentPage++;
                       } else {
                         _currentPage = 0;
                       }
+                      _updatePagination();
                     });
                   },
                   child: const Text("Suivant >", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
@@ -162,9 +141,19 @@ class _HomePageState extends State<HomePage> {
               height: 200,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                itemCount: paginatedOffers.length,
+                itemCount: paginatedAnnonces.length,
                 itemBuilder: (context, index) {
-                  return TopOffersCard(offer: paginatedOffers[index]);
+                  final annonce = paginatedAnnonces[index];
+                  return TopOffersCard(
+                    offer: OfferModel(
+                      image: annonce.photo,
+                      location: annonce.parcelleId,
+                      type: annonce.statut,
+                      product: annonce.typeCultureId, // ou à mapper
+                      quantity: "${annonce.quantite} kg",
+                      price: "${annonce.prixKg} FCFA / kg",
+                    ),
+                  );
                 },
               ),
             ),
@@ -172,37 +161,47 @@ class _HomePageState extends State<HomePage> {
             Text("Recommandé", style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 5),
             Column(
-              children: recommendations.map((recommendation) {
+              children: annonces.map((annonce) {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 16),
-                  child: RecommendationCard(recommendation: recommendation),
+                  child: RecommendationCard(
+                    recommendation: AnnonceVenteModel(
+                      photo: annonce.photo,
+                      typeCultureId: annonce.typeCultureId,
+                      parcelleId: annonce.parcelleId,
+                      quantite: annonce.quantite,
+                      prixKg: annonce.prixKg,
+                      createdAt: annonce.createdAt,
+                      statut: annonce.statut, 
+                      id: '',
+                      userId: '',
+                    ),
+                  ),
                 );
               }).toList(),
             ),
           ],
         );
       case 1:
-  // Financements
-  return Column(
-    children: financements.map((financement) => 
-      Padding(
-        padding: const EdgeInsets.only(bottom: 16),
-        child: GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const FinancementDetailsPage(),
+        return Column(
+          children: financements.map((financement) => 
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const FinancementDetailsPage(),
+                    ),
+                  );
+                },
+                child: FinancementCard(data: financement),
               ),
-            );
-          },
-          child: FinancementCard(data: financement),
-        ),
-      ),
-    ).toList(),
-  );
+            ),
+          ).toList(),
+        );
       case 2:
-        // Mes offres
         return const Center(child: Text("Mes offres en cours de développement."));
       default:
         return const SizedBox();
