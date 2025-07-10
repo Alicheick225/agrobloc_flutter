@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:agrobloc/core/feactures/Agrobloc/data/models/AnnonceVenteModel.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
 import 'package:http/http.dart' as http;
 
 class AnnonceService {
