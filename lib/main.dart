@@ -1,4 +1,4 @@
-import 'package:agrobloc/core/feactures/Agrobloc/presentations/pages/homePage.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/pages/homePage.dart';
 import 'package:flutter/material.dart';
 
 void main() {

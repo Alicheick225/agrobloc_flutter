@@ -1,4 +1,4 @@
-import 'package:agrobloc/core/feactures/Agrobloc/data/models/financementModel.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/financementModel.dart';
 import 'package:flutter/material.dart';
 
 class FinancementCard extends StatelessWidget {
