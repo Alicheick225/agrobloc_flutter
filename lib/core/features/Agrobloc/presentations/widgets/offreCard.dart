@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:agrobloc/core/feactures/Agrobloc/data/models/AnnonceVenteModel.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
 
 class OffreCard extends StatelessWidget {
   final AnnonceVenteModel data;
