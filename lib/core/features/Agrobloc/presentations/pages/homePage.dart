@@ -1,15 +1,15 @@
-import 'package:agrobloc/core/feactures/Agrobloc/data/dataSources/annonceService.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/annonceService.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/financementModel.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/offreModels.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/detailFinancement.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/financementCard.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/recommande.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/top_offres_card.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/filter_boutton.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/nav_bar.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/recherche_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:agrobloc/core/feactures/Agrobloc/data/models/financementModel.dart';
-import 'package:agrobloc/core/feactures/Agrobloc/data/models/offreModels.dart';
-import 'package:agrobloc/core/feactures/Agrobloc/data/models/AnnonceVenteModel.dart';
-import 'package:agrobloc/core/feactures/Agrobloc/presentations/pages/detailFinancement.dart';
-import 'package:agrobloc/core/feactures/Agrobloc/presentations/widgets/filter_boutton.dart';
-import 'package:agrobloc/core/feactures/Agrobloc/presentations/widgets/financementCard.dart';
-import 'package:agrobloc/core/feactures/Agrobloc/presentations/widgets/nav_bar.dart';
-import 'package:agrobloc/core/feactures/Agrobloc/presentations/widgets/recherche_bar.dart';
-import 'package:agrobloc/core/feactures/Agrobloc/presentations/widgets/recommande.dart';
-import 'package:agrobloc/core/feactures/Agrobloc/presentations/widgets/top_offres_card.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
 
 
@@ -216,20 +216,6 @@ Widget build(BuildContext context) {
   return SafeArea(
     child: Scaffold(
       backgroundColor: AppColors.background,
-
-      // ─── AppBar avec bouton Notifications ───────────────────────────
-      appBar: AppBar(
-        title: Text(
-          const ['Accueil', 'Annonces', 'Transactions', 'Profil'][_selectedIndex],
-          style: const TextStyle(color: Colors.black),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-        ],
-      ),
-      // ────────────────────────────────────────────────────────────────
-
       body: pages[_selectedIndex],
       bottomNavigationBar: BottomNavBar(
         currentIndex: _selectedIndex,
