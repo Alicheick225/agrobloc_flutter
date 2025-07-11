@@ -1,5 +1,6 @@
 import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/pages/notification_livraison_page.dart';
 
 class SearchBarWidget extends StatelessWidget {
   const SearchBarWidget({super.key});
@@ -51,42 +52,51 @@ class SearchBarWidget extends StatelessWidget {
 
         const SizedBox(width: 8),
 
-        // 🔔 Notification avec badge
-        Stack(
-          children: [
-            Container(
-              height: 50,
-              width: 50,
-              decoration: BoxDecoration(
-                color: AppColors.primaryGreen,
-                borderRadius: BorderRadius.circular(12),
+        // 🔔 Notification cliquable avec badge
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const NotificationLivraisonPage(),
               ),
-              child: const Icon(Icons.notifications_none, color: Colors.white),
-            ),
-            // petit badge rouge
-            Positioned(
-              top: 6,
-              right: 6,
-              child: Container(
-                height: 10,
-                width: 10,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
+            );
+          },
+          child: Stack(
+            children: [
+              Container(
+                height: 50,
+                width: 50,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryGreen,
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Center(
-                  child: Container(
-                    height: 6,
-                    width: 6,
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
+                child: const Icon(Icons.notifications_none, color: Colors.white),
+              ),
+              Positioned(
+                top: 6,
+                right: 6,
+                child: Container(
+                  height: 10,
+                  width: 10,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Container(
+                      height: 6,
+                      width: 6,
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );
