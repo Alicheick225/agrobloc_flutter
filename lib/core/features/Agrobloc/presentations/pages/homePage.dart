@@ -2,6 +2,7 @@ import 'package:agrobloc/core/features/Agrobloc/data/dataSources/annonceService.
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/financementModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/offreModels.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/pages/transactionPage.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/detailFinancement.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/financementCard.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/recommande.dart';
@@ -11,8 +12,6 @@ import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/nav
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/recherche_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
-
-
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -85,7 +84,7 @@ class _HomePageState extends State<HomePage> {
   List<Widget> get pages => [
         _buildHomeContent(),
         const Center(child: Text("Annonces", style: TextStyle(fontSize: 50))),
-        const Center(child: Text("Transactions", style: TextStyle(fontSize: 24))),
+        const TransactionPage(),
         const Center(child: Text("Profil", style: TextStyle(fontSize: 24))),
       ];
 
@@ -112,7 +111,6 @@ class _HomePageState extends State<HomePage> {
             ),
     );
   }
- 
 
   Widget _buildFilteredContent() {
     switch (_selectedFilterIndex) {
@@ -123,7 +121,8 @@ class _HomePageState extends State<HomePage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Top offres", style: Theme.of(context).textTheme.titleLarge),
+                Text("Top offres",
+                    style: Theme.of(context).textTheme.titleLarge),
                 TextButton(
                   onPressed: () {
                     setState(() {
@@ -135,7 +134,9 @@ class _HomePageState extends State<HomePage> {
                       _updatePagination();
                     });
                   },
-                  child: const Text("Suivant >", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                  child: const Text("Suivant >",
+                      style: TextStyle(
+                          color: Colors.green, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -175,7 +176,7 @@ class _HomePageState extends State<HomePage> {
                       quantite: annonce.quantite,
                       prixKg: annonce.prixKg,
                       createdAt: annonce.createdAt,
-                      statut: annonce.statut, 
+                      statut: annonce.statut,
                       id: '',
                       userId: '',
                     ),
@@ -187,41 +188,44 @@ class _HomePageState extends State<HomePage> {
         );
       case 1:
         return Column(
-          children: financements.map((financement) => 
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const FinancementDetailsPage(),
-                    ),
-                  );
-                },
-                child: FinancementCard(data: financement),
-              ),
-            ),
-          ).toList(),
+          children: financements
+              .map(
+                (financement) => Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const FinancementDetailsPage(),
+                        ),
+                      );
+                    },
+                    child: FinancementCard(data: financement),
+                  ),
+                ),
+              )
+              .toList(),
         );
       case 2:
-        return const Center(child: Text("Mes offres en cours de développement."));
+        return const Center(
+            child: Text("Mes offres en cours de développement."));
       default:
         return const SizedBox();
     }
   }
 
   @override
-Widget build(BuildContext context) {
-  return SafeArea(
-    child: Scaffold(
-      backgroundColor: AppColors.background,
-      body: pages[_selectedIndex],
-      bottomNavigationBar: BottomNavBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) => setState(() => _selectedIndex = index),
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: pages[_selectedIndex],
+        bottomNavigationBar: BottomNavBar(
+          currentIndex: _selectedIndex,
+          onTap: (index) => setState(() => _selectedIndex = index),
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 }
