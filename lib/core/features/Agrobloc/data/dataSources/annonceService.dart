@@ -4,7 +4,7 @@ import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.da
 import 'package:http/http.dart' as http;
 
 class AnnonceService {
-  static const String baseUrl = 'http://192.168.252.111:8080';
+  static const String baseUrl = 'http://192.168.252.19:8080';
 
   static Future<List<AnnonceVenteModel>> fetchAnnonces() async {
     final response = await http.get(Uri.parse('$baseUrl/annonces_vente'));
