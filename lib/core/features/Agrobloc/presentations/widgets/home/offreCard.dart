@@ -45,7 +45,7 @@ class OffreCard extends StatelessWidget {
                     children: [
                       // TODO: Remplacer par nom de la parcelle si disponible
                       Text(
-                        "Parcelle : ${data.parcelleId}",
+                        "Parcelle : ${data.parcelleAdresse}",
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       Text(
@@ -74,7 +74,7 @@ class OffreCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            _buildRow("Culture :", data.typeCultureId), // ou le nom de culture
+            _buildRow("Culture :", data.typeCultureLibelle), // ou le nom de culture
             _buildRow("Quantité :", "${data.quantite} kg"),
             _buildRow("Prix au kg :", "${data.prixKg.toStringAsFixed(2)} FCFA"),
           ],

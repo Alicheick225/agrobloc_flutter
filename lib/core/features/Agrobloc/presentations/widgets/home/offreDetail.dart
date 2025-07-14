@@ -17,10 +17,10 @@ class OffreDetailPage extends StatelessWidget {
     final isTopOffer = topOffer != null;
 
     final image = isTopOffer ? topOffer!.image : recommendation!.photo;
-    final product = isTopOffer ? topOffer!.product : recommendation!.typeCultureId;
+    final product = isTopOffer ? topOffer!.product : recommendation!.typeCultureLibelle;
     final price = isTopOffer ? topOffer!.price : recommendation!.prixKg;
     final quantity = isTopOffer ? topOffer!.quantity : recommendation!.quantite;
-    final location = isTopOffer ? topOffer!.location : recommendation!.parcelleId;
+    final location = isTopOffer ? topOffer!.location : recommendation!.parcelleAdresse;
     final statut = isTopOffer ? topOffer!.type : recommendation!.statut;
 
     return Scaffold(

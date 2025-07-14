@@ -1,37 +1,51 @@
 class AnnonceVenteModel {
   final String id;
-  final String userId;
-  final String typeCultureId;
-  final String parcelleId;
   final String photo;
   final String statut;
-  final int quantite;
+  final String description;
   final double prixKg;
-  final DateTime createdAt;
+  final int quantite;
+  final String userNom;
+  final String typeCultureLibelle;
+  final String parcelleAdresse;
 
   AnnonceVenteModel({
     required this.id,
-    required this.userId,
-    required this.typeCultureId,
-    required this.parcelleId,
     required this.photo,
     required this.statut,
-    required this.quantite,
+    required this.description,
     required this.prixKg,
-    required this.createdAt,
+    required this.quantite,
+    required this.userNom,
+    required this.typeCultureLibelle,
+    required this.parcelleAdresse,
   });
 
   factory AnnonceVenteModel.fromJson(Map<String, dynamic> json) {
     return AnnonceVenteModel(
       id: json['id'],
-      userId: json['user_id'],
-      typeCultureId: json['type_culture_id'],
-      parcelleId: json['parcelle_id'],
       photo: json['photo'],
       statut: json['statut'],
-      quantite: json['quantite'],
+      description: json['description'],
       prixKg: (json['prix_kg'] as num).toDouble(),
-      createdAt: DateTime.parse(json['créé_a']),
+      quantite: json['quantite'],
+      userNom: json['user_nom'],
+      typeCultureLibelle: json['type_culture_libelle'],
+      parcelleAdresse: json['parcelle_adresse'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'photo': photo,
+      'statut': statut,
+      'description': description,
+      'prix_kg': prixKg,
+      'quantite': quantite,
+      'user_nom': userNom,
+      'type_culture_libelle': typeCultureLibelle,
+      'parcelle_adresse': parcelleAdresse,
+    };
   }
 }

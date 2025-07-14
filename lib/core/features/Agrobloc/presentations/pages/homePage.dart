@@ -1,3 +1,5 @@
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/recherche_bar.dart';
+import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/annonceService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/financementModel.dart';
@@ -8,11 +10,7 @@ import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/recom
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/top_offres_card.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/filter_boutton.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/nav_bar.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/recherche_bar.dart';
-import 'package:flutter/material.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
-
-
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -112,7 +110,6 @@ class _HomePageState extends State<HomePage> {
             ),
     );
   }
- 
 
   Widget _buildFilteredContent() {
     switch (_selectedFilterIndex) {
@@ -150,9 +147,9 @@ class _HomePageState extends State<HomePage> {
                   return TopOffersCard(
                     offer: OfferModel(
                       image: annonce.photo,
-                      location: annonce.parcelleId,
+                      location: annonce.parcelleAdresse,
                       type: annonce.statut,
-                      product: annonce.typeCultureId, // ou à mapper
+                      product: annonce.typeCultureLibelle,
                       quantity: "${annonce.quantite} kg",
                       price: "${annonce.prixKg} FCFA / kg",
                     ),
@@ -169,15 +166,15 @@ class _HomePageState extends State<HomePage> {
                   padding: const EdgeInsets.only(bottom: 16),
                   child: RecommendationCard(
                     recommendation: AnnonceVenteModel(
+                      id: annonce.id,
                       photo: annonce.photo,
-                      typeCultureId: annonce.typeCultureId,
-                      parcelleId: annonce.parcelleId,
+                      typeCultureLibelle: annonce.typeCultureLibelle,
+                      parcelleAdresse: annonce.parcelleAdresse,
                       quantite: annonce.quantite,
                       prixKg: annonce.prixKg,
-                      createdAt: annonce.createdAt,
-                      statut: annonce.statut, 
-                      id: '',
-                      userId: '',
+                      statut: annonce.statut,
+                      description: annonce.description,
+                      userNom: annonce.userNom,
                     ),
                   ),
                 );
@@ -205,23 +202,24 @@ class _HomePageState extends State<HomePage> {
           ).toList(),
         );
       case 2:
-        return const Center(child: Text("Mes offres en cours de développement."));
+        // You can customize this for filter index 2 if needed
+        return const Center(child: Text("Aucun contenu disponible pour ce filtre."));
       default:
-        return const SizedBox();
+        return const SizedBox.shrink();
     }
   }
 
   @override
-Widget build(BuildContext context) {
-  return SafeArea(
-    child: Scaffold(
-      backgroundColor: AppColors.background,
-      body: pages[_selectedIndex],
-      bottomNavigationBar: BottomNavBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) => setState(() => _selectedIndex = index),
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: pages[_selectedIndex],
+        bottomNavigationBar: BottomNavBar(
+          currentIndex: _selectedIndex,
+          onTap: (index) => setState(() => _selectedIndex = index),
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

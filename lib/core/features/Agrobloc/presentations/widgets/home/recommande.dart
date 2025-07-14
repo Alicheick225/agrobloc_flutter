@@ -78,7 +78,7 @@ class RecommendationCard extends StatelessWidget {
                       Expanded(
                         child: Text.rich(
                           TextSpan(
-                            text: recommendation.typeCultureId,
+                            text: recommendation.typeCultureLibelle,
                             style: AppTextStyles.body.copyWith(fontSize: 13),
                             children: [
                               TextSpan(
@@ -122,7 +122,7 @@ class RecommendationCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          recommendation.parcelleId,
+                          recommendation.parcelleAdresse,
                           style: AppTextStyles.body.copyWith(
                             fontSize: 10,
                             color: Colors.grey,
@@ -139,11 +139,14 @@ class RecommendationCard extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.access_time, size: 12, color: Colors.grey),
+                          const Icon(Icons.access_time, size: 11, color: Colors.grey),
                           const SizedBox(width: 4),
                           Text(
-                            recommendation.createdAt.toString(),
-                            style: AppTextStyles.body.copyWith(fontSize: 11),
+                            "Aujourd'hui", // Logique de date à implémenter
+                            style: AppTextStyles.body.copyWith(
+                              fontSize: 10,
+                              color: Colors.grey,
+                            ),
                           ),
                         ],
                       ),

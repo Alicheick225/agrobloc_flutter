@@ -1,4 +1,5 @@
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/notification_livraison_page.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/commandesProduit.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 
@@ -39,15 +40,23 @@ class SearchBarWidget extends StatelessWidget {
         const SizedBox(width: 12),
 
         // ⚙️ Bouton filtre
-        Container(
-          height: 50,
-          width: 50,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: Colors.grey.shade300),
-            borderRadius: BorderRadius.circular(12),
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => CommandeProduitPage()),
+            );
+          },
+          child: Container(
+            height: 50,
+            width: 50,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.tune, color: Colors.grey),
           ),
-          child: const Icon(Icons.tune, color: Colors.grey),
         ),
 
         const SizedBox(width: 8),
