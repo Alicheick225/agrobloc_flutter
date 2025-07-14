@@ -3,6 +3,7 @@ import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactio
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/detail.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/filter.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/filter_status.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/nav.dart';
 import 'package:flutter/material.dart';
 
 class TransactionPage extends StatefulWidget {
@@ -19,25 +20,13 @@ class _TransactionPageState extends State<TransactionPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFFFCFC),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-        title: const Text("Mes transactions"),
-        leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (_) => const HomePage()),
-              );
-            }),
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const NavTransactionWidget(),
+
             /// Boutons de filtres
             FilterTransactionButtons(
               selectedIndex: selectedFilter,

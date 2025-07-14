@@ -75,7 +75,8 @@ class NotificationLivraisonPage extends StatelessWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.local_shipping, color: AppColors.primaryGreen),
+                      const Icon(Icons.local_shipping,
+                          color: AppColors.primaryGreen),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
@@ -104,7 +105,8 @@ class NotificationLivraisonPage extends StatelessWidget {
                           // TODO: Navigation vers détails
                         },
                         style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
                         ),
                         child: const Text(
                           'Voir',
@@ -194,8 +196,7 @@ class MessageCard extends StatelessWidget {
               ],
             ),
           ),
-          Text(time,
-              style: const TextStyle(color: Colors.grey, fontSize: 12)),
+          Text(time, style: const TextStyle(color: Colors.grey, fontSize: 12)),
         ],
       ),
     );
