@@ -49,7 +49,7 @@ class TransactionCard extends StatelessWidget {
                         Text(nom,
                             style:
                                 const TextStyle(fontWeight: FontWeight.bold)),
-                        const Text("99 transactions (4.9/5) ⭐ 100%"),
+                        const Text("99 transactions (4.9/5)  100%"),
                       ],
                     ),
                   ],
