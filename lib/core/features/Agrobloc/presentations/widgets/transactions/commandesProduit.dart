@@ -1,5 +1,6 @@
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/payementMethode.dart';
 import 'package:flutter/material.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/paiementMoney.dart';
 
 class CommandeProduitPage extends StatefulWidget {
   const CommandeProduitPage({super.key});
@@ -10,21 +11,24 @@ class CommandeProduitPage extends StatefulWidget {
 
 class _CommandeProduitPageState extends State<CommandeProduitPage> {
   int quantite = 10;
-  String unite = "Kg";
-  int paiementMethodCount = 5;
+  String unite = "T";
+  final List<Map<String, String>> allPayments = [
+    {"name": "Orange Money", "logo": "assets/images/orange_money.png"},
+    {"name": "MTN Mobile Money", "logo": "assets/images/MTN_Money.png"},
+    {"name": "Carte Bancaire", "logo": "assets/images/carte_bancaire.png"},
+  ];
+  List<String> selectedPayments = [];
+  bool showPaymentList = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFB930),
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
-          "Commande Produit",
-          style: TextStyle(color: Colors.black),
-        ),
         iconTheme: const IconThemeData(color: Colors.black),
+        title: const Text("Commande Produit", style: TextStyle(color: Colors.black)),
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -61,7 +65,6 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
               ),
             ),
             const SizedBox(height: 20),
-            // Produit
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -72,8 +75,8 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.asset(
-                      'assets/images/25554.jpg',
+                    child: const Image(
+                      image: AssetImage('assets/images/25554.jpg'),
                       width: 50,
                       height: 50,
                       fit: BoxFit.cover,
@@ -98,14 +101,14 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
                 Expanded(
                   flex: 2,
                   child: TextFormField(
-                    initialValue: quantite.toString(),
+                    initialValue: "10",
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     onChanged: (val) {
                       setState(() {
-                        quantite = int.tryParse(val) ?? 0;
+                        quantite = int.tryParse(val) ?? 10;
                       });
                     },
                   ),
@@ -137,41 +140,77 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
             const SizedBox(height: 20),
             ListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text(
-                "Selection du mode de paiement",
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
+              title: Text(
+                selectedPayments.isEmpty
+                    ? "Sélection du mode de paiement"
+                    : "Modes choisis (${selectedPayments.length})",
+                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
               ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircleAvatar(
-                    backgroundColor: Colors.green,
-                    radius: 12,
-                    child: Text(
-                      paiementMethodCount.toString(),
-                      style: const TextStyle(color: Colors.white, fontSize: 12),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.chevron_right),
-                ],
+              trailing: Icon(
+                showPaymentList ? Icons.expand_less : Icons.expand_more,
+                color: Colors.green,
               ),
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const PaymentMethodPage(),
-                  ),
-                );
+                setState(() {
+                  showPaymentList = !showPaymentList;
+                });
               },
             ),
+            if (showPaymentList)
+              Column(
+                children: allPayments.map((payment) {
+                  bool isSelected = selectedPayments.contains(payment["name"]);
+                  return Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(
+                        color: isSelected ? Colors.green : Colors.grey.shade300,
+                        width: 1,
+                      ),
+                    ),
+                    child: ListTile(
+                      leading: Image.asset(
+                        payment["logo"]!,
+                        width: 40,
+                        height: 40,
+                        fit: BoxFit.contain,
+                      ),
+                      title: Text(payment["name"]!),
+                      trailing: Checkbox(
+                        activeColor: Colors.green,
+                        value: isSelected,
+                        onChanged: (value) {
+                          setState(() {
+                            if (value == true) {
+                              selectedPayments.add(payment["name"]!);
+                            } else {
+                              selectedPayments.remove(payment["name"]);
+                            }
+                          });
+                        },
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
             const SizedBox(height: 30),
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
-                onPressed: () {
-                  
-                },
+                onPressed: selectedPayments.isEmpty
+                    ? null
+                    : () {
+                        bool isMobileMoney = selectedPayments.any((payment) =>
+                            payment == "Orange Money" || payment == "MTN Mobile Money");
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => isMobileMoney
+                                ? MobileMoneyOrderPage(selectedPayments: selectedPayments)
+                                : PaymentMethodPage(selectedPayments: selectedPayments),
+                          ),
+                        );
+                      },
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.green,
                   side: const BorderSide(color: Colors.green),

@@ -1,17 +1,18 @@
-class AnnonceVenteModel {
+class AnnonceVente {
   final String id;
-  final String photo;
+  final String? photo;
   final String statut;
   final String description;
   final double prixKg;
-  final int quantite;
+  final double quantite;
   final String userNom;
   final String typeCultureLibelle;
   final String parcelleAdresse;
+  final String? datePublication;
 
-  AnnonceVenteModel({
+  AnnonceVente({
     required this.id,
-    required this.photo,
+    this.photo,
     required this.statut,
     required this.description,
     required this.prixKg,
@@ -19,21 +20,25 @@ class AnnonceVenteModel {
     required this.userNom,
     required this.typeCultureLibelle,
     required this.parcelleAdresse,
+    this.datePublication,
   });
 
-  factory AnnonceVenteModel.fromJson(Map<String, dynamic> json) {
-    return AnnonceVenteModel(
-      id: json['id'],
+  factory AnnonceVente.fromJson(Map<String, dynamic> json) {
+    return AnnonceVente(
+      id: json['id'].toString(),
       photo: json['photo'],
-      statut: json['statut'],
-      description: json['description'],
-      prixKg: (json['prix_kg'] as num).toDouble(),
-      quantite: json['quantite'],
-      userNom: json['user_nom'],
-      typeCultureLibelle: json['type_culture_libelle'],
-      parcelleAdresse: json['parcelle_adresse'],
+      statut: json['statut'] ?? 'Indisponible',
+      description: json['description'] ?? '',
+      prixKg: (json['prix_kg'] as num?)?.toDouble() ?? 0,
+      quantite: (json['quantite'] as num?)?.toDouble() ?? 0,
+      userNom: json['user_nom'] ?? '',
+      typeCultureLibelle: json['type_culture_libelle'] ?? '',
+      parcelleAdresse: json['parcelle_adresse'] ?? '',
+      datePublication: json['date_publication'],
     );
   }
+
+  get image => null;
 
   Map<String, dynamic> toJson() {
     return {
@@ -46,6 +51,7 @@ class AnnonceVenteModel {
       'user_nom': userNom,
       'type_culture_libelle': typeCultureLibelle,
       'parcelle_adresse': parcelleAdresse,
+      'date_publication': datePublication,
     };
   }
 }

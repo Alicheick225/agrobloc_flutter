@@ -25,8 +25,8 @@ class _HomePageState extends State<HomePage> {
   int _currentPage = 0;
   final int _pageSize = 2;
 
-  List<AnnonceVenteModel> annonces = [];
-  List<AnnonceVenteModel> paginatedAnnonces = [];
+  List<AnnonceVente> annonces = [];
+  List<AnnonceVente> paginatedAnnonces = [];
   bool isLoading = true;
 
   final List<FinancementModel> financements = [
@@ -62,7 +62,8 @@ class _HomePageState extends State<HomePage> {
 
   void loadAnnonces() async {
     try {
-      final data = await AnnonceService.fetchAnnonces();
+      final annonceService = AnnonceService();
+      final data = await annonceService.getAllAnnonces();
       setState(() {
         annonces = data;
         isLoading = false;
@@ -146,7 +147,7 @@ class _HomePageState extends State<HomePage> {
                   final annonce = paginatedAnnonces[index];
                   return TopOffersCard(
                     offer: OfferModel(
-                      image: annonce.photo,
+                      image: annonce.photo ?? '',
                       location: annonce.parcelleAdresse,
                       type: annonce.statut,
                       product: annonce.typeCultureLibelle,
@@ -165,7 +166,7 @@ class _HomePageState extends State<HomePage> {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 16),
                   child: RecommendationCard(
-                    recommendation: AnnonceVenteModel(
+                    recommendation: AnnonceVente(
                       id: annonce.id,
                       photo: annonce.photo,
                       typeCultureLibelle: annonce.typeCultureLibelle,

@@ -1,7 +1,10 @@
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/debitComplet.dart';
 import 'package:flutter/material.dart';
 
 class PaymentMethodPage extends StatefulWidget {
-  const PaymentMethodPage({super.key});
+  final List<String> selectedPayments;
+
+  const PaymentMethodPage({super.key, required this.selectedPayments});
 
   @override
   State<PaymentMethodPage> createState() => _PaymentMethodPageState();
@@ -25,15 +28,12 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFB930),
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
-        title: const Text(
-          "Mode de paiement",
-          style: TextStyle(color: Colors.black),
-        ),
+        title: const Text("Mode de paiement", style: TextStyle(color: Colors.black)),
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -42,73 +42,36 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
         ),
         padding: const EdgeInsets.all(20),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Carte Bancaire
-            Row(
-              children: const [
-                Icon(Icons.credit_card, color: Colors.blue),
-                SizedBox(width: 10),
-                Text(
-                  "Carte Bancaire",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            const Text(
+              "Modes sélectionnés :",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(height: 8),
+            ...widget.selectedPayments.map(
+              (payment) => Card(
+                child: ListTile(
+                  leading: const Icon(Icons.payment, color: Colors.green),
+                  title: Text(payment),
                 ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            // Carte déjà enregistrée
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade300),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: const [
-                  Icon(Icons.credit_card, color: Colors.blue),
-                  SizedBox(width: 10),
-                  Text("**** **** **** 3076", style: TextStyle(color: Colors.grey)),
-                ],
               ),
             ),
-
-            const SizedBox(height: 20),
             const Divider(),
+            const SizedBox(height: 10),
             const Text(
               "Payer via une nouvelle carte",
-              style: TextStyle(color: Colors.grey),
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            const Divider(),
             const SizedBox(height: 12),
-
-            // Nom du titulaire
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                "Nom du titulaire de la carte",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-            const SizedBox(height: 6),
             TextField(
               controller: cardHolderController,
               decoration: InputDecoration(
-                hintText: "Maxime Crowd",
+                hintText: "Nom du titulaire",
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
-
-            const SizedBox(height: 20),
-
-            // Infos carte
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                "Informations de la carte",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -117,7 +80,6 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
               ),
               child: Column(
                 children: [
-                  // Numéro de carte
                   TextField(
                     controller: cardNumberController,
                     decoration: const InputDecoration(
@@ -147,31 +109,32 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
                             hintText: "CVC",
                             border: InputBorder.none,
                           ),
-                          keyboardType: TextInputType.number,
                           obscureText: true,
+                          keyboardType: TextInputType.number,
                         ),
                       ),
                     ],
-                  )
+                  ),
                 ],
               ),
             ),
-
             const Spacer(),
-
-            // Bouton Suivant
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
+              child: OutlinedButton(
                 onPressed: () {
-                  
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => DebitCompletPage()),
+                  );
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.green,
+                  side: const BorderSide(color: Colors.green),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: const Text("Suivant"),
+                child: const Text("Confirmer le paiement"),
               ),
             ),
           ],

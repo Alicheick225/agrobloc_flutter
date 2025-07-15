@@ -1,35 +1,60 @@
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/debitComplet.dart';
 import 'package:flutter/material.dart';
 
 class MobileMoneyOrderPage extends StatefulWidget {
-  const MobileMoneyOrderPage({super.key});
+  final List<String> selectedPayments;
+
+  const MobileMoneyOrderPage({super.key, required this.selectedPayments});
 
   @override
   State<MobileMoneyOrderPage> createState() => _MobileMoneyOrderPageState();
 }
 
 class _MobileMoneyOrderPageState extends State<MobileMoneyOrderPage> {
-  final TextEditingController quantityController = TextEditingController(text: "10");
   final TextEditingController phoneController = TextEditingController(text: "+225 ** *****76");
+  final TextEditingController debitNumberController = TextEditingController();
+  late String selectedPayment;
+  bool useNewNumber = false;
 
-  String selectedUnit = "T";
-  String selectedPayment = "Orange Money";
+  @override
+  void initState() {
+    super.initState();
+    selectedPayment = widget.selectedPayments.first;
+  }
 
   @override
   void dispose() {
-    quantityController.dispose();
     phoneController.dispose();
+    debitNumberController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFB930),
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
-        title: const Text("Commander le produit", style: TextStyle(color: Colors.black)),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text("12:30", style: TextStyle(color: Colors.black, fontSize: 16)),
+            const SizedBox(width: 10),
+            const Text("Mode de paiement", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18)),
+          ],
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.more_vert),
+            onPressed: () {},
+          ),
+        ],
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -38,89 +63,8 @@ class _MobileMoneyOrderPageState extends State<MobileMoneyOrderPage> {
         ),
         padding: const EdgeInsets.all(20),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Prix
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Text("Prix  ", style: TextStyle(fontSize: 16)),
-                Text(
-                  "FCFA 15000000",
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            // Produit
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade300),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.asset(
-                      'assets/images/25554.jpg', // Remplace par ton image
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    "Anacarde",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Quantité + unité
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: quantityController,
-                    decoration: const InputDecoration(
-                      labelText: "Quantité",
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                ToggleButtons(
-                  borderRadius: BorderRadius.circular(8),
-                  isSelected: [selectedUnit == "Kg", selectedUnit == "T"],
-                  onPressed: (index) {
-                    setState(() {
-                      selectedUnit = index == 0 ? "Kg" : "T";
-                    });
-                  },
-                  children: const [
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 12),
-                      child: Text("Kg"),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 12),
-                      child: Text("T"),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 20),
-
-            // Moyens de paiement (Orange Money)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
               decoration: BoxDecoration(
@@ -130,20 +74,25 @@ class _MobileMoneyOrderPageState extends State<MobileMoneyOrderPage> {
               child: Row(
                 children: [
                   Image.asset(
-                    'assets/images/orange_money.png', // Ton icône OM
+                    selectedPayment == "MTN Mobile Money"
+                        ? "assets/images/MTN_Money.png"
+                        : "assets/images/orange_money.png",
                     width: 24,
                   ),
                   const SizedBox(width: 10),
-                  const Text("Orange Money", style: TextStyle(fontWeight: FontWeight.bold)),
-                  const Spacer(),
-                  const Icon(Icons.keyboard_arrow_down),
+                  Text(
+                    selectedPayment,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
                 ],
               ),
             ),
-
-            const SizedBox(height: 16),
-
-            // Numéro mobile
+            const SizedBox(height: 20),
+            const Text(
+              "Sélectionnez ce numéro",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(height: 8),
             TextField(
               controller: phoneController,
               keyboardType: TextInputType.phone,
@@ -151,16 +100,45 @@ class _MobileMoneyOrderPageState extends State<MobileMoneyOrderPage> {
                 hintText: "+225 ** *****76",
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
+              enabled: !useNewNumber,
             ),
-
+            const SizedBox(height: 10),
+            InkWell(
+              onTap: () {
+                setState(() {
+                  useNewNumber = !useNewNumber;
+                });
+              },
+              child: const Row(
+                children: [
+                  Text(
+                    "Payer via un autre numéro",
+                    style: TextStyle(color: Colors.blue, fontSize: 14),
+                  ),
+                  Icon(Icons.arrow_forward_ios, size: 16, color: Colors.blue),
+                ],
+              ),
+            ),
+            if (useNewNumber) ...[
+              const SizedBox(height: 20),
+              TextField(
+                controller: debitNumberController,
+                decoration: InputDecoration(
+                  hintText: "Entrez le numéro à débiter",
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                keyboardType: TextInputType.phone,
+              ),
+            ],
             const Spacer(),
-
-            // Bouton enregistrer
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
                 onPressed: () {
-                  // Logique d’enregistrement de commande ici
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const DebitCompletPage()),
+                  );
                 },
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.green,
@@ -168,7 +146,7 @@ class _MobileMoneyOrderPageState extends State<MobileMoneyOrderPage> {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text("Enregistrez ma commande"),
+                child: const Text("Suivant", style: TextStyle(fontSize: 16)),
               ),
             ),
           ],

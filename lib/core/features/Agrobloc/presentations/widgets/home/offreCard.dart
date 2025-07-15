@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
 
 class OffreCard extends StatelessWidget {
-  final AnnonceVenteModel data;
+  final AnnonceVente data;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
 
@@ -15,6 +15,7 @@ class OffreCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final statutLower = data.statut.toLowerCase();
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
       elevation: 2,
@@ -30,7 +31,7 @@ class OffreCard extends StatelessWidget {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(24),
                   child: Image.network(
-                    data.photo,
+                    data.photo ?? '',
                     width: 48,
                     height: 48,
                     fit: BoxFit.cover,
@@ -43,17 +44,15 @@ class OffreCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // TODO: Remplacer par nom de la parcelle si disponible
                       Text(
-                        "Parcelle : ${data.parcelleAdresse}",
+                        "Parcelle : ${data.parcelleAdresse ?? "Inconnue"}",
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       Text(
                         data.statut,
                         style: TextStyle(
-                          color: data.statut.toLowerCase() == "disponible"
-                              ? Colors.green
-                              : Colors.red,
+                          color: statutLower == "disponible" ? Colors.green : Colors.red,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
@@ -74,9 +73,9 @@ class OffreCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            _buildRow("Culture :", data.typeCultureLibelle), // ou le nom de culture
-            _buildRow("Quantité :", "${data.quantite} kg"),
-            _buildRow("Prix au kg :", "${data.prixKg.toStringAsFixed(2)} FCFA"),
+            _buildRow("Culture :", data.typeCultureLibelle ?? "N/A"),
+            _buildRow("Quantité :", "${data.quantite ?? 0} kg"),
+            _buildRow("Prix au kg :", "${(data.prixKg ?? 0).toStringAsFixed(2)} FCFA"),
           ],
         ),
       ),
