@@ -23,7 +23,7 @@ class _TopOffersCardState extends State<TopOffersCard> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => OffreDetailPage(topOffer: widget.offer),
+            builder: (context) => OffreDetailPage(),
           ),
         );
       },

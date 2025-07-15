@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
       return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Mon App Clean Archi',
+      title: 'Agrobloc',
       theme: ThemeData(
         primaryColor: const Color(0xFF5d9643), // AppColors.primary
         fontFamily: 'Poppins',

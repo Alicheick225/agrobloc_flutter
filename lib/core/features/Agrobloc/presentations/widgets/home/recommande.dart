@@ -1,20 +1,30 @@
+import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/offreDetail.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:agrobloc/core/themes/app_text_styles.dart';
-import 'package:flutter/material.dart';
-
 
 class RecommendationCard extends StatelessWidget {
-  final AnnonceVenteModel recommendation;
+  final AnnonceVente recommendation;
 
   const RecommendationCard({super.key, required this.recommendation});
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl = recommendation.photo.startsWith("http")
-        ? recommendation.photo
-        : "http://192.168.56.1:8000/uploads/${recommendation.photo}";
+    final imageUrl = (recommendation.photo != null && recommendation.photo!.startsWith("http"))
+        ? recommendation.photo!
+        : "http://192.168.56.1:8000/uploads/${recommendation.photo ?? ''}";
+
+    final statutLower = recommendation.statut.toLowerCase();
+    final isDisponible = statutLower == "disponible";
+    final isPrevisionnel = statutLower == "prévisionnel";
+
+    String getTimeText() {
+      if (recommendation.datePublication == null) return "Aujourd'hui";
+      return recommendation.datePublication!.contains("jours") 
+          ? recommendation.datePublication! 
+          : "Aujourd'hui";
+    }
 
     return GestureDetector(
       onTap: () {
@@ -37,7 +47,6 @@ class RecommendationCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // 📸 Image avec gestion d'erreur
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: Image.network(
@@ -65,85 +74,54 @@ class RecommendationCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 6),
-
-            // 📝 Contenu
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // 🔝 Titre + like
                   Row(
                     children: [
                       Expanded(
-                        child: Text.rich(
-                          TextSpan(
-                            text: recommendation.typeCultureId,
-                            style: AppTextStyles.body.copyWith(fontSize: 13),
-                            children: [
-                              TextSpan(
-                                text: " ${recommendation.quantite}",
-                                style: AppTextStyles.body.copyWith(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ],
-                          ),
+                        child: Text(
+                          recommendation.typeCultureLibelle ?? "Inconnu",
+                          style: AppTextStyles.body.copyWith(fontSize: 13),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      GestureDetector(
-                        onTap: () {}, // Logique like à implémenter
-                        child: const Icon(
-                          Icons.favorite_border,
-                          size: 18,
-                          color: Colors.black45,
-                        ),
-                      ),
+                      const Icon(Icons.favorite_border, size: 18, color: Colors.black45),
                     ],
                   ),
-
-                  // 💰 Prix
                   Text(
-                    "${recommendation.prixKg} FCFA/kg",
+                    "${recommendation.prixKg ?? 0} FCFA/kg",
                     style: const TextStyle(
                       color: Colors.green,
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
                     ),
                   ),
-
-                  // 📍 Localisation
                   Row(
                     children: [
                       const Icon(Icons.location_on, size: 11, color: Colors.grey),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          recommendation.parcelleId,
-                          style: AppTextStyles.body.copyWith(
-                            fontSize: 10,
-                            color: Colors.grey,
-                          ),
+                          recommendation.parcelleAdresse ?? "Non renseignée",
+                          style: AppTextStyles.body.copyWith(fontSize: 10, color: Colors.grey),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
                   ),
-
-                  // ⏰ Temps + Statut
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.access_time, size: 12, color: Colors.grey),
+                          const Icon(Icons.access_time, size: 11, color: Colors.grey),
                           const SizedBox(width: 4),
                           Text(
-                            recommendation.createdAt.toString(),
-                            style: AppTextStyles.body.copyWith(fontSize: 11),
+                            getTimeText(),
+                            style: AppTextStyles.body.copyWith(fontSize: 10, color: Colors.grey),
                           ),
                         ],
                       ),
@@ -153,19 +131,24 @@ class RecommendationCard extends StatelessWidget {
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(5),
                           border: Border.all(
-                            color: recommendation.statut == "Disponible"
-                                ? AppColors.primaryGreen
-                                : Colors.blue,
+                            color: isDisponible 
+                                ? AppColors.primaryGreen 
+                                : isPrevisionnel 
+                                    ? Colors.blue 
+                                    : Colors.orange,
                           ),
                         ),
                         child: Text(
-                          recommendation.statut,
+                          StringExtension(recommendation.statut).capitalize(),
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
-                            color: recommendation.statut == "Disponible"
-                                ? AppColors.primaryGreen
-                                : Colors.blue,
+                            color: isDisponible 
+                                ? AppColors.primaryGreen 
+                                
+                                : isPrevisionnel 
+                                    ? Colors.blue 
+                                    : Colors.orange,
                           ),
                         ),
                       )
@@ -178,5 +161,12 @@ class RecommendationCard extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+extension StringExtension on String {
+  String capitalize() {
+    if (isEmpty) return this;
+    return '${this[0].toUpperCase()}${substring(1)}';
   }
 }

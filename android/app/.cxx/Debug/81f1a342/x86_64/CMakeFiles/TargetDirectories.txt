@@ -1,2 +1,0 @@
-/Users/alicheick/Documents/Agrobloc/agrobloc_flutter/android/app/.cxx/Debug/81f1a342/x86_64/CMakeFiles/edit_cache.dir
-/Users/alicheick/Documents/Agrobloc/agrobloc_flutter/android/app/.cxx/Debug/81f1a342/x86_64/CMakeFiles/rebuild_cache.dir

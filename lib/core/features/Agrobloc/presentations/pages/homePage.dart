@@ -1,3 +1,5 @@
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/recherche_bar.dart';
+import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/annonceService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/financementModel.dart';
@@ -9,8 +11,6 @@ import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/recom
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/top_offres_card.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/filter_boutton.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/nav_bar.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/recherche_bar.dart';
-import 'package:flutter/material.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
 
 class HomePage extends StatefulWidget {
@@ -26,8 +26,8 @@ class _HomePageState extends State<HomePage> {
   int _currentPage = 0;
   final int _pageSize = 2;
 
-  List<AnnonceVenteModel> annonces = [];
-  List<AnnonceVenteModel> paginatedAnnonces = [];
+  List<AnnonceVente> annonces = [];
+  List<AnnonceVente> paginatedAnnonces = [];
   bool isLoading = true;
 
   final List<FinancementModel> financements = [
@@ -63,7 +63,8 @@ class _HomePageState extends State<HomePage> {
 
   void loadAnnonces() async {
     try {
-      final data = await AnnonceService.fetchAnnonces();
+      final annonceService = AnnonceService();
+      final data = await annonceService.getAllAnnonces();
       setState(() {
         annonces = data;
         isLoading = false;
@@ -150,10 +151,10 @@ class _HomePageState extends State<HomePage> {
                   final annonce = paginatedAnnonces[index];
                   return TopOffersCard(
                     offer: OfferModel(
-                      image: annonce.photo,
-                      location: annonce.parcelleId,
+                      image: annonce.photo ?? '',
+                      location: annonce.parcelleAdresse,
                       type: annonce.statut,
-                      product: annonce.typeCultureId, // ou à mapper
+                      product: annonce.typeCultureLibelle,
                       quantity: "${annonce.quantite} kg",
                       price: "${annonce.prixKg} FCFA / kg",
                     ),
@@ -169,16 +170,16 @@ class _HomePageState extends State<HomePage> {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 16),
                   child: RecommendationCard(
-                    recommendation: AnnonceVenteModel(
+                    recommendation: AnnonceVente(
+                      id: annonce.id,
                       photo: annonce.photo,
-                      typeCultureId: annonce.typeCultureId,
-                      parcelleId: annonce.parcelleId,
+                      typeCultureLibelle: annonce.typeCultureLibelle,
+                      parcelleAdresse: annonce.parcelleAdresse,
                       quantite: annonce.quantite,
                       prixKg: annonce.prixKg,
-                      createdAt: annonce.createdAt,
                       statut: annonce.statut,
-                      id: '',
-                      userId: '',
+                      description: annonce.description,
+                      userNom: annonce.userNom,
                     ),
                   ),
                 );
@@ -210,8 +211,7 @@ class _HomePageState extends State<HomePage> {
       case 2:
         return const Center(
             child: Text("Mes offres en cours de développement."));
-      default:
-        return const SizedBox();
+        // You can customize this for filter index 2 if needed
     }
   }
 

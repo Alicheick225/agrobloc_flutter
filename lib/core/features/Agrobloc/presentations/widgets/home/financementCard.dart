@@ -1,5 +1,5 @@
-import 'package:agrobloc/core/features/Agrobloc/data/models/financementModel.dart';
 import 'package:flutter/material.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/financementModel.dart';
 
 class FinancementCard extends StatelessWidget {
   final FinancementModel data;
@@ -26,22 +26,37 @@ class FinancementCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(backgroundImage: AssetImage(data.avatar), radius: 24),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(data.nom, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    Text(data.region, style: const TextStyle(color: Colors.grey)),
-                  ],
+                CircleAvatar(
+                  backgroundImage: AssetImage(data.avatar),
+                  radius: 24,
                 ),
-                const Spacer(),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        data.nom,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        data.region,
+                        style: const TextStyle(color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ),
                 Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: const [
                     Icon(Icons.remove_red_eye_outlined, color: Colors.green),
                     SizedBox(width: 4),
-                    Text("Voir profil", style: TextStyle(color: Colors.green)),
+                    Text(
+                      "Voir profil",
+                      style: TextStyle(color: Colors.green),
+                    ),
                   ],
                 )
               ],
@@ -57,7 +72,9 @@ class FinancementCard extends StatelessWidget {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
                 onPressed: () {},
                 child: const Text("Voir plus"),
@@ -75,8 +92,17 @@ class FinancementCard extends StatelessWidget {
       child: RichText(
         text: TextSpan(
           children: [
-            TextSpan(text: "$label ", style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-            TextSpan(text: value, style: const TextStyle(color: Colors.black)),
+            TextSpan(
+              text: "$label ",
+              style: const TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            TextSpan(
+              text: value,
+              style: const TextStyle(color: Colors.black),
+            ),
           ],
         ),
       ),
