@@ -4,6 +4,7 @@ import 'package:agrobloc/core/features/Agrobloc/data/dataSources/annonceService.
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/financementModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/offreModels.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/pages/transactionPage.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/detailFinancement.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/financementCard.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/recommande.dart';
@@ -84,7 +85,7 @@ class _HomePageState extends State<HomePage> {
   List<Widget> get pages => [
         _buildHomeContent(),
         const Center(child: Text("Annonces", style: TextStyle(fontSize: 50))),
-        const Center(child: Text("Transactions", style: TextStyle(fontSize: 24))),
+        const TransactionPage(),
         const Center(child: Text("Profil", style: TextStyle(fontSize: 24))),
       ];
 
@@ -121,7 +122,8 @@ class _HomePageState extends State<HomePage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Top offres", style: Theme.of(context).textTheme.titleLarge),
+                Text("Top offres",
+                    style: Theme.of(context).textTheme.titleLarge),
                 TextButton(
                   onPressed: () {
                     setState(() {
@@ -133,7 +135,9 @@ class _HomePageState extends State<HomePage> {
                       _updatePagination();
                     });
                   },
-                  child: const Text("Suivant >", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                  child: const Text("Suivant >",
+                      style: TextStyle(
+                          color: Colors.green, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -185,28 +189,29 @@ class _HomePageState extends State<HomePage> {
         );
       case 1:
         return Column(
-          children: financements.map((financement) => 
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const FinancementDetailsPage(),
-                    ),
-                  );
-                },
-                child: FinancementCard(data: financement),
-              ),
-            ),
-          ).toList(),
+          children: financements
+              .map(
+                (financement) => Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const FinancementDetailsPage(),
+                        ),
+                      );
+                    },
+                    child: FinancementCard(data: financement),
+                  ),
+                ),
+              )
+              .toList(),
         );
       case 2:
+        return const Center(
+            child: Text("Mes offres en cours de développement."));
         // You can customize this for filter index 2 if needed
-        return const Center(child: Text("Aucun contenu disponible pour ce filtre."));
-      default:
-        return const SizedBox.shrink();
     }
   }
 
