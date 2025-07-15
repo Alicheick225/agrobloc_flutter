@@ -42,7 +42,7 @@ class TransactionCard extends StatelessWidget {
                       child: Text(nom[0],
                           style: const TextStyle(color: Colors.black)),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 5),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

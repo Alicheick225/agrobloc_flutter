@@ -4,21 +4,6 @@ import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class NavTransactionWidget extends StatelessWidget {
-  List<Map<String, String>> get notifications => const [
-        {
-          'message': 'Commande #A00123 livrée avec succès.',
-          'heure': '10:30',
-        },
-        {
-          'message': 'Commande #A00124 en cours de livraison.',
-          'heure': '12:45',
-        },
-        {
-          'message': 'Commande #A00125 livrée à Korhogo.',
-          'heure': '08:15',
-        },
-      ];
-
   const NavTransactionWidget({super.key});
 
   @override
@@ -44,14 +29,14 @@ class NavTransactionWidget extends StatelessWidget {
         ),
         //  Barre de recherche
 
-        const SizedBox(width: 190),
+        const SizedBox(width: 68),
 
         //  Notification avec badge (aligné)
         GestureDetector(
           onTap: () {
-            Navigator.pushReplacement(
+            Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const HomePage()),
+              MaterialPageRoute(builder: (_) => NotificationLivraisonPage()),
             );
           },
           child: Padding(
