@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/financementModel.dart';
 
 class FinancementCard extends StatelessWidget {
-  final FinancementModel data;
+  final AnnonceFinancement data;
 
   const FinancementCard({Key? key, required this.data}) : super(key: key);
 
@@ -17,57 +17,74 @@ class FinancementCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            /// ✅ Titre principal
             Text(
-              'Préfinancement demandé  -  Culture de ${data.culture}',
+              'Préfinancement demandé - Culture de ${data.libelle ?? "N/A"}',
               style: const TextStyle(
                 color: Colors.green,
                 fontWeight: FontWeight.bold,
+                fontSize: 16,
               ),
             ),
             const SizedBox(height: 12),
+
+            /// ✅ Nom + Adresse + Voir profil
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  backgroundImage: AssetImage(data.avatar),
-                  radius: 24,
-                ),
-                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        data.nom,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                        data.nom ?? "Nom non disponible",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
                       ),
                       Text(
-                        data.region,
-                        style: const TextStyle(color: Colors.grey),
+                        data.adresse ?? "Adresse non renseignée",
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12,
+                        ),
                       ),
                     ],
                   ),
                 ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    Icon(Icons.remove_red_eye_outlined, color: Colors.green),
-                    SizedBox(width: 4),
-                    Text(
-                      "Voir profil",
-                      style: TextStyle(color: Colors.green),
-                    ),
-                  ],
-                )
+                InkWell(
+                  onTap: () {
+                    /// ✅ Future action : ouvrir profil
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Voir profil...")),
+                    );
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(Icons.remove_red_eye_outlined, color: Colors.green),
+                      SizedBox(width: 4),
+                      Text(
+                        "Voir profil",
+                        style: TextStyle(color: Colors.green, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 12),
-            _buildRow("Superficie :", data.superficie),
-            _buildRow("Production estimée:", data.productionEstimee),
-            _buildRow("Valeur de la production:", data.valeurProduction),
-            _buildRow("Prix préférentiel:", data.prixPreferentiel),
-            _buildRow("Montant à préfinancer:", data.montantPreFinancer),
+
+            /// ✅ Détails du financement
+            _buildRow("Superficie :", "${data.surface ?? 0} ha"),
+            _buildRow("Quantité estimée :", "${data.quantite ?? 0} kg"),
+            _buildRow("Prix préférentiel :", "${data.prixKgPref ?? 0} FCFA/kg"),
+            _buildRow("Montant à préfinancer :", "${data.montantPref ?? 0} FCFA"),
+
             const SizedBox(height: 16),
+
+            /// ✅ Bouton Voir plus
             Center(
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
@@ -75,17 +92,27 @@ class FinancementCard extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
-                onPressed: () {},
-                child: const Text("Voir plus"),
+                onPressed: () {
+                  /// ✅ Action à définir (navigation vers détails)
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Voir plus...")),
+                  );
+                },
+                child: const Text(
+                  "Voir plus",
+                  style: TextStyle(fontSize: 14),
+                ),
               ),
-            )
+            ),
           ],
         ),
       ),
     );
   }
 
+  /// ✅ Méthode utilitaire pour afficher une ligne clé:valeur
   Widget _buildRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -97,11 +124,15 @@ class FinancementCard extends StatelessWidget {
               style: const TextStyle(
                 color: Colors.black,
                 fontWeight: FontWeight.bold,
+                fontSize: 13,
               ),
             ),
             TextSpan(
               text: value,
-              style: const TextStyle(color: Colors.black),
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 13,
+              ),
             ),
           ],
         ),

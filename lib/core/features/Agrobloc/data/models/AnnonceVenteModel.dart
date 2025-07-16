@@ -8,7 +8,10 @@ class AnnonceVente {
   final String userNom;
   final String typeCultureLibelle;
   final String parcelleAdresse;
-  final String? datePublication;
+  final String? datePublication; // Pas présent dans le JSON actuel, mais on le garde au cas où
+  final double? note; // Note peut être null, donc on utilise double?
+  
+
 
   AnnonceVente({
     required this.id,
@@ -21,6 +24,7 @@ class AnnonceVente {
     required this.typeCultureLibelle,
     required this.parcelleAdresse,
     this.datePublication,
+    this.note,
   });
 
   factory AnnonceVente.fromJson(Map<String, dynamic> json) {
@@ -31,14 +35,15 @@ class AnnonceVente {
       description: json['description'] ?? '',
       prixKg: (json['prix_kg'] as num?)?.toDouble() ?? 0,
       quantite: (json['quantite'] as num?)?.toDouble() ?? 0,
-      userNom: json['user_nom'] ?? '',
-      typeCultureLibelle: json['type_culture_libelle'] ?? '',
-      parcelleAdresse: json['parcelle_adresse'] ?? '',
-      datePublication: json['date_publication'],
+      userNom: json['nom'] ?? '', // ✅ Corrigé
+      typeCultureLibelle: json['libelle'] ?? '', // ✅ Corrigé
+      parcelleAdresse: json['adresse'] ?? '', // ✅ Corrigé
+      datePublication: json['date_publication'], // Peut être null
+      note: (json['note'] as num?)?.toDouble(), // Note peut être null
     );
   }
 
-  get image => null;
+  get parcelleId => null;
 
   Map<String, dynamic> toJson() {
     return {
@@ -48,10 +53,11 @@ class AnnonceVente {
       'description': description,
       'prix_kg': prixKg,
       'quantite': quantite,
-      'user_nom': userNom,
-      'type_culture_libelle': typeCultureLibelle,
-      'parcelle_adresse': parcelleAdresse,
+      'nom': userNom,
+      'libelle': typeCultureLibelle,
+      'adresse': parcelleAdresse,
       'date_publication': datePublication,
+      'note': note,
     };
   }
 }

@@ -1,23 +1,40 @@
-class FinancementModel {
-  final String avatar;
+class AnnonceFinancement {
+  final String id;
+  final String statut;
+  final String description;
+  final double montantPref;
+  final double prixKgPref;
+  final double quantite;
   final String nom;
-  final String region;
-  final String culture;
-  final String superficie;
-  final String productionEstimee;
-  final String valeurProduction;
-  final String prixPreferentiel;
-  final String montantPreFinancer;
+  final String libelle;
+  final String adresse;
+  final double surface;
 
-  FinancementModel({
-    required this.avatar,
+  AnnonceFinancement({
+    required this.id,
+    required this.statut,
+    required this.description,
+    required this.montantPref,
+    required this.prixKgPref,
+    required this.quantite,
     required this.nom,
-    required this.region,
-    required this.culture,
-    required this.superficie,
-    required this.productionEstimee,
-    required this.valeurProduction,
-    required this.prixPreferentiel,
-    required this.montantPreFinancer,
+    required this.libelle,
+    required this.adresse,
+    required this.surface,
   });
+
+  factory AnnonceFinancement.fromJson(Map<String, dynamic> json) {
+    return AnnonceFinancement(
+      id: json['id'],
+      statut: json['statut'] ?? '',
+      description: json['description'] ?? '',
+      montantPref: (json['montant_pref'] as num?)?.toDouble() ?? 0,
+      prixKgPref: (json['prix_kg_pref'] as num?)?.toDouble() ?? 0,
+      quantite: (json['quantite'] as num?)?.toDouble() ?? 0,
+      nom: json['nom'] ?? '',
+      libelle: json['libelle'] ?? '',
+      adresse: json['adresse'] ?? '',
+      surface: double.tryParse(json['surface'] ?? '0') ?? 0,
+    );
+  }
 }

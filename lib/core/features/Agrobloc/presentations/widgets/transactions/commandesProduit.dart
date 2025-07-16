@@ -1,17 +1,28 @@
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/payementMethode.dart';
-import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/paiementMoney.dart';
+import 'package:flutter/material.dart';
 
 class CommandeProduitPage extends StatefulWidget {
-  const CommandeProduitPage({super.key});
+  final String nomProduit;
+  final String imageProduit;
+  final double prixUnitaire;
+  final double stockDisponible;
+
+  const CommandeProduitPage({
+    super.key,
+    required this.nomProduit,
+    required this.imageProduit,
+    required this.prixUnitaire,
+    required this.stockDisponible,
+  });
 
   @override
   State<CommandeProduitPage> createState() => _CommandeProduitPageState();
 }
 
 class _CommandeProduitPageState extends State<CommandeProduitPage> {
-  int quantite = 10;
-  String unite = "T";
+  int quantite = 1;
+  String unite = "Kg";
   final List<Map<String, String>> allPayments = [
     {"name": "Orange Money", "logo": "assets/images/orange_money.png"},
     {"name": "MTN Mobile Money", "logo": "assets/images/MTN_Money.png"},
@@ -20,95 +31,92 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
   List<String> selectedPayments = [];
   bool showPaymentList = false;
 
+  double get totalPrix {
+    double qteKg = unite == "T" ? quantite * 1000 : quantite.toDouble();
+    return widget.prixUnitaire * qteKg;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
-        title: const Text("Commande Produit", style: TextStyle(color: Colors.black)),
+        title: Text(widget.nomProduit, style: const TextStyle(color: Colors.black)),
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
         padding: const EdgeInsets.all(20),
         child: ListView(
           children: [
-            const Center(
-              child: Text(
-                "Commander le produit",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            /// ✅ Nom du produit et image
+            Center(
+              child: Column(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: widget.imageProduit.startsWith("http")
+                        ? Image.network(
+                            widget.imageProduit,
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                          )
+                        : Image.asset(
+                            widget.imageProduit,
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                          ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    widget.nomProduit,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 10),
-            const Center(
+            const SizedBox(height: 20),
+
+            /// ✅ Prix dynamique
+            Center(
               child: Text.rich(
                 TextSpan(
-                  text: "Prix  ",
+                  text: "Prix total : ",
+                  style: const TextStyle(fontWeight: FontWeight.w500),
                   children: [
                     TextSpan(
-                      text: "FCFA 15000000",
-                      style: TextStyle(
+                      text: "${totalPrix.toStringAsFixed(0)} FCFA",
+                      style: const TextStyle(
                         color: Colors.green,
                         fontWeight: FontWeight.bold,
                       ),
-                    ),
-                    WidgetSpan(
-                      child: Icon(Icons.autorenew, color: Colors.green, size: 18),
                     ),
                   ],
                 ),
               ),
             ),
             const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade300),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: const Image(
-                      image: AssetImage('assets/images/25554.jpg'),
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  const Text(
-                    "Anacarde",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              "Quantité",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
+
+            /// ✅ Quantité
+            const Text("Quantité", style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
                   flex: 2,
                   child: TextFormField(
-                    initialValue: "10",
+                    initialValue: quantite.toString(),
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     onChanged: (val) {
                       setState(() {
-                        quantite = int.tryParse(val) ?? 10;
+                        quantite = int.tryParse(val) ?? 1;
+                        if (quantite < 1) quantite = 1;
                       });
                     },
                   ),
@@ -138,6 +146,8 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
               ],
             ),
             const SizedBox(height: 20),
+
+            /// ✅ Modes de paiement
             ListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(
@@ -169,12 +179,7 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
                       ),
                     ),
                     child: ListTile(
-                      leading: Image.asset(
-                        payment["logo"]!,
-                        width: 40,
-                        height: 40,
-                        fit: BoxFit.contain,
-                      ),
+                      leading: Image.asset(payment["logo"]!, width: 40, height: 40),
                       title: Text(payment["name"]!),
                       trailing: Checkbox(
                         activeColor: Colors.green,
@@ -184,7 +189,7 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
                             if (value == true) {
                               selectedPayments.add(payment["name"]!);
                             } else {
-                              selectedPayments.remove(payment["name"]);
+                              selectedPayments.remove(payment["name"]!);
                             }
                           });
                         },
@@ -194,10 +199,12 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
                 }).toList(),
               ),
             const SizedBox(height: 30),
+
+            /// ✅ Bouton commande
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
-                onPressed: selectedPayments.isEmpty
+                onPressed: (selectedPayments.isEmpty || quantite <= 0)
                     ? null
                     : () {
                         bool isMobileMoney = selectedPayments.any((payment) =>
@@ -217,7 +224,7 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: const Text("Enregistrez ma commande"),
+                child: const Text("Enregistrer ma commande"),
               ),
             ),
           ],

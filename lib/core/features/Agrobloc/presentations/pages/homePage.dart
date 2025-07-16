@@ -1,16 +1,15 @@
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/recherche_bar.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/AnnoncePrefinancement.dart';
 import 'package:flutter/material.dart';
-import 'package:agrobloc/core/features/Agrobloc/data/dataSources/annonceService.dart';
-import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/financementModel.dart';
-import 'package:agrobloc/core/features/Agrobloc/data/models/offreModels.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/pages/transactionPage.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/detailFinancement.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/annonceService.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/offreCard.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/financementCard.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/detailFinancement.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/recommande.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/top_offres_card.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/filter_boutton.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/nav_bar.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/recherche_bar.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
 
 class HomePage extends StatefulWidget {
@@ -27,51 +26,36 @@ class _HomePageState extends State<HomePage> {
   final int _pageSize = 2;
 
   List<AnnonceVente> annonces = [];
-  List<AnnonceVente> paginatedAnnonces = [];
-  bool isLoading = true;
+  List<AnnonceFinancement> financements = [];
 
-  final List<FinancementModel> financements = [
-    FinancementModel(
-      avatar: 'assets/images/avatar.jpg',
-      nom: 'Antoine Kouassi',
-      region: "Région de l’Iffou, Daoukro",
-      culture: 'Cacao',
-      superficie: '8 hectares',
-      productionEstimee: '50 tonnes',
-      valeurProduction: '20 Millions de FCFA',
-      prixPreferentiel: '2.200 FCFA / Kg',
-      montantPreFinancer: '1.5 Millions de FCFA',
-    ),
-    FinancementModel(
-      avatar: 'assets/images/avatar.jpg',
-      nom: 'Kouamé Akissi',
-      region: "Région du Gôh, Gagnoa",
-      culture: 'Maïs',
-      superficie: '6 hectares',
-      productionEstimee: '30 tonnes',
-      valeurProduction: '10 Millions de FCFA',
-      prixPreferentiel: '1.800 FCFA / Kg',
-      montantPreFinancer: '800 000 FCFA',
-    ),
-  ];
+  List<AnnonceVente> paginatedAnnonces = [];
+  List<AnnonceFinancement> paginatedFinancements = [];
+
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    loadAnnonces();
+    _loadAllData();
   }
 
-  void loadAnnonces() async {
+  Future<void> _loadAllData() async {
+    setState(() => isLoading = true);
     try {
       final annonceService = AnnonceService();
-      final data = await annonceService.getAllAnnonces();
+      final ventesData = await annonceService.getAllAnnonces();
+      final prefinancementService = PrefinancementService();
+      final financementsData = await prefinancementService.fetchPrefinancements(); // ✅ Correction ici
+
       setState(() {
-        annonces = data;
-        isLoading = false;
+        annonces = ventesData;
+        financements = financementsData;
+        _currentPage = 0;
         _updatePagination();
+        isLoading = false;
       });
     } catch (e) {
-      print("Erreur de chargement des annonces : $e");
+      debugPrint("Erreur de chargement des données : $e");
       setState(() => isLoading = false);
     }
   }
@@ -79,13 +63,24 @@ class _HomePageState extends State<HomePage> {
   void _updatePagination() {
     final start = _currentPage * _pageSize;
     final end = (_currentPage + 1) * _pageSize;
-    paginatedAnnonces = annonces.sublist(start, end.clamp(0, annonces.length));
+
+    if (_selectedFilterIndex == 0) {
+      paginatedAnnonces = annonces.sublist(
+        start.clamp(0, annonces.length),
+        end.clamp(0, annonces.length),
+      );
+    } else if (_selectedFilterIndex == 1) {
+      paginatedFinancements = financements.sublist(
+        start.clamp(0, financements.length),
+        end.clamp(0, financements.length),
+      );
+    }
   }
 
   List<Widget> get pages => [
         _buildHomeContent(),
         const Center(child: Text("Annonces", style: TextStyle(fontSize: 50))),
-        const TransactionPage(),
+        const Center(child: Text("Transactions", style: TextStyle(fontSize: 24))),
         const Center(child: Text("Profil", style: TextStyle(fontSize: 24))),
       ];
 
@@ -102,7 +97,11 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(height: 16),
                   FilterButtons(
                     onFilterSelected: (index) {
-                      setState(() => _selectedFilterIndex = index);
+                      setState(() {
+                        _selectedFilterIndex = index;
+                        _currentPage = 0;
+                        _updatePagination();
+                      });
                     },
                   ),
                   const SizedBox(height: 24),
@@ -119,99 +118,96 @@ class _HomePageState extends State<HomePage> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            /// ✅ Top offres avec pagination
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Top offres",
-                    style: Theme.of(context).textTheme.titleLarge),
+                Text("Top offres", style: Theme.of(context).textTheme.titleLarge),
                 TextButton(
                   onPressed: () {
-                    setState(() {
-                      if ((_currentPage + 1) * _pageSize < annonces.length) {
-                        _currentPage++;
-                      } else {
-                        _currentPage = 0;
-                      }
-                      _updatePagination();
-                    });
+                    if (annonces.isNotEmpty) {
+                      setState(() {
+                        final maxPage = (annonces.length / _pageSize).ceil();
+                        _currentPage = (_currentPage + 1) % maxPage;
+                        _updatePagination();
+                      });
+                    }
                   },
-                  child: const Text("Suivant >",
-                      style: TextStyle(
-                          color: Colors.green, fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    "Suivant >",
+                    style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 10),
             SizedBox(
               height: 200,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: paginatedAnnonces.length,
-                itemBuilder: (context, index) {
-                  final annonce = paginatedAnnonces[index];
-                  return TopOffersCard(
-                    offer: OfferModel(
-                      image: annonce.photo ?? '',
-                      location: annonce.parcelleAdresse,
-                      type: annonce.statut,
-                      product: annonce.typeCultureLibelle,
-                      quantity: "${annonce.quantite} kg",
-                      price: "${annonce.prixKg} FCFA / kg",
+              child: paginatedAnnonces.isEmpty
+                  ? const Center(child: Text("Aucune offre disponible"))
+                  : ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: paginatedAnnonces.length,
+                      itemBuilder: (context, index) {
+                        final annonce = paginatedAnnonces[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: SizedBox(
+                            width: 160,
+                            child: OffreCard(data: annonce),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
             const SizedBox(height: 45),
+
+            /// ✅ Section Recommandé
             Text("Recommandé", style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 5),
             Column(
               children: annonces.map((annonce) {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 16),
-                  child: RecommendationCard(
-                    recommendation: AnnonceVente(
-                      id: annonce.id,
-                      photo: annonce.photo,
-                      typeCultureLibelle: annonce.typeCultureLibelle,
-                      parcelleAdresse: annonce.parcelleAdresse,
-                      quantite: annonce.quantite,
-                      prixKg: annonce.prixKg,
-                      statut: annonce.statut,
-                      description: annonce.description,
-                      userNom: annonce.userNom,
-                    ),
-                  ),
+                  child: RecommendationCard(recommendation: annonce),
                 );
               }).toList(),
             ),
           ],
         );
+
       case 1:
-        return Column(
-          children: financements
-              .map(
-                (financement) => Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const FinancementDetailsPage(),
-                        ),
-                      );
-                    },
-                    child: FinancementCard(data: financement),
-                  ),
-                ),
-              )
-              .toList(),
-        );
-      case 2:
-        return const Center(
-            child: Text("Mes offres en cours de développement."));
-        // You can customize this for filter index 2 if needed
+        return paginatedFinancements.isEmpty
+            ? const Center(child: Text("Aucun financement disponible"))
+            : ListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 18),
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: paginatedFinancements.length,
+                itemBuilder: (context, index) {
+                  final financement = paginatedFinancements[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => FinancementDetailsPage(data: financement),
+                          ),
+                        );
+                      },
+                      child: FinancementCard(
+                        key: ValueKey(financement.id),
+                        data: financement,
+                      ),
+                    ),
+                  );
+                },
+              );
+
+      default:
+        return const Center(child: Text("Aucun contenu disponible pour ce filtre."));
     }
   }
 

@@ -42,10 +42,7 @@ class SearchBarWidget extends StatelessWidget {
         // ⚙️ Bouton filtre
         GestureDetector(
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => CommandeProduitPage()),
-            );
+            
           },
           child: Container(
             height: 50,

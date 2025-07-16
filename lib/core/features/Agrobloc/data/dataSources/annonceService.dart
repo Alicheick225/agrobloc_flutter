@@ -9,12 +9,13 @@ class AnnonceService {
   static const String baseUrl = 'http://192.168.252.19:8080';
   static const Duration timeoutDuration = Duration(seconds: 30);
 
-  // Headers communs pour toutes les requêtes
+  // Headers communs pour les requêtes simples (pas pour MultipartRequest)
   static const Map<String, String> headers = {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   };
 
+  /// ✅ Récupérer toutes les annonces
   Future<List<AnnonceVente>> getAllAnnonces({
     String? userId,
     String? statut,
@@ -43,21 +44,7 @@ class AnnonceService {
     }
   }
 
-  Future<List<AnnonceVente>> getRecommendations() async {
-    try {
-      final response = await http.get(Uri.parse('$baseUrl/annonces/recommandations'));
-      
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        return data.map((json) => AnnonceVente.fromJson(json)).toList();
-      } else {
-        throw Exception('Failed to load recommendations: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Failed to load recommendations: $e');
-    }
-  }
-
+  /// ✅ Récupérer une annonce par ID
   Future<AnnonceVente> getAnnonceById(String id) async {
     try {
       final response = await http.get(
@@ -75,6 +62,7 @@ class AnnonceService {
     }
   }
 
+  /// ✅ Créer une annonce (multipart si photo)
   Future<AnnonceVente> createAnnonce({
     required String userId,
     required String typeCultureId,
@@ -87,8 +75,8 @@ class AnnonceService {
   }) async {
     try {
       var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/annonce_vente'));
-      request.headers.addAll(headers);
 
+      // ⚠️ Ne pas ajouter Content-Type JSON pour MultipartRequest
       request.fields.addAll({
         'user_id': userId,
         'type_culture_id': typeCultureId,
@@ -121,6 +109,7 @@ class AnnonceService {
     }
   }
 
+  /// ✅ Mettre à jour une annonce
   Future<AnnonceVente> updateAnnonce({
     required String id,
     required String statut,
@@ -133,7 +122,6 @@ class AnnonceService {
   }) async {
     try {
       var request = http.MultipartRequest('PUT', Uri.parse('$baseUrl/annonce_vente/$id'));
-      request.headers.addAll(headers);
 
       request.fields.addAll({
         'statut': statut,
@@ -166,6 +154,7 @@ class AnnonceService {
     }
   }
 
+  /// ✅ Supprimer une annonce
   Future<void> deleteAnnonce(String id) async {
     try {
       final response = await http.delete(
@@ -181,10 +170,17 @@ class AnnonceService {
     }
   }
 
-  // Gestion centralisée des erreurs HTTP
+  /// ✅ Gestion des erreurs HTTP
   Exception _handleError(http.Response response) {
     final statusCode = response.statusCode;
-    final errorMessage = jsonDecode(response.body)['message'] ?? response.body;
+    String errorMessage = "Erreur inconnue";
+
+    try {
+      final body = jsonDecode(response.body);
+      errorMessage = body['message'] ?? response.body;
+    } catch (_) {
+      errorMessage = response.body;
+    }
 
     switch (statusCode) {
       case 400:
@@ -202,7 +198,7 @@ class AnnonceService {
     }
   }
 
-  // Gestion centralisée des exceptions
+  /// ✅ Gestion des exceptions
   Exception _handleException(dynamic e) {
     if (e is http.ClientException) {
       return Exception('Erreur de connexion: ${e.message}');
