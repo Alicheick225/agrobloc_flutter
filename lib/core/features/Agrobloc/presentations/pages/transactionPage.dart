@@ -1,7 +1,5 @@
-import 'package:agrobloc/core/features/Agrobloc/presentations/pages/homePage.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/Detail_transaction/detailTransactionpage.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/card.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/detail.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/filter.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/filter_status.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/nav.dart';
@@ -65,7 +63,7 @@ class _TransactionPageState extends State<TransactionPage> {
                     TransactionCard(
                       nom: "Préfinancement - Antoine",
                       prixUnitaire: "2200",
-                      
+
                       moyenPaiement: "Wave",
                       montantTotal: "8.000.000 FCFA",
                       statut: "En Cours",
