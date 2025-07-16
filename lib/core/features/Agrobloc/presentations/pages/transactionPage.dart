@@ -65,6 +65,7 @@ class _TransactionPageState extends State<TransactionPage> {
                     TransactionCard(
                       nom: "Préfinancement - Antoine",
                       prixUnitaire: "2200",
+                      
                       moyenPaiement: "Wave",
                       montantTotal: "8.000.000 FCFA",
                       statut: "En Cours",
