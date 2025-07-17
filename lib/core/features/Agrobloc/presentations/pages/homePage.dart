@@ -13,6 +13,8 @@ import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/fil
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/nav_bar.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/recherche_bar.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/pages/transactionPage.dart';
+
 
 
 class HomePage extends StatefulWidget {
@@ -83,7 +85,7 @@ class _HomePageState extends State<HomePage> {
   List<Widget> get pages => [
         _buildHomeContent(),
         _buildAnnoncesPage(),
-        const Center(child: Text("Transactions", style: TextStyle(fontSize: 24))),
+        const TransactionPage(),
         const Center(child: Text("Profil", style: TextStyle(fontSize: 24))),
       ];
       //a supprimer apres ok
