@@ -1,49 +1,60 @@
-import 'package:agrobloc/core/features/Agrobloc/data/models/offreModels.dart';
-import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
 import 'package:flutter/material.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/commandesProduit.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
 
 class OffreDetailPage extends StatelessWidget {
-  final OfferModel? topOffer;
-  final AnnonceVenteModel? recommendation;
+  final AnnonceVente recommendation;
 
   const OffreDetailPage({
     super.key,
-    this.topOffer,
-    this.recommendation,
+    required this.recommendation,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isTopOffer = topOffer != null;
+    final image = recommendation.photo ?? "";
+    final product = recommendation.typeCultureLibelle.isNotEmpty
+        ? recommendation.typeCultureLibelle
+        : "Produit inconnu";
+    final description = recommendation.description.isNotEmpty
+        ? recommendation.description
+        : "Aucune description disponible";
+    final price = recommendation.prixKg;
+    final quantity = recommendation.quantite;
+    final location = recommendation.parcelleAdresse.isNotEmpty
+        ? recommendation.parcelleAdresse
+        : "Non renseignée";
+    final statut = (recommendation.statut).toLowerCase();
+    final nomVendeur = recommendation.userNom.isNotEmpty
+        ? recommendation.userNom
+        : "Nom inconnu";
 
-    final image = isTopOffer ? topOffer!.image : recommendation!.photo;
-    final product = isTopOffer ? topOffer!.product : recommendation!.typeCultureId;
-    final price = isTopOffer ? topOffer!.price : recommendation!.prixKg;
-    final quantity = isTopOffer ? topOffer!.quantity : recommendation!.quantite;
-    final location = isTopOffer ? topOffer!.location : recommendation!.parcelleId;
-    final statut = isTopOffer ? topOffer!.type : recommendation!.statut;
+    final note = recommendation.note?.toDouble() ?? 0.0;
 
     return Scaffold(
       body: Column(
         children: [
-          // Image & retour
+          /// ✅ IMAGE + BOUTONS
           Stack(
             children: [
-              isTopOffer
-                  ? Image.asset(
+              (image.isNotEmpty &&
+                      (image.startsWith('http') || image.startsWith('https')))
+                  ? Image.network(
                       image,
                       width: double.infinity,
-                      height: 250,
+                      height: 280,
                       fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => _imageErrorWidget(),
                     )
                   : Image.network(
-                      image,
+                      "http://192.168.252.19:8080$image",
                       width: double.infinity,
-                      height: 250,
+                      height: 280,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          const Icon(Icons.broken_image, size: 100),
+                      errorBuilder: (context, error, stackTrace) => _imageErrorWidget(),
                     ),
+
+              /// ✅ Bouton retour
               Positioned(
                 top: 40,
                 left: 16,
@@ -53,115 +64,203 @@ class OffreDetailPage extends StatelessWidget {
                     children: const [
                       Icon(Icons.arrow_back, color: Colors.white),
                       SizedBox(width: 8),
-                      Text("Retour", style: TextStyle(color: Colors.white)),
+                      Text("Retour",
+                          style: TextStyle(color: Colors.white, fontSize: 16)),
                     ],
                   ),
                 ),
               ),
+
+              /// ✅ Badge Statut
               Positioned(
                 top: 40,
                 right: 16,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     color: statut == "disponible" ? Colors.green : Colors.red,
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    statut,
+                    statut.capitalize(),
                     style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        fontSize: 14),
                   ),
                 ),
               ),
             ],
           ),
 
-          // Détails
+          /// ✅ CONTENU DETAIL
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.all(16),
               child: ListView(
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          product,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      const Icon(Icons.star, color: Colors.green, size: 20),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  const Divider(),
-                  const SizedBox(height: 16),
+                  /// ✅ Nom du produit
                   Text(
-                    "$price FCFA / Kg",
+                    product,
                     style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green,
-                    ),
+                        fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+
+                  /// ✅ Description
+                  Text(
+                    description,
+                    style: const TextStyle(
+                        color: Colors.black87, fontSize: 14, height: 1.4),
+                  ),
+                  const SizedBox(height: 16),
+
+                  /// ✅ Prix
+                  Text(
+                    "${price.toStringAsFixed(0)} FCFA / kg",
+                    style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green),
                   ),
                   const SizedBox(height: 8),
+
+                  /// ✅ Stock
+                  RichText(
+                    text: TextSpan(
+                      children: [
+                        const TextSpan(
+                          text: "Stock : ",
+                          style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14),
+                        ),
+                        TextSpan(
+                          text: "$quantity tonnes",
+                          style: const TextStyle(
+                              color: Colors.green,
+                              fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+
+                  /// ✅ Nom du vendeur
                   Row(
                     children: [
-                      const Text(
-                        "Stock: ",
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
+                      const Icon(Icons.person, size: 18, color: Colors.grey),
+                      const SizedBox(width: 5),
+                      Expanded(
+                        child: Text(
+                          nomVendeur,
+                          style: const TextStyle(
+                            color: Colors.black87,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      Text(
-                        quantity.toString(),
-                        style: const TextStyle(color: Colors.green),
                       ),
                     ],
                   ),
                   const SizedBox(height: 10),
+
+                  /// ✅ Localisation
                   Row(
                     children: [
-                      const Icon(Icons.location_on, size: 16, color: Colors.grey),
+                      const Icon(Icons.location_on, size: 18, color: Colors.grey),
                       const SizedBox(width: 5),
                       Expanded(
                         child: Text(
                           location,
-                          style: const TextStyle(color: Colors.black87),
+                          style: const TextStyle(
+                              color: Colors.black87, fontSize: 14),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
+
+
+                  Row(
+                      children: [
+                        ...List.generate(5, (index) {
+                          return Icon(
+                            index < note.round()
+                                ? Icons.star
+                                : Icons.star_border,
+                            color: Colors.amber,
+                            size: 18,
+                          );
+                        }),
+                        const SizedBox(width: 6),
+                        Text(
+                          "(${note.toStringAsFixed(1)}/5)",
+                          style: const TextStyle(fontSize: 13, color: Colors.black54),
+                        ),
+                      ],
+),
+
+                  /// ✅ BOUTONS
                   Row(
                     children: [
+                      /// ✅ Bouton Favoris
                       Expanded(
-                        child: OutlinedButton.icon(
+                        child: OutlinedButton(
                           onPressed: () {
-                            // TODO: gérer ajout aux favoris
+                            // ➡️ Logique pour ajouter aux favoris
                           },
-                          icon: const Icon(Icons.favorite_border),
-                          label: const Text("Favoris"),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Colors.green),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                          child: const Icon(Icons.favorite_border,
+                              color: Colors.green),
                         ),
                       ),
                       const SizedBox(width: 12),
+
+                      /// ✅ Bouton Commande
                       Expanded(
-                        flex: 3,
+                        flex: 2,
                         child: ElevatedButton(
                           onPressed: () {
-                            // TODO: logique pour passer une commande
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CommandeProduitPage(
+                                  nomProduit: product,
+                                  imageProduit: image.isNotEmpty
+                                      ? (image.startsWith('http')
+                                          ? image
+                                          : "http://192.168.252.19:8080$image")
+                                      : "",
+                                  prixUnitaire: price.toDouble(),
+                                  stockDisponible: quantity.toDouble(),
+                                ),
+                              ),
+                            );
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.green,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
-                          child: const Text("Passer une commande"),
+                          child: const Text(
+                            "Passer une commande",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -173,5 +272,23 @@ class OffreDetailPage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// ✅ Widget Image en cas d'erreur
+  Widget _imageErrorWidget() {
+    return Container(
+      width: double.infinity,
+      height: 280,
+      color: Colors.grey[300],
+      child: const Icon(Icons.broken_image, size: 100, color: Colors.grey),
+    );
+  }
+}
+
+/// ✅ Extension pour mettre la première lettre en majuscule
+extension StringExtension on String {
+  String capitalize() {
+    if (isEmpty) return this;
+    return '${this[0].toUpperCase()}${substring(1)}';
   }
 }

@@ -39,15 +39,20 @@ class SearchBarWidget extends StatelessWidget {
         const SizedBox(width: 12),
 
         // ⚙️ Bouton filtre
-        Container(
-          height: 50,
-          width: 50,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: Colors.grey.shade300),
-            borderRadius: BorderRadius.circular(12),
+        GestureDetector(
+          onTap: () {
+            
+          },
+          child: Container(
+            height: 50,
+            width: 50,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.tune, color: Colors.grey),
           ),
-          child: const Icon(Icons.tune, color: Colors.grey),
         ),
 
         const SizedBox(width: 8),
