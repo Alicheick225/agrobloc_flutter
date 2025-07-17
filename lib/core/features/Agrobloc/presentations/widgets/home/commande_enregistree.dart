@@ -3,20 +3,26 @@ import 'package:flutter/material.dart';
 class CommandeEnregistreePage extends StatelessWidget {
   const CommandeEnregistreePage({super.key});
 
+  static const Color primaryGreen = Color(0xFF5D9643);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,  // <-- Fond blanc ici
       appBar: AppBar(
-        title: const Text('Commande enregistrée'),
+        title: const Text('Commande enregistrée',
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18)),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        elevation: 0,
+        foregroundColor: Colors.black,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
       ),
+
+      // ✅ Contenu principal
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -30,10 +36,40 @@ class CommandeEnregistreePage extends StatelessWidget {
             const SizedBox(height: 8),
             _buildInfoRow("Numéro de téléphone", "07 69 28 3031"),
             const SizedBox(height: 8),
-            _buildInfoRow("Statut commande", "En attente de paiement", color: Colors.orange),
-            const SizedBox(height: 40),
-            _buildBottomButton(context),
+            _buildInfoRow("Statut commande", "En attente de paiement",
+                color: Colors.orange),
+            const SizedBox(height: 80), // Espace pour ne pas cacher le bouton
           ],
+        ),
+      ),
+
+      // ✅ Bouton fixé en bas
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(16),
+        child: SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: () {
+              // Action paiement
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              side: const BorderSide(color: primaryGreen),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 0,
+            ),
+            child: const Text(
+              "Entamer le paiement",
+              style: TextStyle(
+                color: primaryGreen,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -44,18 +80,19 @@ class CommandeEnregistreePage extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 2,
       child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: Colors.green,
-          child: const Text("A", style: TextStyle(color: Colors.white)),
+        leading: const CircleAvatar(
+          backgroundColor: primaryGreen,
+          child: Text("A", style: TextStyle(color: Colors.white)),
         ),
         title: const Text("Antoine Kouassi"),
         trailing: ElevatedButton(
           onPressed: () {},
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            backgroundColor: primaryGreen,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           ),
-          child: const Text("Discuter"),
+          child: const Text("Discuter", style: TextStyle(color: Colors.white)),
         ),
       ),
     );
@@ -70,7 +107,8 @@ class CommandeEnregistreePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: const [
-            Text("Anarcade", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text("Anarcade",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             SizedBox(height: 12),
             _DetailRow(label: "Montant à facturer", value: "15.075.000 FCFA"),
             _DetailRow(label: "Prix Unitaire", value: "1.700 FCFA"),
@@ -81,34 +119,14 @@ class CommandeEnregistreePage extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(String label, String value, {Color color = Colors.black}) {
+  Widget _buildInfoRow(String label, String value,
+      {Color color = Colors.black}) {
     return Row(
       children: [
-        Expanded(child: Text(label, style: const TextStyle(color: Colors.grey))),
+        Expanded(
+            child: Text(label, style: const TextStyle(color: Colors.grey))),
         Text(value, style: TextStyle(color: color, fontWeight: FontWeight.w600)),
       ],
-    );
-  }
-
-  Widget _buildBottomButton(BuildContext context) {
-    return Center(
-      child: SizedBox(
-        width: double.infinity,
-        child: OutlinedButton(
-          onPressed: () {
-            // Action paiement
-          },
-          style: OutlinedButton.styleFrom(
-            side: const BorderSide(color: Colors.green),
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-          child: const Text(
-            "Entamer le paiement",
-            style: TextStyle(color: Colors.green, fontSize: 16),
-          ),
-        ),
-      ),
     );
   }
 }

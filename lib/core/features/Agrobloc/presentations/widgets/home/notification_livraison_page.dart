@@ -1,62 +1,34 @@
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/notificationService.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/notificationModel.dart';
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
 
-/// Helper pour formater un DateTime en temps relatif
-String _getCurrentFormattedTime(DateTime messageTime) {
-  final now = DateTime.now();
-  final difference = now.difference(messageTime);
-
-  if (difference.inMinutes < 1) {
-    return "à l'instant";
-  } else if (difference.inMinutes < 60) {
-    return "il y a ${difference.inMinutes} minute${difference.inMinutes > 1 ? 's' : ''}";
-  } else if (difference.inHours < 24) {
-    return "il y a ${difference.inHours} heure${difference.inHours > 1 ? 's' : ''}";
-  } else {
-    return "il y a ${difference.inDays} jour${difference.inDays > 1 ? 's' : ''}";
-  }
-}
-
-/// Page principale des notifications + messages
-class NotificationLivraisonPage extends StatelessWidget {
+class NotificationLivraisonPage extends StatefulWidget {
   const NotificationLivraisonPage({super.key});
 
-  // Notifications avec vraies dates
-  List<Map<String, dynamic>> get notifications => [
-        {
-          'message': 'Commande #A00123 livrée avec succès.',
-          'date': DateTime.now().subtract(const Duration(minutes: 15)),
-        },
-        {
-          'message': 'Commande #A00124 en cours de livraison.',
-          'date': DateTime.now().subtract(const Duration(minutes: 30)),
-        },
-        {
-          'message': 'Commande #A00125 livrée à Korhogo.',
-          'date': DateTime.now().subtract(const Duration(hours: 1)),
-        },
-      ];
+  @override
+  State<NotificationLivraisonPage> createState() => _NotificationLivraisonPageState();
+}
 
-  void _onMenuSelected(BuildContext context, String value) {
-    switch (value) {
-      case 'mark_all':
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Toutes les notifications marquées comme lues')),
-        );
-        break;
-      case 'clear_all':
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Toutes les notifications effacées')),
-        );
-        break;
-      case 'settings':
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ouverture des paramètres de notifications')),
-        );
-        break;
-    }
+class _NotificationLivraisonPageState extends State<NotificationLivraisonPage> {
+  final NotificationService _service = NotificationService();
+  late Future<List<NotificationModel>> _futureNotifications;
+
+  @override
+  void initState() {
+    super.initState();
+    _futureNotifications = _loadSortedNotifications();
   }
 
+  Future<List<NotificationModel>> _loadSortedNotifications() async {
+    final list = await _service.fetchNotifications();
+    list.sort((a, b) => b.date.compareTo(a.date)); // Tri du plus récent au plus ancien
+    return list;
+  }
+  void _onMenuSelected(String value) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text('$value sélectionné')));
+  }
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -166,14 +138,67 @@ class NotificationLivraisonPage extends StatelessWidget {
               },
             ),
 
-            // Onglet Messages
-            const MessageList(),
-          ],
-        ),
+  String _formatRelative(DateTime originalDt) {
+    final now = DateTime.now();
+    final dt = originalDt.toLocal();
+    final diff = now.difference(dt);
+
+    if (diff.inSeconds < 60) return 'À l’instant';
+    if (diff.inMinutes < 60) {
+      return 'Il y a ${diff.inMinutes} minute${diff.inMinutes > 1 ? 's' : ''}';
+    }
+    if (diff.inHours < 24) {
+      return 'Il y a ${diff.inHours} heure${diff.inHours > 1 ? 's' : ''}';
+    }
+    if (diff.inDays < 7) {
+      return 'Il y a ${diff.inDays} jour${diff.inDays > 1 ? 's' : ''}';
+    }
+
+    return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+  }
+
+  Widget _buildNotificationItem(NotificationModel notif) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.local_shipping, color: AppColors.primaryGreen),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  notif.message,
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: Text(
+                    _formatRelative(notif.date),
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
-
 }
 
 /// Liste des messages (simulée)
@@ -227,188 +252,66 @@ class MessageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formattedTime = _getCurrentFormattedTime(date);
-
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => MessageDetailPage(
-              avatar: avatar,
-              name: name,
-              message: message,
-              date: date,
-            ),
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+          title: const Text('Notifications', style: TextStyle(fontSize: 18)),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.pop(context),
           ),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(12),
-          color: Colors.white,
-        ),
-        child: Row(
-          children: [
-            CircleAvatar(backgroundImage: AssetImage(avatar), radius: 20),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                  const SizedBox(height: 4),
-                  Text(message, style: const TextStyle(color: Colors.grey, fontSize: 13)),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.bottomRight,
-                    child: Text(formattedTime, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Détail d’une conversation
-class MessageDetailPage extends StatefulWidget {
-  final String avatar;
-  final String name;
-  final String message;
-  final DateTime date;
-
-  const MessageDetailPage({
-    super.key,
-    required this.avatar,
-    required this.name,
-    required this.message,
-    required this.date,
-  });
-
-  @override
-  State<MessageDetailPage> createState() => _MessageDetailPageState();
-}
-
-class _MessageDetailPageState extends State<MessageDetailPage> {
-  final TextEditingController _controller = TextEditingController();
-  final List<Map<String, dynamic>> _messages = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _messages.add({
-      'text': widget.message,
-      'time': widget.date,
-      'fromUser': false,
-    });
-  }
-
-  void _sendMessage() {
-    final text = _controller.text.trim();
-    if (text.isEmpty) return;
-    setState(() {
-      _messages.add({
-        'text': text,
-        'time': DateTime.now(),
-        'fromUser': true,
-      });
-    });
-    _controller.clear();
-  }
-
-  void _showTimePopup(DateTime time) {
-    final formatted = "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')} - ${time.day}/${time.month}/${time.year}";
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        content: Text("Message reçu le : $formatted"),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Fermer")),
-        ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 1,
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
-        titleSpacing: 0,
-        title: Row(
-          children: [
-            CircleAvatar(backgroundImage: AssetImage(widget.avatar), radius: 18),
-            const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(widget.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                const Text("En ligne", style: TextStyle(fontSize: 12, color: Colors.grey)),
-              ],
-            ),
-            const Spacer(),
-            // Menu 3 points pour bloquer ou autres actions
+          actions: [
             PopupMenuButton<String>(
               icon: const Icon(Icons.more_vert, color: Colors.grey),
-              onSelected: (v) {
-                if (v == 'block') {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Utilisateur ${widget.name} bloqué')),
-                  );
-                }
-              },
-              itemBuilder: (_) => [
-                const PopupMenuItem(value: 'block', child: Text("Bloquer l'utilisateur")),
+              onSelected: _onMenuSelected,
+              itemBuilder: (_) => const [
+                PopupMenuItem(value: 'Tout marquer lu', child: Text('Tout marquer lu')),                
+                PopupMenuItem(value: 'Effacer tout', child: Text('Effacer tout')),
+                PopupMenuItem(value: 'Paramètres', child: Text('Paramètres')),
               ],
             ),
           ],
+          bottom: const TabBar(
+            labelColor: AppColors.primaryGreen,
+            unselectedLabelColor: Colors.grey,
+            indicatorColor: AppColors.primaryGreen,
+            tabs: [
+              Tab(text: 'Notifications'),
+              Tab(text: 'Messages'),
+            ],
+          ),
         ),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.all(20),
-              itemCount: _messages.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 10),
-              itemBuilder: (context, i) {
-                final msg = _messages[i];
-                final isUser = msg['fromUser'] as bool;
-                final time = msg['time'] as DateTime;
-                return GestureDetector(
-                  onTap: () => _showTimePopup(time),
-                  child: Align(
-                    alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-                    child: Column(
-                      crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: isUser ? AppColors.primaryGreen.withOpacity(0.2) : Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2))],
-                          ),
-                          child: Text(msg['text'] as String, style: const TextStyle(fontSize: 14)),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(_getCurrentFormattedTime(time), style: const TextStyle(color: Colors.grey, fontSize: 11)),
-                      ],
-                    ),
-                  ),
+        body: TabBarView(
+          children: [
+            FutureBuilder<List<NotificationModel>>(
+              future: _futureNotifications,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(child: Text('Erreur : ${snapshot.error}'));
+                }
+                final list = snapshot.data!;
+                if (list.isEmpty) {
+                  return const Center(child: Text('Aucune notification'));   
+                }
+                return ListView.separated(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: list.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) => _buildNotificationItem(list[index]),
                 );
               },
             ),
+            const Center(child: Text('Onglet Messages')),
+          ],
+        ),
           ),
           const Divider(height: 1),
           Container(
