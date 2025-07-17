@@ -1,17 +1,14 @@
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/AnnoncePrefinancement.dart';
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/financementModel.dart';
-import 'package:agrobloc/core/features/Agrobloc/data/models/offreModels.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/commande_enregistree.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/detailFinancement.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/annonceService.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/offreCard.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/financementCard.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/detailFinancement.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/recommande.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/statut_commande.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/top_offres_card.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/filter_boutton.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/nav_bar.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/recherche_bar.dart';
@@ -85,41 +82,42 @@ class _HomePageState extends State<HomePage> {
 
   List<Widget> get pages => [
         _buildHomeContent(),
-_buildAnnoncesPage(),
+        _buildAnnoncesPage(),
         const Center(child: Text("Transactions", style: TextStyle(fontSize: 24))),
         const Center(child: Text("Profil", style: TextStyle(fontSize: 24))),
       ];
+      //a supprimer apres ok
       Widget _buildAnnoncesPage() {
-  return Padding(
-    padding: const EdgeInsets.all(20),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        const Text("Section Annonces", style: TextStyle(fontSize: 24)),
-        const SizedBox(height: 30),
-        ElevatedButton.icon(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const CommandeEnregistreePage()),
-            );
-          },
-          icon: const Icon(Icons.receipt),
-          label: const Text("Voir Commande Enregistrée"),
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-        ),
-        const SizedBox(height: 20),
-        ElevatedButton.icon(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const StatutCommandePage()),
-            );
-          },
-          icon: const Icon(Icons.local_shipping),
-          label: const Text("Voir Statut de Commande"),
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-        ),
+              return Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Text("Section Annonces", style: TextStyle(fontSize: 24)),
+                    const SizedBox(height: 30),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const CommandeEnregistreePage()),
+                        );
+                      },
+                      icon: const Icon(Icons.receipt),
+                      label: const Text("Voir Commande Enregistrée"),
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const StatutCommandePage()),
+                        );
+                      },
+                      icon: const Icon(Icons.local_shipping),
+                      label: const Text("Voir Statut de Commande"),
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                    ),
       ],
     ),
   );
@@ -264,6 +262,7 @@ _buildAnnoncesPage(),
           onTap: (index) => setState(() => _selectedIndex = index),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
+  }
+ 
