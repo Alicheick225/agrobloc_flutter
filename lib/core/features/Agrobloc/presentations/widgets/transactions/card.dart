@@ -27,7 +27,7 @@ class TransactionCard extends StatelessWidget {
       color: AppColors.cardBackground,
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
