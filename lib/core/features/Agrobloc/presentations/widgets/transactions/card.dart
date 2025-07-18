@@ -1,3 +1,4 @@
+import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class TransactionCard extends StatelessWidget {
@@ -23,6 +24,7 @@ class TransactionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: AppColors.cardBackground,
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
