@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/auth/widgetAuth.dart';
+import 'login.dart';
 
 class SignUpPage extends StatelessWidget {
   final fullNameController = TextEditingController();
@@ -67,7 +68,10 @@ class SignUpPage extends StatelessWidget {
               Center(
                 child: TextButton(
                   onPressed: () {
-                    // Navigation vers login
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => LoginPage()),
+                    );
                   },
                   child: const Text("Vous avez déjà un compte ? Connectez-vous !"),
                 ),

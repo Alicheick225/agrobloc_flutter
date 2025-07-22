@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/auth/widgetAuth.dart';
+import 'forgot_password_code.dart';
+import 'register.dart';
 
 class LoginPage extends StatelessWidget {
   final emailController = TextEditingController();
@@ -74,7 +76,12 @@ class LoginPage extends StatelessWidget {
                         ],
                       ),
                       TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => ForgotPasswordCodePage()),
+                          );
+                        },
                         child: const Text("mot de passe oublié ?"),
                       )
                     ],
@@ -85,7 +92,12 @@ class LoginPage extends StatelessWidget {
                   }),
                   const SizedBox(height: 16),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => SignUpPage()),
+                      );
+                    },
                     child: const Text("Inscrivez-vous ici !"),
                   )
                 ],
