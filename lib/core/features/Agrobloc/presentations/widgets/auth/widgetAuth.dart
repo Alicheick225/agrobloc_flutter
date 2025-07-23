@@ -6,17 +6,41 @@ Widget customTextField({
   bool obscureText = false,
   TextEditingController? controller,
   TextInputType? keyboardType,
+  String? Function(String?)? validator,
+  Widget? suffixIcon,
 }) {
-  return TextField(
+  return TextFormField(
     controller: controller,
     obscureText: obscureText,
     keyboardType: keyboardType,
+    validator: validator,
     decoration: InputDecoration(
-      prefixIcon: Icon(icon),
-      hintText: hintText,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
+      prefixIcon: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(width: 8),
+          Icon(
+            icon,
+            color: Colors.green,
+          ),
+          const SizedBox(width: 8),
+          Container(
+            width: 1,
+            height: 24,
+            color: Colors.green,
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
+      hintText: hintText,
+      hintStyle: const TextStyle(color: Colors.grey),
+      enabledBorder: const UnderlineInputBorder(
+        borderSide: BorderSide(color: Colors.green),
+      ),
+      focusedBorder: const UnderlineInputBorder(
+        borderSide: BorderSide(color: Colors.green, width: 2),
+      ),
+      suffixIcon: suffixIcon,
     ),
   );
 }

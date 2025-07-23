@@ -1,13 +1,25 @@
+import 'forgot_password.dart';
 import 'package:flutter/material.dart';
 import '../widgets/auth/widgetAuth.dart';
-import 'forgot_password_code.dart';
 import 'register.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  bool _obscurePassword = true;
 
-  LoginPage({super.key});
+  void _togglePasswordVisibility() {
+    setState(() {
+      _obscurePassword = !_obscurePassword;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,11 +71,41 @@ class LoginPage extends StatelessWidget {
                     keyboardType: TextInputType.emailAddress,
                   ),
                   const SizedBox(height: 16),
-                  customTextField(
-                    icon: Icons.lock,
-                    hintText: "Mot de passe",
+                  TextFormField(
                     controller: passwordController,
-                    obscureText: true,
+                    obscureText: _obscurePassword,
+                    keyboardType: TextInputType.text,
+                    decoration: InputDecoration(
+                      prefixIcon: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          SizedBox(width: 8),
+                          Icon(Icons.lock, color: Colors.green),
+                          SizedBox(width: 8),
+                          VerticalDivider(
+                            color: Colors.green,
+                            thickness: 1,
+                            width: 1,
+                          ),
+                          SizedBox(width: 8),
+                        ],
+                      ),
+                      hintText: "Mot de passe",
+                      hintStyle: const TextStyle(color: Colors.grey),
+                      enabledBorder: const UnderlineInputBorder(
+                        borderSide: BorderSide(color: Colors.green),
+                      ),
+                      focusedBorder: const UnderlineInputBorder(
+                        borderSide: BorderSide(color: Colors.green, width: 2),
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                          color: Colors.green,
+                        ),
+                        onPressed: _togglePasswordVisibility,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Row(
@@ -79,10 +121,14 @@ class LoginPage extends StatelessWidget {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => ForgotPasswordCodePage()),
+                            MaterialPageRoute(
+                                builder: (context) => ForgotPasswordPage()),
                           );
                         },
-                        child: const Text("mot de passe oublié ?"),
+                        child: const Text(
+                          "mot de passe oublié ?",
+                          style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                        ),
                       )
                     ],
                   ),
@@ -98,7 +144,10 @@ class LoginPage extends StatelessWidget {
                         MaterialPageRoute(builder: (context) => SignUpPage()),
                       );
                     },
-                    child: const Text("Inscrivez-vous ici !"),
+                    child: const Text(
+                      "Inscrivez-vous ici !",
+                      style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                    ),
                   )
                 ],
               ),

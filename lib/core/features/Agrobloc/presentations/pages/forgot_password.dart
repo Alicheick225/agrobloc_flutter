@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'otp_verification.dart';
+import '../widgets/auth/widgetAuth.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -62,23 +63,11 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 height: 150,
               ),
               const SizedBox(height: 24),
-              const Text(
-                'Entrez votre numéro de téléphone pour recevoir un code de réinitialisation',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-              ),
-              const SizedBox(height: 24),
-              TextFormField(
+              customTextField(
+                icon: Icons.phone,
+                hintText: 'Numéro de téléphone',
                 controller: phoneController,
                 keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(10),
-                ],
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: 'Numéro de téléphone',
-                ),
                 validator: _validatePhone,
               ),
               const SizedBox(height: 24),

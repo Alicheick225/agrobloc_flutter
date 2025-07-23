@@ -2,13 +2,33 @@ import 'package:flutter/material.dart';
 import '../widgets/auth/widgetAuth.dart';
 import 'login.dart';
 
-class SignUpPage extends StatelessWidget {
+class SignUpPage extends StatefulWidget {
+  const SignUpPage({super.key});
+
+  @override
+  State<SignUpPage> createState() => _SignUpPageState();
+}
+
+class _SignUpPageState extends State<SignUpPage> {
   final fullNameController = TextEditingController();
   final phoneController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
-  SignUpPage({super.key});
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
+
+  void _togglePasswordVisibility() {
+    setState(() {
+      _obscurePassword = !_obscurePassword;
+    });
+  }
+
+  void _toggleConfirmPasswordVisibility() {
+    setState(() {
+      _obscureConfirmPassword = !_obscureConfirmPassword;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,18 +67,76 @@ class SignUpPage extends StatelessWidget {
                 keyboardType: TextInputType.phone,
               ),
               const SizedBox(height: 16),
-              customTextField(
-                icon: Icons.lock,
-                hintText: "Mot de passe",
+              TextFormField(
                 controller: passwordController,
-                obscureText: true,
+                obscureText: _obscurePassword,
+                decoration: InputDecoration(
+                  prefixIcon: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      SizedBox(width: 8),
+                      Icon(Icons.lock, color: Colors.green),
+                      SizedBox(width: 8),
+                      VerticalDivider(
+                        color: Colors.green,
+                        thickness: 1,
+                        width: 1,
+                      ),
+                      SizedBox(width: 8),
+                    ],
+                  ),
+                  hintText: "Mot de passe",
+                  hintStyle: const TextStyle(color: Colors.grey),
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.green),
+                  ),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.green, width: 2),
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                      color: Colors.green,
+                    ),
+                    onPressed: _togglePasswordVisibility,
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
-              customTextField(
-                icon: Icons.lock,
-                hintText: "Confirmer mot de passe",
+              TextFormField(
                 controller: confirmPasswordController,
-                obscureText: true,
+                obscureText: _obscureConfirmPassword,
+                decoration: InputDecoration(
+                  prefixIcon: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      SizedBox(width: 8),
+                      Icon(Icons.lock, color: Colors.green),
+                      SizedBox(width: 8),
+                      VerticalDivider(
+                        color: Colors.green,
+                        thickness: 1,
+                        width: 1,
+                      ),
+                      SizedBox(width: 8),
+                    ],
+                  ),
+                  hintText: "Confirmer mot de passe",
+                  hintStyle: const TextStyle(color: Colors.grey),
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.green),
+                  ),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.green, width: 2),
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                      color: Colors.green,
+                    ),
+                    onPressed: _toggleConfirmPasswordVisibility,
+                  ),
+                ),
               ),
               const SizedBox(height: 24),
               customButton("inscription", () {
@@ -73,7 +151,10 @@ class SignUpPage extends StatelessWidget {
                       MaterialPageRoute(builder: (context) => LoginPage()),
                     );
                   },
-                  child: const Text("Vous avez déjà un compte ? Connectez-vous !"),
+                  child: const Text(
+                    "Vous avez déjà un compte ? Connectez-vous !",
+                    style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
             ],
@@ -83,3 +164,4 @@ class SignUpPage extends StatelessWidget {
     );
   }
 }
+

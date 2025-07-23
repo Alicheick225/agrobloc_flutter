@@ -12,7 +12,7 @@ class OtpVerificationPage extends StatefulWidget {
 
 class _OtpVerificationPageState extends State<OtpVerificationPage> {
   final List<TextEditingController> _otpControllers =
-      List.generate(10, (_) => TextEditingController());
+      List.generate(4, (_) => TextEditingController());
 
   @override
   void dispose() {
@@ -53,7 +53,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: List.generate(10, (index) {
+              children: List.generate(4, (index) {
                 return SizedBox(
                   width: 40,
                   height: 50,
@@ -70,7 +70,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                       border: OutlineInputBorder(),
                     ),
                     onChanged: (value) {
-                      if (value.length == 1 && index < 9) {
+                      if (value.length == 1 && index < 3) {
                         FocusScope.of(context).nextFocus();
                       } else if (value.isEmpty && index > 0) {
                         FocusScope.of(context).previousFocus();
