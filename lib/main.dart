@@ -1,5 +1,5 @@
-// import 'package:agrobloc/core/features/Agrobloc/presentations/pages/homePage.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/pages/login.dart';
+// import 'package:agrobloc/core/features/Agrobloc/presentations/pages/login.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/pages/select_profile.dart';
 // import 'package:agrobloc/core/features/Agrobloc/presentations/pages/register.dart';
 import 'package:flutter/material.dart';
 
@@ -18,6 +18,6 @@ class MyApp extends StatelessWidget {
           primaryColor: const Color(0xFF5d9643), // AppColors.primary
           fontFamily: 'Poppins',
         ),
-        home: LoginPage());
+        home: SelectProfilePage());
   }
 }

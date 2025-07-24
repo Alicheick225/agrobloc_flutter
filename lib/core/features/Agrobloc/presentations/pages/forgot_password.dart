@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'otp_verification.dart';
 import '../widgets/auth/widgetAuth.dart';
 
+/// Page permettant à l'utilisateur de récupérer son mot de passe via son numéro de téléphone
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
 
@@ -10,10 +11,12 @@ class ForgotPasswordPage extends StatefulWidget {
   State<ForgotPasswordPage> createState() => _ForgotPasswordPageState();
 }
 
+/// État de la page de récupération de mot de passe gérant le formulaire et la validation
 class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final TextEditingController phoneController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
+  /// Soumet le formulaire et navigue vers la page de vérification OTP si valide
   void _onSubmit() {
     if (_formKey.currentState!.validate()) {
       Navigator.push(
@@ -27,6 +30,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     }
   }
 
+  /// Valide le numéro de téléphone saisi
   String? _validatePhone(String? value) {
     if (value == null || value.isEmpty) {
       return 'Veuillez entrer votre numéro de téléphone';
@@ -40,9 +44,11 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     return null;
   }
 
+  /// Construit l'interface utilisateur de la page de récupération de mot de passe
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: const Text('Mot de passe oublié ?'),
         leading: IconButton(
@@ -51,44 +57,48 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         ),
         backgroundColor: Colors.green,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              const SizedBox(height: 16),
-              Image.asset(
-                'assets/images/password.jpeg',
-                height: 150,
-              ),
-              const SizedBox(height: 24),
-              customTextField(
-                icon: Icons.phone,
-                hintText: 'Numéro de téléphone',
-                controller: phoneController,
-                keyboardType: TextInputType.number,
-                validator: _validatePhone,
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _onSubmit,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                const SizedBox(height: 16),
+                Image.asset(
+                  'assets/images/password.jpeg',
+                  height: 150,
+                ),
+                const SizedBox(height: 24),
+                // Champ de saisie pour le numéro de téléphone avec validation
+                customTextField(
+                  icon: Icons.phone,
+                  hintText: 'Numéro de téléphone',
+                  controller: phoneController,
+                  keyboardType: TextInputType.number,
+                  validator: _validatePhone,
+                ),
+                const SizedBox(height: 24),
+                // Bouton pour soumettre le formulaire
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _onSubmit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Suivant',
+                      style: TextStyle(fontSize: 18, color: Colors.white),
                     ),
                   ),
-                  child: const Text(
-                    'Suivant',
-                    style: TextStyle(fontSize: 18, color: Colors.white),
-                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
