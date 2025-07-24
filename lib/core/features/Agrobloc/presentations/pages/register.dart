@@ -21,8 +21,10 @@ class _SignUpPageState extends State<SignUpPage> {
   final confirmPasswordController = TextEditingController();
 
   bool _obscurePassword = true; // Contrôle la visibilité du mot de passe
-  bool _obscureConfirmPassword = true; // Contrôle la visibilité du mot de passe de confirmation
-  bool _isLoading = false; // Indique si une opération d'inscription est en cours
+  bool _obscureConfirmPassword =
+      true; // Contrôle la visibilité du mot de passe de confirmation
+  bool _isLoading =
+      false; // Indique si une opération d'inscription est en cours
 
   final AuthService _authService = AuthService();
 
@@ -57,13 +59,16 @@ class _SignUpPageState extends State<SignUpPage> {
       if (widget.profile == 'acheteur') {
         profilId = 'b74a4f6-67b6-474a-9bf5-d63e04d2a804'; // ID acheteur exemple
       } else if (widget.profile == 'planteur') {
-        profilId = 'f23423d4-ca9e-409b-b3fb-26126ab66581'; // ID planteur exemple
+        profilId =
+            'f23423d4-ca9e-409b-b3fb-26126ab66581'; // ID planteur exemple
       }
 
       final user = await _authService.register(
         nom: fullNameController.text.trim(),
-        email: widget.profile == 'acheteur' ? phoneController.text.trim() : null,
-        numeroTel: widget.profile == 'planteur' ? phoneController.text.trim() : null,
+        email:
+            widget.profile == 'acheteur' ? phoneController.text.trim() : null,
+        numeroTel:
+            widget.profile == 'planteur' ? phoneController.text.trim() : null,
         password: passwordController.text,
         confirmPassword: confirmPasswordController.text,
         profilId: profilId,
@@ -184,7 +189,9 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
                       color: Colors.green,
                     ),
                     onPressed: _togglePasswordVisibility,
@@ -221,7 +228,9 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                      _obscureConfirmPassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
                       color: Colors.green,
                     ),
                     onPressed: _toggleConfirmPasswordVisibility,
@@ -240,12 +249,15 @@ class _SignUpPageState extends State<SignUpPage> {
                     // Navigue vers la page de connexion
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => LoginPage(profile: widget.profile)),
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              LoginPage(profile: widget.profile)),
                     );
                   },
                   child: const Text(
-                    "Vous avez déjà un compte ? Connectez-vous !",
-                    style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                    "Vous avez déjà un compte ? Connectez-vous!",
+                    style: TextStyle(
+                        color: Colors.green, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
