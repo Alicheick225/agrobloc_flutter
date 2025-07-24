@@ -17,6 +17,7 @@ import 'package:agrobloc/core/features/Agrobloc/presentations/pages/transactionP
 
 
 
+/// Page principale affichant les différentes sections et la navigation
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -24,26 +25,43 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
+/// Page principale affichant les différentes sections et la navigation
 class _HomePageState extends State<HomePage> {
+  // Index de l'onglet sélectionné dans la barre de navigation inférieure
   int _selectedIndex = 0;
+
+  // Index du filtre sélectionné (0 = annonces, 1 = financements)
   int _selectedFilterIndex = 0;
+
+  // Page courante pour la pagination
   int _currentPage = 0;
+
+  // Nombre d'éléments par page pour la pagination
   final int _pageSize = 2;
 
+  // Liste complète des annonces de vente
   List<AnnonceVente> annonces = [];
+
+  // Liste complète des financements
   List<AnnonceFinancement> financements = [];
 
+  // Sous-liste paginée des annonces affichées
   List<AnnonceVente> paginatedAnnonces = [];
+
+  // Sous-liste paginée des financements affichés
   List<AnnonceFinancement> paginatedFinancements = [];
 
+  // Indicateur de chargement des données
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    // Chargement initial des données lors de l'initialisation du widget
     _loadAllData();
   }
 
+  /// Charge toutes les données nécessaires (annonces et financements)
   Future<void> _loadAllData() async {
     setState(() => isLoading = true);
     try {
@@ -65,6 +83,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  /// Met à jour les sous-listes paginées en fonction de la page courante et du filtre sélectionné
   void _updatePagination() {
     final start = _currentPage * _pageSize;
     final end = (_currentPage + 1) * _pageSize;
@@ -82,50 +101,52 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  /// Liste des pages affichées dans le corps principal
   List<Widget> get pages => [
         _buildHomeContent(),
         _buildAnnoncesPage(),
         const TransactionPage(),
         const Center(child: Text("Profil", style: TextStyle(fontSize: 24))),
       ];
-      //a supprimer apres ok
-      Widget _buildAnnoncesPage() {
-              return Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const Text("Section Annonces", style: TextStyle(fontSize: 24)),
-                    const SizedBox(height: 30),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const CommandeEnregistreePage()),
-                        );
-                      },
-                      icon: const Icon(Icons.receipt),
-                      label: const Text("Voir Commande Enregistrée"),
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const StatutCommandePage()),
-                        );
-                      },
-                      icon: const Icon(Icons.local_shipping),
-                      label: const Text("Voir Statut de Commande"),
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                    ),
-      ],
-    ),
-  );
-}
 
+  /// Page affichant la section annonces avec boutons de navigation vers d'autres pages
+  Widget _buildAnnoncesPage() {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Text("Section Annonces", style: TextStyle(fontSize: 24)),
+          const SizedBox(height: 30),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CommandeEnregistreePage()),
+              );
+            },
+            icon: const Icon(Icons.receipt),
+            label: const Text("Voir Commande Enregistrée"),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const StatutCommandePage()),
+              );
+            },
+            icon: const Icon(Icons.local_shipping),
+            label: const Text("Voir Statut de Commande"),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+          ),
+        ],
+      ),
+    );
+  }
 
+  /// Contenu principal de la page d'accueil avec barre de recherche et filtres
   Widget _buildHomeContent() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -154,6 +175,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  /// Contenu filtré affiché selon le filtre sélectionné (annonces ou financements)
   Widget _buildFilteredContent() {
     switch (_selectedFilterIndex) {
       case 0:
@@ -266,5 +288,5 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-  }
+}
  
