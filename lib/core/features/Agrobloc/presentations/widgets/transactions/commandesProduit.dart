@@ -1,6 +1,8 @@
+import 'package:flutter/material.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/moyensPaiementModel.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/moyensPaiementService.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/payementMethode.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/paiementMoney.dart';
-import 'package:flutter/material.dart';
 
 class CommandeProduitPage extends StatefulWidget {
   final String nomProduit;
@@ -23,17 +25,35 @@ class CommandeProduitPage extends StatefulWidget {
 class _CommandeProduitPageState extends State<CommandeProduitPage> {
   int quantite = 1;
   String unite = "Kg";
-  final List<Map<String, String>> allPayments = [
-    {"name": "Orange Money", "logo": "assets/images/orange_money.png"},
-    {"name": "MTN Mobile Money", "logo": "assets/images/MTN_Money.png"},
-    {"name": "Carte Bancaire", "logo": "assets/images/carte_bancaire.png"},
-  ];
+  List<MoyenPaiement> moyensPaiement = [];
   List<String> selectedPayments = [];
   bool showPaymentList = false;
+  bool isLoading = true;
 
   double get totalPrix {
     double qteKg = unite == "T" ? quantite * 1000 : quantite.toDouble();
     return widget.prixUnitaire * qteKg;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    chargerMoyensPaiement();
+  }
+
+  Future<void> chargerMoyensPaiement() async {
+    try {
+      final result = await MoyensPaiementService.fetchMoyensPaiement();
+      setState(() {
+        moyensPaiement = result;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() => isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Erreur de chargement des moyens de paiement")),
+      );
+    }
   }
 
   @override
@@ -50,7 +70,7 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
         padding: const EdgeInsets.all(20),
         child: ListView(
           children: [
-            /// ✅ Nom du produit et image
+            /// ✅ Image et nom du produit
             Center(
               child: Column(
                 children: [
@@ -80,7 +100,7 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
             ),
             const SizedBox(height: 20),
 
-            /// ✅ Prix dynamique
+            /// ✅ Prix total
             Center(
               child: Text.rich(
                 TextSpan(
@@ -147,7 +167,7 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
             ),
             const SizedBox(height: 20),
 
-            /// ✅ Modes de paiement
+            /// ✅ Moyens de paiement
             ListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(
@@ -167,48 +187,60 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
               },
             ),
             if (showPaymentList)
-              Column(
-                children: allPayments.map((payment) {
-                  bool isSelected = selectedPayments.contains(payment["name"]);
-                  return Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(
-                        color: isSelected ? Colors.green : Colors.grey.shade300,
-                        width: 1,
-                      ),
+              isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : Column(
+                      children: moyensPaiement.map((payment) {
+                        final isSelected = selectedPayments.contains(payment.id);
+                        return Card(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(
+                              color: isSelected ? Colors.green : Colors.grey.shade300,
+                              width: 1,
+                            ),
+                          ),
+                          child: ListTile(
+                            leading: Image.network(
+                              payment.logo,
+                              width: 40,
+                              height: 40,
+                              errorBuilder: (_, __, ___) =>
+                                  const Icon(Icons.image_not_supported),
+                            ),
+                            title: Text(payment.libelle),
+                            trailing: Checkbox(
+                              activeColor: Colors.green,
+                              value: isSelected,
+                              onChanged: (val) {
+                                setState(() {
+                                  if (val == true) {
+                                    selectedPayments.add(payment.id);
+                                  } else {
+                                    selectedPayments.remove(payment.id);
+                                  }
+                                });
+                              },
+                            ),
+                          ),
+                        );
+                      }).toList(),
                     ),
-                    child: ListTile(
-                      leading: Image.asset(payment["logo"]!, width: 40, height: 40),
-                      title: Text(payment["name"]!),
-                      trailing: Checkbox(
-                        activeColor: Colors.green,
-                        value: isSelected,
-                        onChanged: (value) {
-                          setState(() {
-                            if (value == true) {
-                              selectedPayments.add(payment["name"]!);
-                            } else {
-                              selectedPayments.remove(payment["name"]!);
-                            }
-                          });
-                        },
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
             const SizedBox(height: 30),
 
-            /// ✅ Bouton commande
+            /// ✅ Bouton de commande
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
                 onPressed: (selectedPayments.isEmpty || quantite <= 0)
                     ? null
                     : () {
-                        bool isMobileMoney = selectedPayments.any((payment) =>
-                            payment == "Orange Money" || payment == "MTN Mobile Money");
+                        bool isMobileMoney = moyensPaiement
+                            .where((m) => selectedPayments.contains(m.id))
+                            .any((m) =>
+                                m.libelle.contains("Orange Money") ||
+                                m.libelle.contains("MTN"));
+
                         Navigator.push(
                           context,
                           MaterialPageRoute(
