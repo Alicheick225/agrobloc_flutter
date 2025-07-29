@@ -1,3 +1,5 @@
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/commande_vente_service.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/commande_vente.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/Detail_transaction/detailTransactionpage.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/card.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/filter.dart';
@@ -13,6 +15,7 @@ class TransactionPage extends StatefulWidget {
 }
 
 class _TransactionPageState extends State<TransactionPage> {
+  CommandeStatus? _selectedStatus;
   int selectedFilter = 0;
 
   @override
@@ -35,61 +38,58 @@ class _TransactionPageState extends State<TransactionPage> {
             ),
             const SizedBox(height: 16),
             //FILTRE PAR STATUT
-            const FilterStatus(),
+            FilterStatus(
+                          selectedStatus: _selectedStatus,
+                          onStatusChanged: (status) {
+                            setState(() {
+                              _selectedStatus = status;
+                            });
+                          },
+                        ),
             const SizedBox(height: 16),
 
             /// Liste des transactions (temporaire)
-            Expanded(
-              child: ListView(
-                children: [
-                  if (selectedFilter == 0)
-                    TransactionCard(
-                      nom: "Achats - Antoine",
-                      prixUnitaire: "1700",
-                      moyenPaiement: "Orange Money",
-                      montantTotal: "15.000.000 FCFA",
-                      statut: "Terminé",
-                      statutColor: Colors.green,
-                      onDetails: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => Detailtransactionpage(),
-                          ),
-                        );
-                      },
-                    ),
-                  if (selectedFilter == 1)
-                    TransactionCard(
-                      nom: "Préfinancement - Antoine",
-                      prixUnitaire: "2200",
+          Expanded(
+            child: FutureBuilder<List<CommandeVente>>(
+              future: CommandeVenteService().getAllCommandes(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final list = snapshot.data ?? [];
+                final filtered = _selectedStatus == null
+                    ? list
+                    : list.where((c) => c.statut == _selectedStatus).toList();
 
-                      moyenPaiement: "Wave",
-                      montantTotal: "8.000.000 FCFA",
-                      statut: "En Cours",
-                      statutColor: Colors.orange,
+                if (filtered.isEmpty) {
+                  return Center(child: Text('Aucune commande correspondante.'));
+                }
+
+                return ListView.builder(
+                  itemCount: filtered.length,
+                  itemBuilder: (_, i) {
+                    final c = filtered[i];
+                    return TransactionCard(
+                      nom: 'Acheteur ${c.acheteurId}',
+                      prixUnitaire: c.quantite.toStringAsFixed(0),
+                      moyenPaiement: c.modePaiementId,
+                      montantTotal: '${c.prixTotal.toStringAsFixed(0)} FCFA',
+                      statut: c.statut.name,
+                      statutColor: c.statut.color,
                       onDetails: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const Detailtransactionpage(),
+                            builder: (_) => Detailtransactionpage(commandeId: c.id),
                           ),
                         );
                       },
-                    ),
-                  if (selectedFilter == 1)
-                    TransactionCard(
-                      nom: "Préfinancement - Antoine",
-                      prixUnitaire: "2200",
-                      moyenPaiement: "Wave",
-                      montantTotal: "8.000.000 FCFA",
-                      statut: "En Cours",
-                      statutColor: Colors.orange,
-                      onDetails: () {},
-                    ),
-                ],
-              ),
+                    );
+                  },
+                );
+              },
             ),
+          ),
           ],
         ),
       ),

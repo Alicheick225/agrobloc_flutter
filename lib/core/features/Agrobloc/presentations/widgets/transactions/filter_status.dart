@@ -1,52 +1,71 @@
 import 'package:flutter/material.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/commande_vente.dart';
 
 class FilterStatus extends StatelessWidget {
-  final VoidCallback? onFilterPressed;
+  final CommandeStatus? selectedStatus;
+  final ValueChanged<CommandeStatus?> onStatusChanged;
 
   const FilterStatus({
     Key? key,
-    this.onFilterPressed,
+    this.selectedStatus,
+    required this.onStatusChanged,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final List<String> filters = ['Recent', 'Prix. U', 'Statut'];
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        /// Boutons texte avec flèche
-        Expanded(
-          child: Row(
-            children: filters.map((filter) {
-              return Padding(
-                padding: const EdgeInsets.only(right: 16),
-                child: GestureDetector(
-                  onTap: () {
-                    // Tu peux plus tard ouvrir une modal ou menu
-                    debugPrint("Filtre $filter tapé");
-                  },
-                  child: Row(
-                    children: [
-                      Text(
-                        filter,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                      const Icon(Icons.arrow_drop_down),
-                    ],
-                  ),
-                ),
-              );
-            }).toList(),
+    return GestureDetector(
+      onTap: () => _showStatusModal(context),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Text(
+                selectedStatus?.name ?? 'Statut',
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const Icon(Icons.arrow_drop_down),
+            ],
           ),
-        ),
-
-        /// Icône filtre (à droite)
-        IconButton(
-          onPressed: onFilterPressed ?? () {},
-          icon: const Icon(Icons.filter_alt_outlined),
-        ),
-      ],
+          IconButton(
+            icon: const Icon(Icons.filter_alt_outlined),
+            onPressed: () => _showStatusModal(context),
+          ),
+        ],
+      ),
     );
+  }
+
+  void _showStatusModal(BuildContext context) async {
+    final result = await showModalBottomSheet<CommandeStatus>(
+      context: context,
+      builder: (_) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text('Filtrer par statut',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            ),
+            ...CommandeStatus.values.map((status) => ListTile(
+                  title: Text(status.name),
+                  leading: Icon(
+                    Icons.circle,
+                    color: status.color,
+                    size: 20,
+                  ),
+                  onTap: () => Navigator.pop(context, status),
+                )),
+            ListTile(
+              title: const Text('Tous'),
+              leading: const Icon(Icons.clear_all, color: Colors.grey),
+              onTap: () => Navigator.pop(context, null),
+            ),
+          ],
+        );
+      },
+    );
+    onStatusChanged(result);
   }
 }
