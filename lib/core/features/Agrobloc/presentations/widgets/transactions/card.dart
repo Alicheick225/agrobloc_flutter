@@ -106,5 +106,5 @@ class TransactionCard extends StatelessWidget {
         ),
       ),
     );
-  }
+  }            
 }

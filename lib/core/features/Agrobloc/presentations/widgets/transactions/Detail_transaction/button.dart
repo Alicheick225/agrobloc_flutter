@@ -1,3 +1,4 @@
+import 'package:agrobloc/core/features/Agrobloc/data/models/commande_vente.dart';
 import 'package:flutter/material.dart';
 
 class ImprimerWidget extends StatelessWidget {
@@ -9,7 +10,7 @@ class ImprimerWidget extends StatelessWidget {
     Key? key,
     this.onPressed,
     this.buttonText = 'Imprimer votre reçu de paiement',
-    this.isLoading = false,
+    this.isLoading = false, required CommandeStatus commandeStatus,
   }) : super(key: key);
 
   @override
