@@ -1,6 +1,8 @@
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/payementMode.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/payementMethode.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/paiementMoney.dart';
 import 'package:flutter/material.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/payementModeModel.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/paiementMoney.dart';
 
 class CommandeProduitPage extends StatefulWidget {
   final String nomProduit;
@@ -23,13 +25,33 @@ class CommandeProduitPage extends StatefulWidget {
 class _CommandeProduitPageState extends State<CommandeProduitPage> {
   int quantite = 1;
   String unite = "Kg";
-  final List<Map<String, String>> allPayments = [
-    {"name": "Orange Money", "logo": "assets/images/orange_money.png"},
-    {"name": "MTN Mobile Money", "logo": "assets/images/MTN_Money.png"},
-    {"name": "Carte Bancaire", "logo": "assets/images/carte_bancaire.png"},
-  ];
-  List<String> selectedPayments = [];
+
+  List<PaymentModel> allPayments = [];
+  String? selectedPayment;
   bool showPaymentList = false;
+  bool isLoadingPayments = true;
+
+  @override
+  void initState() {
+    super.initState();
+    loadPayments();
+  }
+
+  Future<void> loadPayments() async {
+    try {
+      final service = PaymentService();
+      final payments = await service.fetchPayments();
+      setState(() {
+        allPayments = payments;
+        isLoadingPayments = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoadingPayments = false;
+      });
+      print("Erreur lors du chargement des paiements: $e");
+    }
+  }
 
   double get totalPrix {
     double qteKg = unite == "T" ? quantite * 1000 : quantite.toDouble();
@@ -44,65 +66,45 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
-        title: Text(widget.nomProduit, style: const TextStyle(color: Colors.black)),
+        title: Text(widget.nomProduit,
+            style: const TextStyle(color: Colors.black)),
       ),
-      body: Container(
+      body: Padding(
         padding: const EdgeInsets.all(20),
         child: ListView(
           children: [
-            /// ✅ Nom du produit et image
+            // Image produit
             Center(
               child: Column(
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
                     child: widget.imageProduit.startsWith("http")
-                        ? Image.network(
-                            widget.imageProduit,
-                            width: 80,
-                            height: 80,
-                            fit: BoxFit.cover,
-                          )
-                        : Image.asset(
-                            widget.imageProduit,
-                            width: 80,
-                            height: 80,
-                            fit: BoxFit.cover,
-                          ),
+                        ? Image.network(widget.imageProduit,
+                            width: 80, height: 80, fit: BoxFit.cover)
+                        : Image.asset(widget.imageProduit,
+                            width: 80, height: 80, fit: BoxFit.cover),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    widget.nomProduit,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                  ),
+                  Text(widget.nomProduit,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 18)),
                 ],
               ),
             ),
             const SizedBox(height: 20),
 
-            /// ✅ Prix dynamique
+            // Prix total
             Center(
-              child: Text.rich(
-                TextSpan(
-                  text: "Prix total : ",
-                  style: const TextStyle(fontWeight: FontWeight.w500),
-                  children: [
-                    TextSpan(
-                      text: "${totalPrix.toStringAsFixed(0)} FCFA",
-                      style: const TextStyle(
-                        color: Colors.green,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
+              child: Text(
+                "Prix total : ${totalPrix.toStringAsFixed(0)} FCFA",
+                style: const TextStyle(
+                    color: Colors.green, fontWeight: FontWeight.bold),
               ),
             ),
             const SizedBox(height: 20),
 
-            /// ✅ Quantité
-            const Text("Quantité", style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
+            // Quantité + Unité
             Row(
               children: [
                 Expanded(
@@ -111,7 +113,8 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
                     initialValue: quantite.toString(),
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                     onChanged: (val) {
                       setState(() {
@@ -147,14 +150,15 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
             ),
             const SizedBox(height: 20),
 
-            /// ✅ Modes de paiement
+            // Liste des moyens de paiement
             ListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(
-                selectedPayments.isEmpty
+                selectedPayment == null
                     ? "Sélection du mode de paiement"
-                    : "Modes choisis (${selectedPayments.length})",
-                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
+                    : "Mode choisi : $selectedPayment",
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold, color: Colors.green),
               ),
               trailing: Icon(
                 showPaymentList ? Icons.expand_less : Icons.expand_more,
@@ -166,65 +170,95 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
                 });
               },
             ),
-            if (showPaymentList)
+
+            if (isLoadingPayments)
+              const Center(child: CircularProgressIndicator()),
+
+            if (showPaymentList && !isLoadingPayments)
               Column(
                 children: allPayments.map((payment) {
-                  bool isSelected = selectedPayments.contains(payment["name"]);
                   return Card(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                       side: BorderSide(
-                        color: isSelected ? Colors.green : Colors.grey.shade300,
+                        color: selectedPayment == payment.libelle
+                            ? Colors.green
+                            : Colors.grey.shade300,
                         width: 1,
                       ),
                     ),
-                    child: ListTile(
-                      leading: Image.asset(payment["logo"]!, width: 40, height: 40),
-                      title: Text(payment["name"]!),
-                      trailing: Checkbox(
-                        activeColor: Colors.green,
-                        value: isSelected,
-                        onChanged: (value) {
-                          setState(() {
-                            if (value == true) {
-                              selectedPayments.add(payment["name"]!);
-                            } else {
-                              selectedPayments.remove(payment["name"]!);
-                            }
-                          });
-                        },
-                      ),
+                    child: RadioListTile<String>(
+                      activeColor: Colors.green,
+                      value: payment.libelle,
+                      groupValue: selectedPayment,
+                      onChanged: (value) {
+                        setState(() {
+                          selectedPayment = value;
+                        });
+                      },
+                      title: Text(payment.libelle),
+                      secondary: payment.logo != null
+                          ? Image.network(payment.logo!,
+                              width: 40,
+                              height: 40,
+                              errorBuilder: (_, __, ___) {
+                                return const Icon(Icons.payment,
+                                    color: Colors.green);
+                              })
+                          : const Icon(Icons.payment, color: Colors.green),
                     ),
                   );
                 }).toList(),
               ),
+
             const SizedBox(height: 30),
 
-            /// ✅ Bouton commande
+            // Bouton vers paiement
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
-                onPressed: (selectedPayments.isEmpty || quantite <= 0)
-                    ? null
-                    : () {
-                        bool isMobileMoney = selectedPayments.any((payment) =>
-                            payment == "Orange Money" || payment == "MTN Mobile Money");
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => isMobileMoney
-                                ? MobileMoneyOrderPage(selectedPayments: selectedPayments)
-                                : PaymentMethodPage(selectedPayments: selectedPayments),
-                          ),
-                        );
-                      },
+                onPressed: () {
+                  final paymentLower = selectedPayment?.toLowerCase();
+
+                  if (paymentLower == "orange money" || paymentLower == "mtn mobile money" || paymentLower == "wave") {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => MobileMoneyOrderPage(
+                          selectedPayment: selectedPayment!,
+                          totalAmount: totalPrix,
+                          productName: widget.nomProduit,
+                          unitPrice: widget.prixUnitaire,
+                          quantity: quantite.toDouble(),
+                          unit: unite,
+                        ),
+                      ),
+                    );
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PaymentMethodPage(
+                          selectedPayment: selectedPayment!,
+                          totalAmount: totalPrix,
+                          productName: widget.nomProduit,
+                          unitPrice: widget.prixUnitaire,
+                          quantity: quantite.toDouble(),
+                          unit: unite,
+                        ),
+                      ),
+                    );
+                  }
+                },
+
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.green,
                   side: const BorderSide(color: Colors.green),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text("Enregistrer ma commande"),
+                child: const Text("Continuer vers le paiement"),
               ),
             ),
           ],

@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Agrobloc',
       theme: ThemeData(
-        primaryColor: const Color(0xFF5d9643), // AppColors.primary
+        primaryColor: const Color(0xFF5d9643), // Couleur primaire
         fontFamily: 'Poppins',
       ),
       home: const HomePage()

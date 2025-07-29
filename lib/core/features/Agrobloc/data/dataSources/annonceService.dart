@@ -5,9 +5,12 @@ import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
 
+
+
+
 class AnnonceService {
   static const String baseUrl = 'http://192.168.252.19:8080';
-  static const Duration timeoutDuration = Duration(seconds: 30);
+  static const Duration timeoutDuration = Duration(seconds: 60);
 
   // Headers communs pour les requêtes simples (pas pour MultipartRequest)
   static const Map<String, String> headers = {
