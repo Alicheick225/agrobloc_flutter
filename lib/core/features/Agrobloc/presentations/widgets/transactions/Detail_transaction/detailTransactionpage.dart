@@ -1,163 +1,120 @@
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/Detail_transaction/button.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/commande_vente.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/commande_vente_service.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/Detail_transaction/card.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/Detail_transaction/detail_card.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/Detail_transaction/nav.dart';
-import 'package:flutter/material.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/Detail_transaction/button.dart';
 
 class Detailtransactionpage extends StatelessWidget {
-  const Detailtransactionpage({super.key});
+  final String commandeId;
+
+  const Detailtransactionpage({super.key, required this.commandeId});
 
   @override
   Widget build(BuildContext context) {
-    // Données d'exemple - vous pouvez les remplacer par vos vraies données
-    final List<TransactionActor> actors = [
-      TransactionActor(
-        name: 'Vincent Patrick',
-        role: 'Acheteur',
-        organization: 'Orange Money',
-        action: 'Paiement par OM',
-        date: 'Sep 10, 2025',
-        time: '16:30',
-        isCompleted: true,
-      ),
-      TransactionActor(
-        name: 'Koussai Antoine',
-        role: 'Planteur',
-        organization: '',
-        action: 'Réception par wave',
-        date: 'Sep 10, 2025',
-        time: '16:35',
-        isCompleted: true,
-      ),
-    ];
-
-    final TransactionDetails details = TransactionDetails(
-      transactionId: '#1235DKZ13Z',
-      totalTransaction: '15.000.000,00',
-      transactionFees: '0,5%',
-      totalPaid: '15.075.000,00',
-    );
-
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          // Widget de navigation
-          NavWidget(
-            title: 'Détails paiement',
-            onBackPressed: () => Navigator.pop(context),
-            onInfoPressed: () {
-              // Action pour le bouton info
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: Text('Information'),
-                  content: Text('Détails sur cette transaction'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text('OK'),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
+      body: FutureBuilder<CommandeVente>(
+        future: CommandeVenteService().getCommandeById(commandeId),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError || !snapshot.hasData) {
+            return Center(child: Text('Erreur : ${snapshot.error}'));
+          }
 
-          // Contenu scrollable
-          Expanded(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  // Widget des cartes d'acteurs
-                  CardWidget(actors: actors),
-                  SizedBox(height: 24),
+          final commande = snapshot.data!;
 
-                  // Widget des détails de transaction
-                  DetailCardWidget(details: details),
-                  SizedBox(height: 32),
+          // Acteurs
+          final actors = [
 
-                  // Widget du bouton d'impression
-                  ImprimerWidget(
-                    onPressed: () {
-                      _handlePrintReceipt(context);
-                    },
-                  ),
-                ],
-              ),
+            TransactionActor(
+              name: '${commande.annoncesVenteId}',
+              role: 'Planteur',
+              organization: '',
+              action: _getAction(commande.statut),
+              date: DateFormat('MMM dd, yyyy').format(commande.createdAt),
+              time: DateFormat('HH:mm').format(commande.createdAt),
+              isCompleted: commande.statut != CommandeStatus.enCours,
             ),
-          ),
+                        TransactionActor(
+              name: '${commande.acheteurId}',
+              role: 'Acheteur',
+              organization: commande.modePaiementId,
+              action: 'Paiement via ${commande.modePaiementId}',
+              date: DateFormat('MMM dd, yyyy').format(commande.createdAt),
+              time: DateFormat('HH:mm').format(commande.createdAt),
+              isCompleted: true,
+            ),
+          ];
 
-          // Navigation bottom (optionnelle)
-        ],
+          // Détails
+          final details = TransactionDetails(
+            transactionId: commande.id,
+            totalTransaction: NumberFormat.currency(
+              locale: 'fr_FR',
+              symbol: '',
+              decimalDigits: 0,
+            ).format(commande.prixTotal),
+            transactionFees: '0,5%',
+            totalPaid: NumberFormat.currency(
+              locale: 'fr_FR',
+              symbol: '',
+              decimalDigits: 0,
+            ).format(commande.prixTotal * 1.005),
+          );
+
+          return Column(
+            children: [
+              NavWidget(
+                title: 'Détails paiement',
+                onBackPressed: () => Navigator.pop(context),
+                onInfoPressed: () => print('Info pressed'),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      CardWidget(actors: actors),
+                      const SizedBox(height: 24),
+                      DetailCardWidget(details: details),
+                      const SizedBox(height: 32),
+                      ImprimerWidget(
+                        commandeStatus: commande.statut,
+                        onPressed: () => _handleAction(context, commande),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
-  void _handlePrintReceipt(BuildContext context) {
-    // Logique d'impression du reçu
+  String _getAction(CommandeStatus status) {
+    switch (status) {
+      case CommandeStatus.enCours:
+        return 'En attente de confirmation';
+      case CommandeStatus.termine:
+        return 'Commande livrée';
+      case CommandeStatus.annule:
+        return 'Commande annulée';
+    }
+  }
+
+  void _handleAction(BuildContext context, CommandeVente commande) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Impression du reçu en cours...'),
-        backgroundColor: Colors.green,
+        content: Text('Action sur ${commande.id}'),
+        backgroundColor: commande.statut.color,
       ),
-    );
-  }
-
-  Widget _buildBottomNavigation() {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: Offset(0, -1),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem(Icons.home_outlined, 'Accueil', false),
-          _buildNavItem(Icons.notifications_outlined, '', false),
-          _buildNavItem(Icons.chat_bubble_outline, 'WhatsApp', true),
-          _buildNavItem(Icons.person_outline, 'Profil', false),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavItem(IconData icon, String label, bool isActive) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: isActive ? Colors.green[700] : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(
-            icon,
-            color: isActive ? Colors.white : Colors.grey[600],
-            size: 24,
-          ),
-        ),
-        if (label.isNotEmpty) ...[
-          SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: isActive ? Colors.green[700] : Colors.grey[600],
-            ),
-          ),
-        ],
-      ],
     );
   }
 }
