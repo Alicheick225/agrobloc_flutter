@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'otp_verification.dart';
-import '../widgets/auth/widgetAuth.dart';
+import 'widgetAuth.dart';
 
 /// Page permettant à l'utilisateur de récupérer son mot de passe via son numéro de téléphone
 class ForgotPasswordPage extends StatefulWidget {

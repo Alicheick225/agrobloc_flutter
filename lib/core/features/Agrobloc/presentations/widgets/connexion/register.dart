@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/auth/widgetAuth.dart';
+import 'widgetAuth.dart';
 import 'login.dart';
 import 'select_profile.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/authService.dart';

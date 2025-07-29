@@ -220,7 +220,7 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
                 onPressed: () {
                   final paymentLower = selectedPayment?.toLowerCase();
 
-                  if (paymentLower == "orange money" || paymentLower == "mtn mobile money" || paymentLower == "wave") {
+                  if (paymentLower == "orange money" || paymentLower == "mtn money" || paymentLower == "wave") {
                     Navigator.push(
                       context,
                       MaterialPageRoute(

@@ -3,7 +3,7 @@ import 'package:agrobloc/core/features/Agrobloc/data/models/payementModeModel.da
 import 'package:http/http.dart' as http;
 
 class PaymentService {
-  final String baseUrl = "http://192.168.252.149:8082/api"; // Remplace par ton URL
+  final String baseUrl = "http://192.168.252.29:8082/api"; // Remplace par ton URL
 
   Future<List<PaymentModel>> fetchPayments() async {
     final response = await http.get(Uri.parse("$baseUrl/moyensPaiement"));

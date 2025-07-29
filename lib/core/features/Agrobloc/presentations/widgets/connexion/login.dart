@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'forgot_password.dart';
-import '../widgets/auth/widgetAuth.dart';
+import 'widgetAuth.dart';
 import 'register.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/authService.dart';
 

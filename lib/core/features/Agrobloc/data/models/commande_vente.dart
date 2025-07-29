@@ -1,5 +1,4 @@
 import 'dart:ui';
-import 'package:intl/intl.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
 
 enum CommandeStatus { enCours, termine, annule }

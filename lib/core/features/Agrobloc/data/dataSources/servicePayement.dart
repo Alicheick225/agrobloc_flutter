@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
-
 class FusionMoneyService {
   final String apiUrl =
       "https://www.pay.moneyfusion.net/agrobloc/9c9ab8caba916000/pay/";
