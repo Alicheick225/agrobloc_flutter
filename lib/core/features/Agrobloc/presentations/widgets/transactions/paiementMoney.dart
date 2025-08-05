@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:agrobloc/core/features/Agrobloc/data/dataSources/servicePayement.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/payementMethode.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/debitComplet.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/servicePayement.dart';
 
 class MobileMoneyOrderPage extends StatefulWidget {
   final String selectedPayment;
@@ -9,7 +10,7 @@ class MobileMoneyOrderPage extends StatefulWidget {
   final double unitPrice;
   final double quantity;
   final String unit;
-
+  final String? logoUrl;
 
   const MobileMoneyOrderPage({
     super.key,
@@ -19,8 +20,8 @@ class MobileMoneyOrderPage extends StatefulWidget {
     required this.unitPrice,
     required this.quantity,
     required this.unit,
+    this.logoUrl,
   });
-
 
   @override
   State<MobileMoneyOrderPage> createState() => _MobileMoneyOrderPageState();
@@ -35,11 +36,38 @@ class _MobileMoneyOrderPageState extends State<MobileMoneyOrderPage> {
 
   final FusionMoneyService paiementService = FusionMoneyService();
 
-  String getPaiementProChannel() {
-    if (widget.selectedPayment == "Orange Money") return "O";
-    if (widget.selectedPayment == "MTN Mobile Money") return "M";
-    return "C"; // Carte bancaire
-  }
+  @override
+  void initState() {
+        super.initState();
+
+        // Liste des moyens de paiement Mobile Money supportés
+        final supportedPayments = [
+          "Orange Money",
+          "MTN  money",
+          "wave",
+          "moov money",
+        ];
+
+        // Si le moyen de paiement sélectionné n'est pas Mobile Money → redirection
+        if (!supportedPayments.contains(widget.selectedPayment)) {
+          // Attendre que le widget soit monté avant de rediriger
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => PaymentMethodPage(
+                  selectedPayment: widget.selectedPayment,
+                  totalAmount: widget.totalAmount,
+                  productName: widget.productName,
+                  unitPrice: widget.unitPrice,
+                  quantity: widget.quantity,
+                  unit: widget.unit,
+                ),
+              ),
+            );
+          });
+        }
+      }
 
   @override
   void dispose() {
@@ -72,14 +100,16 @@ class _MobileMoneyOrderPageState extends State<MobileMoneyOrderPage> {
 
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => DebitCompletPage(
-          nomProduit: widget.productName,
-          unitPrice: widget.unitPrice,
-          quantity: widget.quantity,
-          unit: widget.unit,
-          totalAmount: widget.totalAmount,
-          productName: widget.productName, 
-        )),
+        MaterialPageRoute(
+          builder: (_) => DebitCompletPage(
+            nomProduit: widget.productName,
+            unitPrice: widget.unitPrice,
+            quantity: widget.quantity,
+            unit: widget.unit,
+            totalAmount: widget.totalAmount, 
+            productName: widget.productName,
+          ),
+        ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -100,15 +130,17 @@ class _MobileMoneyOrderPageState extends State<MobileMoneyOrderPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
-        title: const Text("Mode de paiement",
-            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        title: const Text(
+          "Mode de paiement",
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// ✅ Affichage du mode de paiement choisi
+            /// ✅ Bloc affichage du moyen sélectionné
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
               decoration: BoxDecoration(
@@ -117,35 +149,42 @@ class _MobileMoneyOrderPageState extends State<MobileMoneyOrderPage> {
               ),
               child: Row(
                 children: [
-                  Image.asset(
-                    widget.selectedPayment == "MTN Mobile Money"
-                        ? "assets/images/MTN_Money.png"
-                        : widget.selectedPayment == "Orange Money"
-                            ? "assets/images/orange_money.png"
-                            : "assets/images/carte_bancaire.png",
-                    width: 24,
-                  ),
+                  widget.logoUrl != null
+                      ? Image.network(
+                          widget.logoUrl!,
+                          width: 32,
+                          height: 32,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) => const Icon(Icons.payment, color: Colors.green),
+                        )
+                      : const Icon(Icons.payment, color: Colors.green),
                   const SizedBox(width: 10),
-                  Text(widget.selectedPayment,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text(
+                    widget.selectedPayment,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
                 ],
               ),
             ),
             const SizedBox(height: 20),
-            const Text("Sélectionnez ce numéro",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+
+            /// ✅ Numéro actuel
+            const Text(
+              "Sélectionnez ce numéro",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
             const SizedBox(height: 8),
             TextField(
               controller: phoneController,
               keyboardType: TextInputType.phone,
               decoration: InputDecoration(
                 hintText: "+225 ** *****76",
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
               enabled: !useNewNumber,
             ),
+
+            /// ✅ Autre numéro ?
             const SizedBox(height: 10),
             InkWell(
               onTap: () {
@@ -155,25 +194,28 @@ class _MobileMoneyOrderPageState extends State<MobileMoneyOrderPage> {
               },
               child: const Row(
                 children: [
-                  Text("Payer via un autre numéro",
-                      style: TextStyle(color: Colors.blue, fontSize: 14)),
+                  Text("Payer via un autre numéro", style: TextStyle(color: Colors.blue, fontSize: 14)),
                   Icon(Icons.arrow_forward_ios, size: 16, color: Colors.blue),
                 ],
               ),
             ),
+
+            /// ✅ Si autre numéro
             if (useNewNumber) ...[
               const SizedBox(height: 20),
               TextField(
                 controller: debitNumberController,
                 decoration: InputDecoration(
                   hintText: "Entrez le numéro à débiter",
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 keyboardType: TextInputType.phone,
               ),
             ],
+
             const Spacer(),
+
+            /// ✅ Bouton de paiement
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
@@ -182,8 +224,7 @@ class _MobileMoneyOrderPageState extends State<MobileMoneyOrderPage> {
                   foregroundColor: Colors.green,
                   side: const BorderSide(color: Colors.green),
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 child: isLoading
                     ? const CircularProgressIndicator(color: Colors.green)

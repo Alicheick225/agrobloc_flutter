@@ -42,7 +42,22 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
   void _confirmPayment() {
     final selectedLower = widget.selectedPayment.toLowerCase();
 
-    if (selectedLower == "orange money" || selectedLower == "mtn mobile money") {
+    final isMobileMoney = [
+      "orange money",
+      "mtn mobile money",
+      "wave",
+      "moov money",
+    ].contains(selectedLower);
+
+    if (isMobileMoney) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Redirection vers l'interface ${widget.selectedPayment}...",
+          ),
+        ),
+      );
+
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -59,12 +74,15 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
       return;
     }
 
+    // Validation carte bancaire
     if (cardHolderController.text.trim().isEmpty ||
         cardNumberController.text.trim().isEmpty ||
         expDateController.text.trim().isEmpty ||
         cvvController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Veuillez remplir toutes les informations de la carte")),
+        const SnackBar(
+          content: Text("Veuillez remplir toutes les informations de la carte"),
+        ),
       );
       return;
     }
@@ -77,7 +95,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
           unitPrice: widget.unitPrice,
           quantity: widget.quantity,
           unit: widget.unit,
-          totalAmount: widget.totalAmount,
+          totalAmount: widget.totalAmount, 
           productName: widget.productName,
         ),
       ),
@@ -94,7 +112,10 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
-        title: const Text("Mode de paiement", style: TextStyle(color: Colors.black)),
+        title: const Text(
+          "Mode de paiement",
+          style: TextStyle(color: Colors.black),
+        ),
       ),
       body: Container(
         padding: const EdgeInsets.all(20),
@@ -110,13 +131,19 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
             const SizedBox(height: 10),
             Text(
               "Montant à payer : ${widget.totalAmount.toStringAsFixed(0)} FCFA",
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.green),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: Colors.green,
+              ),
             ),
             const Divider(),
 
             if (selectedLower == "carte bancaire" || selectedLower == "virement bancaire") ...[
-              const Text("Payer via une nouvelle carte",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                "Payer via une nouvelle carte",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 12),
               TextField(
                 controller: cardHolderController,
@@ -172,9 +199,23 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
                   ],
                 ),
               ),
+            ] else ...[
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Color(0xFFF5F5F5),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  "Vous serez redirigé vers l'interface de paiement ${widget.selectedPayment}.",
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ),
             ],
 
             const Spacer(),
+
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
