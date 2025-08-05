@@ -1,4 +1,4 @@
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/paiementMoney.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/paiementMoney.dart';
 import 'package:flutter/material.dart';
 import 'debitComplet.dart';
 

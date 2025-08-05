@@ -1,9 +1,10 @@
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/commandeService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/payementMode.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/payementMethode.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/payementMethode.dart';
 import 'package:agrobloc/core/utils/imagePayement.dart';
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/payementModeModel.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/paiementMoney.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/paiementMoney.dart';
 
 class CommandeProduitPage extends StatefulWidget {
   final String nomProduit;
@@ -248,7 +249,7 @@ Widget build(BuildContext context) {
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (selectedPayment == null) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text("Veuillez sélectionner un mode de paiement")),
@@ -261,42 +262,68 @@ Widget build(BuildContext context) {
                       orElse: () => PaymentModel(libelle: selectedPayment!, logo: null, id: ''),
                     );
 
-                    final isMobileMoney = selectedPayment!.toLowerCase().contains('mtn') ||
-                        selectedPayment!.toLowerCase().contains('orange') ||
-                        selectedPayment!.toLowerCase().contains('wave') ||
-                        selectedPayment!.toLowerCase().contains('moov');
+                    try {
+                      final acheteurId = "b71507fd-d30b-4a12-b4bf-945dcf9e107d"; // TODO: récup dynamique ?
+                      final modePaiementId = selectedPaymentObj.id;
+                      final quantiteKg = unite == "T" ? quantite * 1000 : quantite.toDouble();
+                      final prixTotal = totalPrix;
 
-                    if (isMobileMoney) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => MobileMoneyOrderPage(
-                            selectedPayment: selectedPayment!,
-                            totalAmount: totalPrix,
-                            productName: widget.nomProduit,
-                            unitPrice: widget.prixUnitaire,
-                            quantity: quantite.toDouble(),
-                            unit: unite,
-                            logoUrl: selectedPaymentObj.logo,
-                          ),
-                        ),
+                      final commandeService = CommandeService();
+                      final commande = await commandeService.enregistrerCommande(
+                        acheteurId: acheteurId,
+                        prixTotal: prixTotal,
+                        modePaiementId: modePaiementId,
+                        typeCulture: widget.nomProduit, 
+                        quantite: quantite.toDouble(),
                       );
-                    } else {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => PaymentMethodPage(
-                            selectedPayment: selectedPayment!,
-                            totalAmount: totalPrix,
-                            productName: widget.nomProduit,
-                            unitPrice: widget.prixUnitaire,
-                            quantity: quantite.toDouble(),
-                            unit: unite,
+
+                      // Affichage
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Commande ${commande.id} enregistrée")),
+                      );
+
+                      final isMobileMoney = selectedPayment!.toLowerCase().contains('mtn') ||
+                          selectedPayment!.toLowerCase().contains('orange') ||
+                          selectedPayment!.toLowerCase().contains('wave') ||
+                          selectedPayment!.toLowerCase().contains('moov');
+
+                      if (isMobileMoney) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => MobileMoneyOrderPage(
+                              selectedPayment: selectedPayment!,
+                              totalAmount: prixTotal,
+                              productName: widget.nomProduit,
+                              unitPrice: widget.prixUnitaire,
+                              quantity: quantite.toDouble(),
+                              unit: unite,
+                              logoUrl: selectedPaymentObj.logo,
+                            ),
                           ),
-                        ),
+                        );
+                      } else {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => PaymentMethodPage(
+                              selectedPayment: selectedPayment!,
+                              totalAmount: prixTotal,
+                              productName: widget.nomProduit,
+                              unitPrice: widget.prixUnitaire,
+                              quantity: quantite.toDouble(),
+                              unit: unite,
+                            ),
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Erreur : $e")),
                       );
                     }
                   },
+
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.green,
                     side: const BorderSide(color: Colors.green),

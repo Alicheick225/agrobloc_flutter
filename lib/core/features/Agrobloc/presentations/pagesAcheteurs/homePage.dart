@@ -1,19 +1,19 @@
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/AnnoncePrefinancement.dart';
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/financementModel.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/commande_enregistree.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/detailFinancement.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/home/commande_enregistree.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/home/detailFinancement.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/annonceService.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/offreCard.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/financementCard.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/recommande.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/statut_commande.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/home/offreCard.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/home/financementCard.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/home/recommande.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/home/statut_commande.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/filter_boutton.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/nav_bar.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/recherche_bar.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/pages/transactionPage.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/pagesAcheteurs/transactionPage.dart';
 
 
 

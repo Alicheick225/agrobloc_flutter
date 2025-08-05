@@ -1,31 +1,50 @@
 class CommandeModel {
   final String id;
-  final String annoncesVenteId;
   final String acheteurId;
-  final int quantite; // en kg
+  final double quantite;
   final double prixTotal;
+  final String modePaiementId;
   final String statut;
   final DateTime createdAt;
+  final String typeCulture;
 
   CommandeModel({
     required this.id,
-    required this.annoncesVenteId,
     required this.acheteurId,
     required this.quantite,
     required this.prixTotal,
+    required this.modePaiementId,
     required this.statut,
     required this.createdAt,
+    required this.typeCulture,
+    required String token, // 🔥 Ajouté ici
+
   });
 
   factory CommandeModel.fromJson(Map<String, dynamic> json) {
     return CommandeModel(
       id: json['id'],
-      annoncesVenteId: json['annonces_vente_id'],
       acheteurId: json['acheteur_id'],
-      quantite: json['quantite'],
-      prixTotal: (json['prix_total'] as num).toDouble(),
+      quantite: double.parse(json['quantite']),
+      prixTotal: double.parse(json['prix_total']),
+      modePaiementId: json['mode_paiement_id'],
       statut: json['statut'],
       createdAt: DateTime.parse(json['created_at']),
+      typeCulture: json['type_culture'],
+      token: json['token'] ?? '', // 🔥 Ajouté ici
     );
+  }
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'acheteur_id': acheteurId,
+      'quantite': quantite.toString(),
+      'prix_total': prixTotal.toString(),
+      'mode_paiement_id': modePaiementId,
+      'statut': statut,
+      'created_at': createdAt.toIso8601String(),
+      'type_culture': typeCulture,
+      
+    };
   }
 }

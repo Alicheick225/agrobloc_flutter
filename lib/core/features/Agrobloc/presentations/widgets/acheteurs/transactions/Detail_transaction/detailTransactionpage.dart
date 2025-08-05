@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/commande_vente.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/commande_vente_service.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/Detail_transaction/card.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/Detail_transaction/detail_card.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/Detail_transaction/nav.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/Detail_transaction/button.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/Detail_transaction/card.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/Detail_transaction/detail_card.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/Detail_transaction/nav.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/Detail_transaction/button.dart';
 
 class Detailtransactionpage extends StatelessWidget {
   final String commandeId;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/payementMethode.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/debitComplet.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/payementMethode.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/debitComplet.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/servicePayement.dart';
 
 class MobileMoneyOrderPage extends StatefulWidget {

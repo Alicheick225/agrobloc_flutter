@@ -1,5 +1,5 @@
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/connexion/select_profile.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/pages/homePage.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/pagesAcheteurs/homePage.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/connexion/login.dart';
 import 'package:flutter/material.dart';
 

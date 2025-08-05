@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/commandesProduit.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/commandesProduit.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
 
 class OffreDetailPage extends StatelessWidget {
