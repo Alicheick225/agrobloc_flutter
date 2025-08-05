@@ -20,7 +20,7 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
   List<Map<String, dynamic>> _cultures = [];
   String? _selectedCultureId;
   String? _selectedCultureLibelle;
-  double _quantity = 10;
+  double _quantity = 1;
   String _quantityUnit = 'Kg';
   final TextEditingController _descriptionController = TextEditingController();
   String _statut = 'en attente';
@@ -208,17 +208,24 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
   }
 
   Widget _buildStatusDropdown() {
+    final statusItems = [
+      const DropdownMenuItem(value: 'en attente', child: Text('En attente')),
+      const DropdownMenuItem(value: 'active', child: Text('Active')),
+      const DropdownMenuItem(value: 'validé', child: Text('Validé')),
+      const DropdownMenuItem(value: 'terminee', child: Text('Terminée')),
+    ];
+
+    // Ensure _statut is valid and matches one of the items
+    final currentValue =
+        statusItems.any((item) => item.value == _statut) ? _statut : null;
+
     return DropdownButtonFormField<String>(
       decoration: InputDecoration(
         labelText: 'Statut',
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
       ),
-      value: _statut,
-      items: const [
-        DropdownMenuItem(value: 'en attente', child: Text('En attente')),
-        DropdownMenuItem(value: 'active', child: Text('Active')),
-        DropdownMenuItem(value: 'terminee', child: Text('Terminée')),
-      ],
+      value: currentValue,
+      items: statusItems,
       onChanged: (value) => setState(() => _statut = value!),
     );
   }
