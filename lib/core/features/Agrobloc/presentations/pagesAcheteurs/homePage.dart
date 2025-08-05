@@ -1,10 +1,10 @@
-import 'package:agrobloc/core/features/Agrobloc/data/dataSources/AnnoncePrefinancement.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/AnnoncePrefinancementService.dart';
 import 'package:flutter/material.dart';
-import 'package:agrobloc/core/features/Agrobloc/data/models/financementModel.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/annoncePrefinancementModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/home/commande_enregistree.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/home/detailFinancement.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
-import 'package:agrobloc/core/features/Agrobloc/data/dataSources/annonceService.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/annonceVenteService.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/home/offreCard.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/home/financementCard.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/home/recommande.dart';

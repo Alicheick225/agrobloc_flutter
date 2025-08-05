@@ -1,6 +1,6 @@
 import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:agrobloc/core/features/Agrobloc/data/models/financementModel.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/annoncePrefinancementModel.dart';
 
 class FinancementDetailsPage extends StatelessWidget {
   final AnnonceFinancement data;
