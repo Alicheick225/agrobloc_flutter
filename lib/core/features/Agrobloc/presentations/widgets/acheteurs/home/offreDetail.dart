@@ -4,10 +4,14 @@ import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.da
 
 class OffreDetailPage extends StatelessWidget {
   final AnnonceVente recommendation;
+    final String acheteurId; // 👈 à ajouter
+
+
 
   const OffreDetailPage({
     super.key,
     required this.recommendation,
+    required this.acheteurId , // 👈 à initialiser
   });
 
   @override
@@ -236,15 +240,16 @@ class OffreDetailPage extends StatelessWidget {
                               MaterialPageRoute(
                                 builder: (context) => CommandeProduitPage(
                                   nomProduit: product,
+                                  acheteurId: acheteurId.toString(), // ✅ Corrigé ici
                                   imageProduit: image.isNotEmpty
                                       ? (image.startsWith('http')
                                           ? image
                                           : "http://192.168.252.19:8080$image")
                                       : "",
                                   prixUnitaire: price.toDouble(),
-                                  stockDisponible: quantity.toDouble(),
-                                ),
+                                  stockDisponible: quantity.toDouble(), 
                               ),
+                              )
                             );
                           },
                           style: ElevatedButton.styleFrom(

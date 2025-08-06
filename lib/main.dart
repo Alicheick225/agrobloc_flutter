@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
         ),
         home: SelectProfilePage(),
         routes: {
-          '/homePage': (context) => const HomePage(),
+          '/homePage': (context) => const HomePage(acheteurId: '',),
           '/login': (context) => const LoginPage(profile: 'acheteur'), // default profile example
           // Add other routes as needed
         },

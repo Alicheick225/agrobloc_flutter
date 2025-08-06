@@ -7,8 +7,10 @@ import 'package:agrobloc/core/themes/app_text_styles.dart';
 
 class RecommendationCard extends StatelessWidget {
   final AnnonceVente recommendation;
+  final String acheteurId; // ID de l'acheteur pour les transactions
 
-  const RecommendationCard({super.key, required this.recommendation});
+  const RecommendationCard({super.key, required this.recommendation
+    , required this.acheteurId});
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +40,7 @@ class RecommendationCard extends StatelessWidget {
             MaterialPageRoute(
               builder: (context) => OffreDetailPage(
                 recommendation: recommendation,
+                acheteurId: acheteurId,
               ),
             ));
       },
