@@ -24,7 +24,7 @@ class UserActionCard extends StatelessWidget {
       elevation: isActive ? 4 : 1,
       color: isActive ? Colors.blue.shade50 : Colors.grey.shade50,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -45,7 +45,7 @@ class UserActionCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 5),
             Text(
               action,
               style: TextStyle(

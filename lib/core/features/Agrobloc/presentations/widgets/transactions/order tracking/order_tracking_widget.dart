@@ -1,5 +1,6 @@
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/order%20tracking/actioncard.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/order%20tracking/chat_widget.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/order%20tracking/discuterBouton.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/order%20tracking/productInfo.dart';
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/order_status.dart';
 
@@ -36,6 +37,16 @@ Widget build(BuildContext context) {
               );
             },
           ),
+        ProductInfoWidget(
+          productName: 'Cacao Premium',
+          totalAmount: '1000 FCFA',
+          unitPrice: '500 FCFA/kg',
+          quantity: '2 kg',
+          userInitial: 'A',
+          onToggle: () {
+            // Action pour basculer l'état développé
+          },
+        ),
         const SizedBox(height: 24),
         _buildCurrentActions(),
         const SizedBox(height: 24),
@@ -188,7 +199,7 @@ Widget build(BuildContext context) {
   Widget _buildCurrentActions() {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(6),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -199,12 +210,12 @@ Widget build(BuildContext context) {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height:6),
             Row(
               children: _getCurrentActionCards()
                   .map((card) => Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 1),
                           child: card,
                         ),
                       ))
