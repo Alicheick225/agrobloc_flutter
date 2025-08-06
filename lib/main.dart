@@ -3,8 +3,21 @@ import 'package:agrobloc/core/features/Agrobloc/presentations/pages/homePage.dar
 // import 'package:agrobloc/core/features/Agrobloc/presentations/pages/login.dart';
 // import 'package:agrobloc/core/features/Agrobloc/presentations/pages/register.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:agrobloc/core/themes/app_colors.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Set status bar color to green
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: AppColors.primaryGreen, // Green color
+      statusBarIconBrightness: Brightness.light, // White icons
+      statusBarBrightness: Brightness.dark, // For iOS
+    ),
+  );
+  
   runApp(const MyApp());
 }
 

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../data/dataSources/AnnonceAchat.dart';
 import '../../data/models/AnnonceAchatModel.dart';
+import 'package:agrobloc/core/themes/app_colors.dart';
+import 'package:agrobloc/core/themes/app_text_styles.dart';
 
 class AnnonceFormPage extends StatefulWidget {
   final AnnonceAchat? annonceToEdit;
@@ -28,6 +30,14 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
   bool _isLoading = false;
   bool _isEditMode = false;
 
+  // Color scheme
+  final Color primaryColor = const Color(0xFF2E7D32);
+  final Color secondaryColor = const Color(0xFF4CAF50);
+  final Color accentColor = const Color(0xFF8BC34A);
+  final Color errorColor = const Color(0xFFD32F2F);
+  final Color backgroundColor = const Color(0xFFF5F5F5);
+  final Color cardColor = Colors.white;
+
   @override
   void initState() {
     super.initState();
@@ -45,7 +55,6 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
     _statut = annonce.statut;
     _selectedCultureLibelle = annonce.typeCultureLibelle;
 
-    // Find culture ID by libelle
     _selectedCultureId = _cultures
         .firstWhere(
           (c) => c['libelle'] == annonce.typeCultureLibelle,
@@ -61,7 +70,6 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
       setState(() {
         _cultures = cultures;
         if (_isEditMode && _selectedCultureId != null) {
-          // Ensure the culture exists in the list
           final existingCulture = cultures.firstWhere(
             (c) => c['libelle'] == widget.annonceToEdit?.typeCultureLibelle,
             orElse: () => {'id': '', 'libelle': ''},
@@ -73,7 +81,10 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur chargement cultures: $e')),
+        SnackBar(
+          content: Text('Erreur chargement cultures: $e'),
+          backgroundColor: errorColor,
+        ),
       );
     } finally {
       setState(() => _isLoading = false);
@@ -86,7 +97,6 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
     setState(() => _isLoading = true);
 
     try {
-      // Convert quantity to base unit (Kg)
       double quantityInKg = _quantityUnit == 'T' ? _quantity * 1000 : _quantity;
 
       if (_isEditMode) {
@@ -94,30 +104,39 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
           id: widget.annonceToEdit!.id,
           statut: _statut,
           description: _descriptionController.text.trim(),
-          userId: '1', // TODO: Replace with actual user ID
+          userId: '1',
           typeCultureId: _selectedCultureId!,
           quantite: quantityInKg,
         );
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Annonce mise à jour avec succès')),
+          SnackBar(
+            content: const Text('Annonce mise à jour avec succès'),
+            backgroundColor: primaryColor,
+          ),
         );
       } else {
         await _service.createAnnonceAchat(
           statut: _statut,
           description: _descriptionController.text.trim(),
-          userId: '1', // TODO: Replace with actual user ID
+          userId: '1',
           typeCultureId: _selectedCultureId!,
           quantite: quantityInKg,
         );
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Annonce créée avec succès')),
+          SnackBar(
+            content: const Text('Annonce créée avec succès'),
+            backgroundColor: primaryColor,
+          ),
         );
       }
 
       Navigator.pop(context, true);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: ${e.toString()}')),
+        SnackBar(
+          content: Text('Erreur: ${e.toString()}'),
+          backgroundColor: errorColor,
+        ),
       );
     } finally {
       setState(() => _isLoading = false);
@@ -125,85 +144,217 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
   }
 
   Widget _buildCultureDropdown() {
-    return DropdownButtonFormField<String>(
-      decoration: InputDecoration(
-        labelText: 'Type de culture',
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      value: _selectedCultureId,
-      items: _cultures.map((culture) {
-        return DropdownMenuItem<String>(
-          value: culture['id'].toString(),
-          child: Text(culture['libelle']),
-        );
-      }).toList(),
-      onChanged: (value) {
-        setState(() {
-          _selectedCultureId = value;
-          _selectedCultureLibelle = _cultures.firstWhere(
-            (c) => c['id'].toString() == value,
-          )['libelle'];
-        });
-      },
-      validator: (value) => value == null ? 'Sélectionnez une culture' : null,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Choix de la culture',
+            style: TextStyle(
+              color: primaryColor,
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
+          Container(
+            margin: const EdgeInsets.only(top: 4),
+            height: 2,
+            width: 40,
+            color: primaryColor,
+          ),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            decoration: InputDecoration(
+              hintText: 'Sélectionner une culture',
+              hintStyle: TextStyle(color: Colors.grey[400]),
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.zero,
+            ),
+            value: _selectedCultureId,
+            items: _isLoading
+                ? [
+                    const DropdownMenuItem(
+                      value: null,
+                      child: Text('Chargement...'),
+                    )
+                  ]
+                : _cultures.map((culture) {
+                    return DropdownMenuItem<String>(
+                      value: culture['id'].toString(),
+                      child: Text(
+                        culture['libelle'],
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    );
+                  }).toList(),
+            onChanged: _isLoading
+                ? null
+                : (value) {
+                    setState(() {
+                      _selectedCultureId = value;
+                      _selectedCultureLibelle = _cultures.firstWhere(
+                        (c) => c['id'].toString() == value,
+                        orElse: () => {'libelle': ''},
+                      )['libelle'];
+                    });
+                  },
+            validator: (value) =>
+                value == null ? 'Sélectionnez une culture' : null,
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildQuantityInput() {
-    return Row(
-      children: [
-        Expanded(
-          child: TextFormField(
-            initialValue: _quantity.toString(),
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            decoration: InputDecoration(
-              labelText: 'Quantité',
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Quantité',
+            style: TextStyle(
+              color: primaryColor,
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
             ),
+          ),
+          Container(
+            margin: const EdgeInsets.only(top: 4, bottom: 8),
+            height: 2,
+            width: 40,
+            color: primaryColor,
+          ),
+          Row(
+            children: [
+              Text(
+                _quantity.toStringAsFixed(0),
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[700],
+                ),
+              ),
+              const SizedBox(width: 16),
+              ToggleButtons(
+                borderColor: primaryColor,
+                selectedBorderColor: primaryColor,
+                borderRadius: BorderRadius.circular(8),
+                selectedColor: Colors.white,
+                fillColor: primaryColor,
+                color: primaryColor,
+                isSelected: [_quantityUnit == 'Kg', _quantityUnit == 'T'],
+                onPressed: (index) {
+                  setState(() {
+                    _quantityUnit = index == 0 ? 'Kg' : 'T';
+                  });
+                },
+                children: const [
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    child: Text('Kg'),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    child: Text('T'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          Slider(
+            value: _quantity,
+            min: 0,
+            max: 1000,
+            divisions: 1000,
+            label: _quantity.toStringAsFixed(0),
             onChanged: (value) {
               setState(() {
-                _quantity = double.tryParse(value) ?? 0;
+                _quantity = value;
               });
             },
-            validator: (value) {
-              if (value == null || value.isEmpty) return 'Entrez une quantité';
-              if (double.tryParse(value) == null) return 'Quantité invalide';
-              return null;
-            },
           ),
-        ),
-        const SizedBox(width: 10),
-        DropdownButton<String>(
-          value: _quantityUnit,
-          items: const [
-            DropdownMenuItem(value: 'Kg', child: Text('Kg')),
-            DropdownMenuItem(value: 'T', child: Text('T')),
-          ],
-          onChanged: (value) {
-            setState(() => _quantityUnit = value!);
-          },
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   Widget _buildDescriptionInput() {
-    return TextFormField(
-      controller: _descriptionController,
-      maxLines: 4,
-      decoration: InputDecoration(
-        labelText: 'Description',
-        hintText: 'Décrivez votre annonce...',
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      validator: (value) {
-        if (value == null || value.trim().isEmpty) {
-          return 'Entrez une description';
-        }
-        return null;
-      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Description',
+            style: TextStyle(
+              color: primaryColor,
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
+          Container(
+            margin: const EdgeInsets.only(top: 4, bottom: 8),
+            height: 2,
+            width: 40,
+            color: primaryColor,
+          ),
+          TextFormField(
+            controller: _descriptionController,
+            maxLines: 4,
+            decoration: InputDecoration(
+              hintText:
+                  'Faites une brève description de ce que vous voulez ...',
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.all(8),
+            ),
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'Entrez une description';
+              }
+              return null;
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -215,56 +366,117 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
       const DropdownMenuItem(value: 'terminee', child: Text('Terminée')),
     ];
 
-    // Ensure _statut is valid and matches one of the items
     final currentValue =
         statusItems.any((item) => item.value == _statut) ? _statut : null;
 
-    return DropdownButtonFormField<String>(
-      decoration: InputDecoration(
-        labelText: 'Statut',
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+    return Container(
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      value: currentValue,
-      items: statusItems,
-      onChanged: (value) => setState(() => _statut = value!),
+      child: DropdownButtonFormField<String>(
+        decoration: InputDecoration(
+          labelText: 'Statut',
+          labelStyle: TextStyle(color: primaryColor),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: primaryColor.withOpacity(0.3)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: primaryColor.withOpacity(0.3)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: primaryColor, width: 2),
+          ),
+          filled: true,
+          fillColor: cardColor,
+          prefixIcon: Icon(Icons.info_outline, color: primaryColor),
+        ),
+        value: currentValue,
+        items: statusItems,
+        onChanged: (value) => setState(() => _statut = value!),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: Text(_isEditMode ? 'Modifier l\'annonce' : 'Créer une annonce'),
+        title: Text(
+          _isEditMode ? 'Modifier l\'annonce' : 'Créer une annonce',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: primaryColor,
+        elevation: 0,
       ),
       body: _isLoading && _cultures.isEmpty
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(color: primaryColor),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Chargement des cultures...',
+                    style: TextStyle(color: primaryColor, fontSize: 16),
+                  ),
+                ],
+              ),
+            )
           : Padding(
               padding: const EdgeInsets.all(16.0),
               child: Form(
                 key: _formKey,
                 child: SingleChildScrollView(
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       _buildCultureDropdown(),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 20),
                       _buildQuantityInput(),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 20),
                       _buildDescriptionInput(),
-                      const SizedBox(height: 16),
-                      _buildStatusDropdown(),
-                      const SizedBox(height: 32),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _isLoading ? null : _submitForm,
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Text(
-                              _isEditMode ? 'Mettre à jour' : 'Créer',
-                              style: const TextStyle(fontSize: 16),
-                            ),
+                      const SizedBox(height: 20),
+                      // _buildStatusDropdown(),
+                      // const SizedBox(height: 32),
+                      OutlinedButton(
+                        onPressed: _isLoading ? null : _submitForm,
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: primaryColor),
+                          foregroundColor: primaryColor,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
                         ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text(
+                                'Proposer une offre d\'achat',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
                     ],
                   ),

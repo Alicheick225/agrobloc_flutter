@@ -75,163 +75,213 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
     }
   }
 
+  Future<void> _confirmDeleteAnnonce(AnnonceAchat annonce) async {
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirmer la suppression'),
+          content: const Text('Voulez-vous vraiment supprimer cette annonce ?'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Non'),
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+            ),
+            TextButton(
+              child: const Text('Oui'),
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      await _deleteAnnonce(annonce);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Annonces d\'Achat'),
+        title: const Text(
+          'Annonces d\'Achat',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
         backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          ),
-        ],
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _annonces.isEmpty
               ? const Center(child: Text('Aucune annonce d\'achat disponible'))
-              : Column(
+              : Stack(
                   children: [
-                    Container(
-                      color: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _navigateToForm,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primaryGreen,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text(
-                            'Faire une offre',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _annonces.length,
-                        itemBuilder: (context, index) {
-                          final annonce = _annonces[index];
-                          final isValidated =
-                              annonce.statut.toLowerCase() == 'validé';
-
-                          return Card(
-                            color: Colors.white,
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            margin: const EdgeInsets.only(bottom: 16),
-                            child: Padding(
+                    Padding(
+                      padding: const EdgeInsets.only(top: 0),
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: ListView.builder(
                               padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          CircleAvatar(
-                                            radius: 24,
-                                            backgroundImage: NetworkImage(
-                                              'https://via.placeholder.com/48',
-                                            ),
-                                          ),
-                                          const SizedBox(width: 12),
-                                          Expanded(
-                                            child: Column(
+                              itemCount: _annonces.length,
+                              itemBuilder: (context, index) {
+                                final annonce = _annonces[index];
+                                final isValidated =
+                                    annonce.statut.toLowerCase() == 'validé';
+
+                                return Card(
+                                  color: Colors.white,
+                                  elevation: 2,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  margin: const EdgeInsets.only(bottom: 16),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
                                               crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
+                                                  CrossAxisAlignment.center,
                                               children: [
-                                                Text(
-                                                  annonce.userNom,
-                                                  style: AppTextStyles.heading,
+                                                CircleAvatar(
+                                                  radius: 24,
+                                                  backgroundImage: NetworkImage(
+                                                    'https://via.placeholder.com/48',
+                                                  ),
                                                 ),
-                                                const SizedBox(height: 4),
-                                                
+                                                const SizedBox(width: 12),
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                        annonce.userNom,
+                                                        style: AppTextStyles
+                                                            .heading
+                                                            .copyWith(
+                                                                fontSize: 18,
+                                                                color: Colors
+                                                                    .grey[700]),
+                                                      ),
+                                                      const SizedBox(height: 4),
+                                                    ],
+                                                  ),
+                                                ),
+                                                Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    IconButton(
+                                                      icon: const Icon(
+                                                          Icons.edit_outlined),
+                                                      color: AppColors
+                                                          .primaryGreen,
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              right: 4),
+                                                      onPressed: () =>
+                                                          _navigateToEditForm(
+                                                              annonce),
+                                                    ),
+                                                    IconButton(
+                                                      icon: const Icon(
+                                                          Icons.delete_outline),
+                                                      color: Colors.red,
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              left: 4),
+                                                      onPressed: () =>
+                                                          _confirmDeleteAnnonce(
+                                                              annonce),
+                                                    ),
+                                                  ],
+                                                ),
                                               ],
                                             ),
-                                          ),
-                                          Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              IconButton(
-                                                icon: const Icon(
-                                                    Icons.edit_outlined),
-                                                color: AppColors.primaryGreen,
-                                                onPressed: () =>
-                                                    _navigateToEditForm(
-                                                        annonce),
-                                              ),
-                                              IconButton(
-                                                icon: const Icon(
-                                                    Icons.delete_outline),
-                                                color: Colors.red,
-                                                onPressed: () =>
-                                                    _deleteAnnonce(annonce),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'Culture: ${annonce.typeCultureLibelle}',
-                                        style: AppTextStyles.subheading,
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'Quantité: ${annonce.quantite}',
-                                        style: AppTextStyles.subheading,
-                                      ),
-                                      const SizedBox(height: 4),
-                                      const SizedBox(height: 4),
-                                      Row(
-                                        children: [
-                                          Text(
-                                            'Statut: ',
-                                            style: AppTextStyles.subheading,
-                                          ),
-                                          Text(
-                                            annonce.statut,
-                                            style: TextStyle(
-                                              color: isValidated
-                                                  ? Colors.green
-                                                  : Colors.orange,
-                                              fontWeight: FontWeight.bold,
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              'Culture: ${annonce.typeCultureLibelle}',
+                                              style: AppTextStyles.subheading
+                                                  .copyWith(
+                                                      color: Colors.grey[600]),
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'Quantité: ${annonce.quantite}',
+                                              style: AppTextStyles.subheading
+                                                  .copyWith(
+                                                      color: Colors.grey[600]),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'Prix unitaire: ',
+                                              style: AppTextStyles.subheading
+                                                  .copyWith(
+                                                      color: Colors.grey[600]),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'Adresse: ',
+                                              style: AppTextStyles.subheading
+                                                  .copyWith(
+                                                      color: Colors.grey[600]),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            const SizedBox(height: 4),
+                                            Row(
+                                              children: [
+                                                Text(
+                                                  'Statut: ',
+                                                  style:
+                                                      AppTextStyles.subheading,
+                                                ),
+                                                Text(
+                                                  annonce.statut,
+                                                  style: TextStyle(
+                                                    color: isValidated
+                                                        ? Colors.green
+                                                        : Colors.orange,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Description: ${annonce.description}',
-                                    style: AppTextStyles.body,
-                                  ),
-                                ],
-                              ),
+                                );
+                              },
                             ),
-                          );
-                        },
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _navigateToForm,
+        backgroundColor: AppColors.primaryGreen,
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
     );
   }
 }
