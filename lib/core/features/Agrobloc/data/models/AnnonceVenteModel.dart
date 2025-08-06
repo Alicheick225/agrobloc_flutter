@@ -31,7 +31,7 @@ class AnnonceVente {
     return AnnonceVente(
       id: json['id'].toString(),
       photo: json['photo'],
-      statut: json['statut'] ?? 'Indisponible',
+      statut: json['statut'] ?? 'Indisponible'?? 'previsionnel', // Valeur par défaut si 'statut' est null
       description: json['description'] ?? '',
       prixKg: (json['prix_kg'] as num?)?.toDouble() ?? 0,
       quantite: (json['quantite'] as num?)?.toDouble() ?? 0,

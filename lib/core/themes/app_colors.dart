@@ -15,4 +15,9 @@ class AppColors {
   static const Color priceColor = Color(0xFF5D9643); // vert foncé pour prix
   static const Color tagBlue = Color(0xFF2979FF);    // "Prévisionnel"
   static const Color tagGrey = Color(0xFFBDBDBD);
+
+  // ---- Couleurs de statut (CommandeStatus) ----
+  static const Color enCours        = Colors.orange;
+  static const Color termine        = Colors.green;
+  static const Color annule         = Colors.red;
 }
