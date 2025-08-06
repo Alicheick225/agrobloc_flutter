@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:agrobloc/core/features/Agrobloc/data/models/authentificationModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/forgotPasswordModel.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
 
 class AuthService {
   static const String baseUrl = 'http://192.168.252.199:3000/authentification';
@@ -21,7 +22,12 @@ class AuthService {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      return AuthentificationModel.fromJson(data);
+      final user = AuthentificationModel.fromJson(data);
+      
+      // Stocker l'utilisateur dans le UserService
+      UserService().setCurrentUser(user);
+      
+      return user;
     } else {
       throw Exception('Erreur de connexion: ${response.body}');
     }

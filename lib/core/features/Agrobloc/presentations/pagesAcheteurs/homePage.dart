@@ -14,8 +14,8 @@ import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/nav
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/recherche_bar.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/pagesAcheteurs/transactionPage.dart';
-
-
+import 'package:agrobloc/core/features/Agrobloc/presentations/pages/annonce_achat_page.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/pages/profilPage.dart';
 
 /// Page principale affichant les différentes sections et la navigation
 class HomePage extends StatefulWidget {
@@ -68,7 +68,8 @@ class _HomePageState extends State<HomePage> {
       final annonceService = AnnonceService();
       final ventesData = await annonceService.getAllAnnonces();
       final prefinancementService = PrefinancementService();
-      final financementsData = await prefinancementService.fetchPrefinancements(); // ✅ Correction ici
+      final financementsData = await prefinancementService
+          .fetchPrefinancements();
 
       setState(() {
         annonces = ventesData;
@@ -104,9 +105,9 @@ class _HomePageState extends State<HomePage> {
   /// Liste des pages affichées dans le corps principal
   List<Widget> get pages => [
         _buildHomeContent(),
-        _buildAnnoncesPage(),
+        const AnnonceAchatPage(),
         const TransactionPage(),
-        const Center(child: Text("Profil", style: TextStyle(fontSize: 24))),
+        const ProfilPage(),
       ];
 
   /// Page affichant la section annonces avec boutons de navigation vers d'autres pages
@@ -122,7 +123,8 @@ class _HomePageState extends State<HomePage> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const CommandeEnregistreePage()),
+                MaterialPageRoute(
+                    builder: (_) => const CommandeEnregistreePage()),
               );
             },
             icon: const Icon(Icons.receipt),
@@ -139,6 +141,18 @@ class _HomePageState extends State<HomePage> {
             },
             icon: const Icon(Icons.local_shipping),
             label: const Text("Voir Statut de Commande"),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AnnonceAchatPage()),
+              );
+            },
+            icon: const Icon(Icons.add_shopping_cart),
+            label: const Text("Créer / Modifier une Offre d'Achat"),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
           ),
         ],
@@ -182,11 +196,12 @@ class _HomePageState extends State<HomePage> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// ✅ Top offres avec pagination
+            /// Top offres avec pagination
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Top offres", style: Theme.of(context).textTheme.titleLarge),
+                Text("Top offres",
+                    style: Theme.of(context).textTheme.titleLarge),
                 TextButton(
                   onPressed: () {
                     if (annonces.isNotEmpty) {
@@ -199,7 +214,8 @@ class _HomePageState extends State<HomePage> {
                   },
                   child: const Text(
                     "Suivant >",
-                    style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        color: Colors.green, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -226,7 +242,7 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 45),
 
-            /// ✅ Section Recommandé
+            /// Section Recommandé
             Text("Recommandé", style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 5),
             Column(
@@ -244,7 +260,8 @@ class _HomePageState extends State<HomePage> {
         return paginatedFinancements.isEmpty
             ? const Center(child: Text("Aucun financement disponible"))
             : ListView.builder(
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 18),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 16, horizontal: 18),
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: paginatedFinancements.length,
@@ -257,7 +274,8 @@ class _HomePageState extends State<HomePage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => FinancementDetailsPage(data: financement),
+                            builder: (_) =>
+                                FinancementDetailsPage(data: financement),
                           ),
                         );
                       },
@@ -271,7 +289,8 @@ class _HomePageState extends State<HomePage> {
               );
 
       default:
-        return const Center(child: Text("Aucun contenu disponible pour ce filtre."));
+        return const Center(
+            child: Text("Aucun contenu disponible pour ce filtre."));
     }
   }
 
@@ -287,6 +306,11 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+        bottomNavigationBar: BottomNavBar(
+          currentIndex: _selectedIndex,
+          onTap: (index) => setState(() => _selectedIndex = index),
+        ),
+      ),
+    );
   }
 }
- 
