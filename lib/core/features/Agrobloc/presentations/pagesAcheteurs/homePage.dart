@@ -14,8 +14,8 @@ import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/nav
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/recherche_bar.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/pagesAcheteurs/transactionPage.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/pages/annonce_achat_page.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/pages/profilPage.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/pagesAcheteurs/annonce_achat_page.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/pagesAcheteurs/profilPage.dart';
 
 /// Page principale affichant les différentes sections et la navigation
 class HomePage extends StatefulWidget {
@@ -307,11 +307,8 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
-        bottomNavigationBar: BottomNavBar(
-          currentIndex: _selectedIndex,
-          onTap: (index) => setState(() => _selectedIndex = index),
-        ),
-      ),
-    );
+
   }
 }
+
+

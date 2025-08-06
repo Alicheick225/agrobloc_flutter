@@ -1,7 +1,7 @@
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/AnnonceAchat.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceAchatModel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../data/dataSources/AnnonceAchat.dart';
-import '../../data/models/AnnonceAchatModel.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:agrobloc/core/themes/app_text_styles.dart';
 
