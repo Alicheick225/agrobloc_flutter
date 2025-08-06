@@ -24,7 +24,7 @@ class BottomNavBar extends StatelessWidget {
       selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
       items: [
         _buildItem(Icons.home_rounded, "Accueil", 0),
-        _buildItem(Icons.campaign_rounded, "Annonces", 1),
+        _buildItem(Icons.campaign_rounded, "Mes offres", 1),
         _buildItem(Icons.sync_alt_rounded, "Transactions", 2),
         _buildItem(Icons.person_rounded, "Profil", 3),
       ],
