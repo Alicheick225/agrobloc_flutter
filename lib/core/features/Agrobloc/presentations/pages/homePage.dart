@@ -15,51 +15,9 @@ import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/rec
 import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/pages/transactionPage.dart';
 // Import du widget PropositionCard
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/propositionCard.dart';
-
-
-/// Service pour récupérer les propositions d'achat
-class PropositionService {
-  /// Récupère toutes les propositions d'achat de l'utilisateur
-  Future<List<PropositionAchat>> fetchUserPropositions() async {
-    // TODO: Remplace par ton appel API réel
-    await Future.delayed(const Duration(seconds: 1)); // Simulation de latence
-
-    // Données de test - remplace par ton appel API
-    return [
-      PropositionAchat(
-        id: '1',
-        nomVendeur: 'Antoine Kouassi',
-        affiliation: 'Sacko',
-        culture: 'Tomate',
-        quantiteSouhaitee: '2 tonnes',
-        prixUnitaire: '1700 FCFA / Kg',
-        statut: 'En attente',
-        dateProposition: DateTime.now().subtract(const Duration(days: 2)),
-      ),
-      PropositionAchat(
-        id: '2',
-        nomVendeur: 'Marie Diabaté',
-        affiliation: 'Korhogo',
-        culture: 'Maïs',
-        quantiteSouhaitee: '5 tonnes',
-        prixUnitaire: '800 FCFA / Kg',
-        statut: 'Acceptée',
-        dateProposition: DateTime.now().subtract(const Duration(days: 5)),
-      ),
-      PropositionAchat(
-        id: '3',
-        nomVendeur: 'Jean Baptiste',
-        affiliation: 'Abidjan',
-        culture: 'Riz',
-        quantiteSouhaitee: '3 tonnes',
-        prixUnitaire: '1200 FCFA / Kg',
-        statut: 'Refusée',
-        dateProposition: DateTime.now().subtract(const Duration(days: 7)),
-      ),
-    ];
-  }
-}
+// import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/home/propositioncard.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/propositionachat.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/propositionachat.dart' as PropositionModel;
 
 /// Page principale affichant les différentes sections et la navigation
 class HomePage extends StatefulWidget {
@@ -90,7 +48,7 @@ class _HomePageState extends State<HomePage> {
   List<AnnonceFinancement> financements = [];
 
   // Liste complète des propositions d'achat
-  List<PropositionAchat> propositions = [];
+  List<PropositionModel.PropositionAchat> propositions = [];
 
   // Sous-liste paginée des annonces affichées
   List<AnnonceVente> paginatedAnnonces = [];
@@ -99,20 +57,13 @@ class _HomePageState extends State<HomePage> {
   List<AnnonceFinancement> paginatedFinancements = [];
 
   // Sous-liste paginée des propositions affichées
-  List<PropositionAchat> paginatedPropositions = [];
+  List<PropositionModel.PropositionAchat> paginatedPropositions = [];
 
   // Indicateur de chargement des données
   bool isLoading = true;
 
   // Indicateur de chargement spécifique aux propositions
   bool isLoadingPropositions = false;
-
-  @override
-  void initState() {
-    super.initState();
-    // Chargement initial des données lors de l'initialisation du widget
-    _loadAllData();
-  }
 
   /// Charge toutes les données nécessaires (annonces et financements)
   Future<void> _loadAllData() async {
@@ -136,15 +87,13 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  /// Charge les propositions d'achat de l'utilisateur
+  /// Charge les propositions d'achat
   Future<void> _loadPropositions() async {
     setState(() => isLoadingPropositions = true);
     try {
-      final propositionService = PropositionService();
-      final propositionsData = await propositionService.fetchUserPropositions();
-
+      final propositionsData = await PropositionAchatService.fetchAllAnnoncesAchat();
       setState(() {
-        propositions = propositionsData;
+        propositions = propositionsData.cast<PropositionModel.PropositionAchat>();
         _currentPage = 0;
         _updatePagination();
         isLoadingPropositions = false;
@@ -152,6 +101,15 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       debugPrint("Erreur de chargement des propositions : $e");
       setState(() => isLoadingPropositions = false);
+      // Afficher un message d'erreur à l'utilisateur
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -176,6 +134,12 @@ class _HomePageState extends State<HomePage> {
         end.clamp(0, propositions.length),
       );
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAllData();
   }
 
   /// Liste des pages affichées dans le corps principal
@@ -415,18 +379,192 @@ class _HomePageState extends State<HomePage> {
             /// Liste des propositions paginées
             ...paginatedPropositions.map((proposition) {
               return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: PropositionCard(
-                  proposition: proposition,
-                  onTap: () {
-                    // TODO: Navigation vers page détail de la proposition
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Détail de la proposition ${proposition.id}'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  },
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Card(
+                  elevation: 2,
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Header avec avatar et nom
+                        Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 24,
+                              backgroundColor: Colors.grey[300],
+                              child: Text(
+                                proposition.userNom.isNotEmpty
+                                    ? proposition.userNom[0].toUpperCase()
+                                    : 'U',
+                                style: const TextStyle(
+                                  color: Colors.black54,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    proposition.userNom,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Affilié à Sacko', // Vous pouvez adapter ceci selon vos données
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(
+                                Icons.delete_outline,
+                                color: Colors.grey[600],
+                                size: 20,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Culture
+                        Row(
+                          children: [
+                            const Text(
+                              'Culture : ',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            Text(
+                              proposition.typeCultureLibelle,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Quantité
+                        Row(
+                          children: [
+                            const Text(
+                              'Quantité : ',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            Text(
+                              '${proposition.quantite.toInt()} tonnes',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Prix unitaire avec icône d'édition
+                        Row(
+                          children: [
+                            const Text(
+                              'Prix unitaire: ',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            Text(
+                              '${proposition.prixUnitaire.toStringAsFixed(0)} FCFA / Kg', // ✅ dynamique à partir du modèle
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const Spacer(),
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.green[50],
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Icon(
+                                Icons.edit_outlined,
+                                color: Colors.green[600],
+                                size: 18,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        // Description si elle existe
+                        if (proposition.description.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          Text(
+                            'Description: ${proposition.description}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+
+                        // Statut
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: proposition.statut.toLowerCase() == 'validé'
+                                ? Colors.green[100]
+                                : proposition.statut.toLowerCase() == 'en cour'
+                                ? Colors.red[100]
+                                : Colors.orange[100],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            proposition.statut,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: proposition.statut.toLowerCase() == 'validé'
+                                  ? Colors.green[700]
+                                  : proposition.statut.toLowerCase() == 'en cour'
+                                  ? Colors.red[700]
+                                  : Colors.orange[700],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               );
             }).toList(),
