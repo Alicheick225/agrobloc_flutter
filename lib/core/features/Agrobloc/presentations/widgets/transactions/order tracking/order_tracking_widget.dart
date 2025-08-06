@@ -1,5 +1,5 @@
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/order%20tracking/Etatetape.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/order%20tracking/actioncard.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/order%20tracking/chat_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/order_status.dart';
 
@@ -9,27 +9,40 @@ class OrderTrackingWidget extends StatelessWidget {
   final Function(OrderStatus)? onStatusUpdate;
 
   const OrderTrackingWidget({
-    Key? key,
+    super.key,
     required this.orderData,
     this.onStatusUpdate,
-  }) : super(key: key);
+  });
 
   @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-     //padding: const EdgeInsets.all(5),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          //_buildOrderHeader(),
-          const SizedBox(height: 24),
-          _buildStatusTimeline(),
-          const SizedBox(height: 24),
-          _buildCurrentActions(),
-        ],
-      ),
-    );
-  }
+Widget build(BuildContext context) {
+  return SingleChildScrollView(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 24),
+        _buildStatusTimeline(),
+        ChatWidget(
+            userName: 'Antoine Kouassi',
+            userInitial: 'A',
+            unreadCount: 4,
+            onChatPressed: () {
+              // Action pour ouvrir le chat
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Ouverture du chat...'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            },
+          ),
+        const SizedBox(height: 24),
+        _buildCurrentActions(),
+        const SizedBox(height: 24),
+      ],
+    ),
+  );
+}
 
 
   Widget _buildStatusTimeline() {
@@ -299,8 +312,5 @@ class OrderTrackingWidget extends StatelessWidget {
     onStatusUpdate?.call(OrderStatus.completed);
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year} à ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
-  }
 }
 

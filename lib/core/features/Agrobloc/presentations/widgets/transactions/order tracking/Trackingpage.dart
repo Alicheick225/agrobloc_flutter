@@ -37,15 +37,16 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
   Widget build(BuildContext context) {
 
     if (orderData == null) {
-    return const Center(child: CircularProgressIndicator());
-  }
+      return const Center(child: CircularProgressIndicator());
+    }
+
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: PreferredSize(
               preferredSize: const Size.fromHeight(70), // hauteur de ton NavWidget
               child: NavWidget(
-                title: 'Détails paiement',
+                title: 'status commande',
                 onBackPressed: () => Navigator.pop(context),
                 onInfoPressed: () => print('Info pressed'),
               ),
@@ -55,6 +56,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
         onStatusUpdate: _updateOrderStatus,
         
       ),
+      
     );
   }
 
