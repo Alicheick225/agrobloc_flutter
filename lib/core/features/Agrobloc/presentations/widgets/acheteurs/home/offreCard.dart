@@ -11,6 +11,7 @@ class OffreCard extends StatelessWidget {
   final VoidCallback? onFavoriteToggle;
   final bool isLiked;
   final AnnonceVente? recommendation;
+  final String acheteurId; // ID de l'acheteur pour les transactions
 
 
   const OffreCard({
@@ -20,6 +21,7 @@ class OffreCard extends StatelessWidget {
     this.onFavoriteToggle,
     this.isLiked = false,
     this.recommendation,
+    required this.acheteurId, // ID de l'acheteur pour les transactions
   });
 
   @override
@@ -48,7 +50,8 @@ class OffreCard extends StatelessWidget {
             context,
         MaterialPageRoute(
           builder: (context) => OffreDetailPage(
-            recommendation: data,  // On passe l'objet AnnonceVente
+            recommendation: data, 
+            acheteurId: acheteurId,  // On passe l'objet AnnonceVente
           ),
         ),
       );

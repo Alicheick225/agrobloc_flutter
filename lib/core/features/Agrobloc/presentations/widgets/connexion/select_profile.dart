@@ -41,37 +41,39 @@ class SelectProfilePage extends StatelessWidget {
         child: Column(
           children: [
             const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            Column(
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                _ProfileCard(
-                  icon: Icons.account_balance_wallet,
-                  label: 'Acheteur',
-                  onTap: () {
-                    _navigateToRegister(context, 'acheteur');
-                  },
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _ProfileCard(
+                      icon: Icons.account_balance_wallet,
+                      label: 'Acheteur',
+                      onTap: () {
+                        _navigateToRegister(context, 'acheteur');
+                      },
+                    ),
+                    _ProfileCard(
+                      icon: Icons.agriculture,
+                      label: 'Planteur',
+                      onTap: () {
+                        _navigateToRegister(context, 'planteur');
+                      },
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 20),
                 _ProfileCard(
-                  icon: Icons.agriculture,
-                  label: 'Planteur',
+                  icon: Icons.apartment,
+                  label: 'Coopérative',
                   onTap: () {
-                    _navigateToRegister(context, 'planteur');
+                    _navigateToRegister(context, 'cooperative');
                   },
                 ),
               ],
             ),
             const SizedBox(height: 40),
-            TextButton(
-              onPressed: () {
-                // Navigue vers la page d'inscription avec sélection de profil
-                // Par exemple, navigue vers l'inscription avec le profil 'acheteur'
-                _navigateToRegister(context, 'acheteur');
-              },
-              child: const Text(
-                'Pas encore inscrit ? Inscrivez-vous ici',
-                style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
-              ),
-            ),
           ],
         ),
       ),
@@ -109,7 +111,8 @@ class _ProfileCard extends StatelessWidget {
               const SizedBox(height: 12),
               Text(
                 label,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ],
           ),

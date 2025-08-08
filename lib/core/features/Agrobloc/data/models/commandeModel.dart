@@ -17,8 +17,6 @@ class CommandeModel {
     required this.statut,
     required this.createdAt,
     required this.typeCulture,
-    required String token, // 🔥 Ajouté ici
-
   });
 
   factory CommandeModel.fromJson(Map<String, dynamic> json) {
@@ -31,9 +29,9 @@ class CommandeModel {
       statut: json['statut'],
       createdAt: DateTime.parse(json['created_at']),
       typeCulture: json['type_culture'],
-      token: json['token'] ?? '', // 🔥 Ajouté ici
     );
   }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -44,7 +42,6 @@ class CommandeModel {
       'statut': statut,
       'created_at': createdAt.toIso8601String(),
       'type_culture': typeCulture,
-      
     };
   }
 }

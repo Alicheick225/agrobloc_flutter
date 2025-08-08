@@ -15,7 +15,7 @@ class NavTransactionWidget extends StatelessWidget {
           onPressed: () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (_) => const HomePage()),
+              MaterialPageRoute(builder: (_) => const HomePage(acheteurId: '')), // Passer l'ID de l'acheteur ici
             );
           },
         ),

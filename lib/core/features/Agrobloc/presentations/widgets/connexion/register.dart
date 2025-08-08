@@ -16,6 +16,7 @@ class SignUpPage extends StatefulWidget {
 /// État de la page d'inscription gérant les contrôleurs et la logique d'inscription
 class _SignUpPageState extends State<SignUpPage> {
   final fullNameController = TextEditingController();
+  final emailController = TextEditingController();
   final phoneController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
@@ -50,6 +51,26 @@ class _SignUpPageState extends State<SignUpPage> {
       );
       return;
     }
+
+    // Validation des champs selon le profil
+    if ((widget.profile == 'acheteur' || widget.profile == 'cooperative') &&
+        emailController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text(
+                'Veuillez saisir un email valide pour l\'acheteur ou la coopérative')),
+      );
+      return;
+    }
+    if (widget.profile == 'planteur' && phoneController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text(
+                'Veuillez saisir un numéro de téléphone valide pour le planteur')),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
@@ -57,16 +78,26 @@ class _SignUpPageState extends State<SignUpPage> {
       // Déterminer le profilId en fonction du profil sélectionné
       String profilId = '';
       if (widget.profile == 'acheteur') {
-        profilId = 'b74a4f6-67b6-474a-9bf5-d63e04d2a804'; // ID acheteur exemple
+        profilId =
+            '7b74a4f6-67b6-474a-9bf5-d63e04d2a804'; // ID acheteur principal
+      } else if (widget.profile == 'cooperative') {
+        profilId = '35a3c32a-17f8-4771-a0d8-9295b1bc5917'; // ID coopérative
       } else if (widget.profile == 'planteur') {
         profilId =
             'f23423d4-ca9e-409b-b3fb-26126ab66581'; // ID planteur exemple
       }
 
+      print('ProfilId: $profilId');
+      print('Nom: ${fullNameController.text.trim()}');
+      print('Email: ${emailController.text.trim()}');
+      print('Numéro de téléphone: ${phoneController.text.trim()}');
+      print('Mot de passe: ${passwordController.text}');
+
       final user = await _authService.register(
         nom: fullNameController.text.trim(),
-        email:
-            widget.profile == 'acheteur' ? phoneController.text.trim() : null,
+        email: (widget.profile == 'acheteur' || widget.profile == 'cooperative')
+            ? emailController.text.trim()
+            : null,
         numeroTel:
             widget.profile == 'planteur' ? phoneController.text.trim() : null,
         password: passwordController.text,
@@ -83,7 +114,10 @@ class _SignUpPageState extends State<SignUpPage> {
         MaterialPageRoute(
           builder: (context) => LoginPage(
             profile: widget.profile,
-            prefillIdentifiant: phoneController.text.trim(),
+            prefillIdentifiant: (widget.profile == 'acheteur' ||
+                    widget.profile == 'cooperative')
+                ? emailController.text.trim()
+                : phoneController.text.trim(),
             prefillPassword: passwordController.text,
           ),
         ),
@@ -146,11 +180,11 @@ class _SignUpPageState extends State<SignUpPage> {
               ),
               const SizedBox(height: 16),
               // Champ de saisie pour l'email ou le numéro de téléphone selon le profil
-              widget.profile == 'acheteur'
+              (widget.profile == 'acheteur' || widget.profile == 'cooperative')
                   ? customTextField(
                       icon: Icons.email,
                       hintText: "Email",
-                      controller: phoneController,
+                      controller: emailController,
                       keyboardType: TextInputType.emailAddress,
                     )
                   : customTextField(

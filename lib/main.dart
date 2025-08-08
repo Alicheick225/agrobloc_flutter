@@ -2,8 +2,21 @@ import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/connexion/
 import 'package:agrobloc/core/features/Agrobloc/presentations/pagesAcheteurs/homePage.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/connexion/login.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:agrobloc/core/themes/app_colors.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Set status bar color to green
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: AppColors.primaryGreen, // Green color
+      statusBarIconBrightness: Brightness.light, // White icons
+      statusBarBrightness: Brightness.dark, // For iOS
+    ),
+  );
+
   runApp(const MyApp());
 }
 
@@ -20,7 +33,9 @@ class MyApp extends StatelessWidget {
         ),
         home: SelectProfilePage(),
         routes: {
-          '/homePage': (context) => const HomePage(),
+          '/homePage': (context) => const HomePage(
+            acheteurId: '', // Passer l'ID de l'acheteur ici
+          ),
           '/login': (context) => const LoginPage(profile: 'acheteur'), // default profile example
           // Add other routes as needed
         },
