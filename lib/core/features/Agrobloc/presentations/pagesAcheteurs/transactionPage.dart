@@ -1,5 +1,6 @@
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/commande_vente_service.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/commande_vente.dart';
+import 'package:agrobloc/core/lib/core/features/Agrobloc/presentations/pagesAcheteurs/transactionPage.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/Detail_transaction/detailTransactionpage.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/card.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/filter.dart';
@@ -80,7 +81,7 @@ class _TransactionPageState extends State<TransactionPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => Detailtransactionpage(commandeId: c.id),
+                            builder: (_) => OrderTrackingScreen(orderId: "123"),
                           ),
                         );
                       },
