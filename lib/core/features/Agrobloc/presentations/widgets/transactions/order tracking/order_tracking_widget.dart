@@ -1,6 +1,7 @@
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/order%20tracking/actioncard.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/order%20tracking/discuterBouton.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/order%20tracking/productInfo.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/order%20tracking/producteur_info.dart';
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/order_status.dart';
 
@@ -9,11 +10,11 @@ class OrderTrackingWidget extends StatelessWidget {
   final OrderTrackingData orderData;
   final Function(OrderStatus)? onStatusUpdate;
 
-  const OrderTrackingWidget({
-    super.key,
-    required this.orderData,
-    this.onStatusUpdate,
-  });
+const OrderTrackingWidget({
+  Key? key,
+  required this.orderData,
+  required this.onStatusUpdate,
+}) : super(key: key);
 
   @override
 Widget build(BuildContext context) {
@@ -22,7 +23,7 @@ Widget build(BuildContext context) {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 24),
-        _buildStatusTimeline(),
+        _buildStatusTimeline(context),
         ChatWidget(
             userName: 'Antoine Kouassi',
             userInitial: 'A',
@@ -37,6 +38,7 @@ Widget build(BuildContext context) {
               );
             },
           ),
+        const SizedBox(height: 24),
         ProductInfoWidget(
           productName: 'Cacao Premium',
           totalAmount: '1000 FCFA',
@@ -47,27 +49,45 @@ Widget build(BuildContext context) {
             // Action pour basculer l'état développé
           },
         ),
+          const SizedBox(height: 24),
+          ProducerInfoWidget(
+            producerName: 'Antoine Kouassi',
+            phoneNumber: '07 69 28 3031',
+            orderStatus: orderData.currentStatus,
+          ),
         const SizedBox(height: 24),
         _buildCurrentActions(),
-        const SizedBox(height: 24),
       ],
     ),
   );
 }
 
-
-  Widget _buildStatusTimeline() {
+Widget _buildOrderHeader() {
     return Card(
-      color: Colors.white,
       child: Padding(
-        padding: const EdgeInsets.all(1),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            //const SizedBox(height: 0),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: _buildHorizontalTimelineSteps(),
+            Text(
+              'Commande #${orderData.orderId}',
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Planteur: ${orderData.planteurName}',
+              style: const TextStyle(fontSize: 14),
+            ),
+            Text(
+              'Acheteur: ${orderData.acheteurName}',
+              style: const TextStyle(fontSize: 14),
+            ),
+            Text(
+              'Créée le: ${_formatDate(orderData.createdAt)}',
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
             ),
           ],
         ),
@@ -75,51 +95,75 @@ Widget build(BuildContext context) {
     );
   }
 
-  Widget _buildHorizontalTimelineSteps() {
-    return Builder(
-      builder: (context) => Row(
-        children: [
-          _buildHorizontalStatusStep(
-            context: context,
-            title: 'En attente planteur',
-            description: '...',
-            isCompleted: _isStatusCompleted(OrderStatus.waitingPlanteurConfirmation),
-            isActive: orderData.currentStatus == OrderStatus.waitingPlanteurConfirmation,
-            isLast: false,
-            icon: Icons.pending_actions,
-          ),
-          _buildHorizontalStatusStep(
-            context: context,
-            title: 'En attente paiement',
-            description: '...',
-            isCompleted: _isStatusCompleted(OrderStatus.waitingPayment),
-            isActive: orderData.currentStatus == OrderStatus.waitingPayment,
-            isLast: false,
-            icon: Icons.payment,
-            activeColor: Colors.orange,
-          ),
-          _buildHorizontalStatusStep(
-            context: context,
-            title: 'En attente Livraison',
-            description: '...',
-            isCompleted: _isStatusCompleted(OrderStatus.waitingDelivery),
-            isActive: orderData.currentStatus == OrderStatus.waitingDelivery,
-            isLast: false,
-            icon: Icons.local_shipping,
-            activeColor: Colors.purple,
-          ),
-          _buildHorizontalStatusStep(
-            context: context,
-            title: 'Commande terminée',
-            description: '...',
-            isCompleted: orderData.currentStatus == OrderStatus.completed,
-            isActive: orderData.currentStatus == OrderStatus.completed,
-            isLast: true,
-            icon: Icons.check_circle,
-            activeColor: Colors.green,
-          ),
-        ],
+   Widget _buildStatusTimeline(BuildContext context) {
+    return Card(
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(05),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Suivi de la commande',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: _buildHorizontalTimelineSteps(context),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+   Widget _buildHorizontalTimelineSteps(BuildContext context) {
+    return Row(
+      children: [
+        _buildHorizontalStatusStep(
+          context: context,
+          title: 'Confirmation',
+          description: 'Planteur confirme',
+          isCompleted: _isStatusCompleted(OrderStatus.waitingPlanteurConfirmation),
+          isActive: orderData.currentStatus == OrderStatus.waitingPlanteurConfirmation,
+          isLast: false,
+          icon: Icons.pending_actions,
+        ),
+        _buildHorizontalStatusStep(
+          context: context,
+          title: 'Paiement',
+          description: 'Acheteur paie',
+          isCompleted: _isStatusCompleted(OrderStatus.waitingPayment),
+          isActive: orderData.currentStatus == OrderStatus.waitingPayment,
+          isLast: false,
+          icon: Icons.payment,
+          activeColor: Colors.orange,
+        ),
+        _buildHorizontalStatusStep(
+          context: context,
+          title: 'Livraison',
+          description: 'Livraison en cours',
+          isCompleted: _isStatusCompleted(OrderStatus.waitingDelivery),
+          isActive: orderData.currentStatus == OrderStatus.waitingDelivery,
+          isLast: false,
+          icon: Icons.local_shipping,
+          activeColor: Colors.purple,
+        ),
+        _buildHorizontalStatusStep(
+          context: context,
+          title: 'Terminé',
+          description: 'Colis reçu',
+          isCompleted: orderData.currentStatus == OrderStatus.completed,
+          isActive: orderData.currentStatus == OrderStatus.completed,
+          isLast: true,
+          icon: Icons.check_circle,
+          activeColor: Colors.green,
+        ),
+      ],
     );
   }
 
@@ -198,107 +242,75 @@ Widget build(BuildContext context) {
 
   Widget _buildCurrentActions() {
     return Card(
+      color: Colors.white,
       child: Padding(
-        padding: const EdgeInsets.all(6),
+        padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Actions en cours',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height:6),
-            Row(
-              children: _getCurrentActionCards()
-                  .map((card) => Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 1),
-                          child: card,
-                        ),
-                      ))
-                  .toList(),
-            ),
+            const SizedBox(height: 16),
+            ..._getCurrentActionButtons(),
           ],
         ),
       ),
     );
   }
 
-  List<Widget> _getCurrentActionCards() {
+
+  List<Widget> _getCurrentActionButtons() {
     switch (orderData.currentStatus) {
       case OrderStatus.waitingPlanteurConfirmation:
         return [
-          UserActionCard(
-            userType: 'Planteur',
-            action: 'Confirmer la commande',
-            status: 'Action requise',
-            isActive: true,
-            actionButtonText: 'Confirmer',
-            onActionPressed: () => onStatusUpdate?.call(OrderStatus.waitingPayment),
-         ),
-          UserActionCard(
-            userType: 'Acheteur',
-            action: 'Attendre la confirmation',
-            status: 'En attente',
-            isActive: false,
+          ActionButtonWidget(
+            text: 'Confirmer la commande',
+            type: ActionButtonType.success,
+            onPressed: () => onStatusUpdate?.call(OrderStatus.waitingPayment),
+          ),
+          const SizedBox(height: 12),
+          ActionButtonWidget(
+            text: 'Annuler la transaction',
+            type: ActionButtonType.danger,
+            onPressed: () => _showCancelDialog(),
           ),
         ];
 
       case OrderStatus.waitingPayment:
         return [
-          UserActionCard(
-            userType: 'Acheteur',
-            action: 'Effectuer le paiement',
-            status: 'Action requise',
-            isActive: true,
-            actionButtonText: 'Payer',
-            onActionPressed: () => onStatusUpdate?.call(OrderStatus.waitingDelivery),
+          ActionButtonWidget(
+            text: 'Faire le paiement',
+            type: ActionButtonType.success,
+            onPressed: () => onStatusUpdate?.call(OrderStatus.waitingDelivery),
           ),
-          const SizedBox(height: 8),
-          UserActionCard(
-            userType: 'Planteur',
-            action: 'Attendre le paiement',
-            status: 'En attente',
-            isActive: false,
+          const SizedBox(height: 12),
+          ActionButtonWidget(
+            text: 'Annuler la transaction',
+            type: ActionButtonType.danger,
+            onPressed: () => _showCancelDialog(),
           ),
         ];
 
       case OrderStatus.waitingDelivery:
         return [
-          UserActionCard(
-            userType: 'Planteur',
-            action: 'Confirmer la livraison',
-            status: 'Action requise',
-            isActive: true,
-            actionButtonText: 'Livré',
-            onActionPressed: () => _showDeliveryConfirmation(),
+          ActionButtonWidget(
+            text: 'Confirmer la livraison',
+            type: ActionButtonType.success,
+            onPressed: () => _showDeliveryConfirmation(),
           ),
-          const SizedBox(height: 8),
-          UserActionCard(
-            userType: 'Acheteur',
-            action: 'Confirmer la réception',
-            status: 'En attente de livraison',
-            isActive: false,
+          const SizedBox(height: 12),
+          ActionButtonWidget(
+            text: 'Signaler un problème',
+            type: ActionButtonType.danger,
+            onPressed: () => _showProblemDialog(),
           ),
         ];
 
       case OrderStatus.completed:
         return [
-          UserActionCard(
-            userType: 'Planteur',
-            action: 'Commande terminée',
-            status: 'Terminé',
-            isActive: false,
-          ),
-          const SizedBox(height: 8),
-          UserActionCard(
-            userType: 'Acheteur',
-            action: 'Commande reçue',
-            status: 'Terminé',
-            isActive: false,
+          ActionButtonWidget(
+            text: 'Commande terminée',
+            type: ActionButtonType.secondary,
+            isEnabled: false,
+            onPressed: null,
           ),
         ];
     }
@@ -318,9 +330,19 @@ Widget build(BuildContext context) {
   }
 
   void _showDeliveryConfirmation() {
-    // Ici vous pouvez ajouter une logique pour confirmer la livraison
-    // Par exemple, ouvrir un dialog de confirmation
     onStatusUpdate?.call(OrderStatus.completed);
+  }
+
+  void _showCancelDialog() {
+    // Logique pour annuler la transaction
+  }
+
+  void _showProblemDialog() {
+    // Logique pour signaler un problème
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year} à ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
   }
 
 }

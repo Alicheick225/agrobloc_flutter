@@ -40,7 +40,6 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
       return const Center(child: CircularProgressIndicator());
     }
 
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: PreferredSize(

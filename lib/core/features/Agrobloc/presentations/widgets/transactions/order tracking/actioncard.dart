@@ -1,78 +1,72 @@
 import 'package:flutter/material.dart';
 
-class UserActionCard extends StatelessWidget {
-  final String userType;
-  final String action;
-  final String status;
-  final bool isActive;
-  final VoidCallback? onActionPressed;
-  final String? actionButtonText;
+enum ActionButtonType {
+  primary,
+  secondary,
+  danger,
+  success,
+}
 
-  const UserActionCard({
+class ActionButtonWidget extends StatelessWidget {
+  final String text;
+  final VoidCallback? onPressed;
+  final ActionButtonType type;
+  final bool isEnabled;
+  final double? width;
+  final double height;
+
+  const ActionButtonWidget({
     Key? key,
-    required this.userType,
-    required this.action,
-    required this.status,
-    required this.isActive,
-    this.onActionPressed,
-    this.actionButtonText,
+    required this.text,
+    this.onPressed,
+    this.type = ActionButtonType.primary,
+    this.isEnabled = true,
+    this.width,
+    this.height = 56,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: isActive ? 4 : 1,
-      color: isActive ? Colors.blue.shade50 : Colors.grey.shade50,
-      child: Padding(
-        padding: const EdgeInsets.all(4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  userType == 'Planteur' ? Icons.agriculture : Icons.person,
-                  color: isActive ? Colors.blue : Colors.grey,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  userType,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: isActive ? Colors.blue : Colors.grey.shade700,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 5),
-            Text(
-              action,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade800,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Statut: $status',
-              style: TextStyle(
-                fontSize: 12,
-                fontStyle: FontStyle.italic,
-                color: isActive ? Colors.blue.shade700 : Colors.grey.shade600,
-              ),
-            ),
-            if (isActive && onActionPressed != null && actionButtonText != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: ElevatedButton(
-                  onPressed: onActionPressed,
-                  child: Text(actionButtonText!),
-                ),
-              ),
-          ],
+    return SizedBox(
+      width: width ?? double.infinity,
+      height: height,
+      child: ElevatedButton(
+        onPressed: isEnabled ? onPressed : null,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _getBackgroundColor(),
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: Colors.grey.shade300,
+          disabledForegroundColor: Colors.grey.shade600,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        ),
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+          textAlign: TextAlign.center,
         ),
       ),
     );
+  }
+
+  Color _getBackgroundColor() {
+    if (!isEnabled) return Colors.grey.shade300;
+    
+    switch (type) {
+      case ActionButtonType.primary:
+        return Colors.blue.shade600;
+      case ActionButtonType.secondary:
+        return Colors.grey.shade600;
+      case ActionButtonType.danger:
+        return const Color(0xFFB85450); // Rouge brique comme dans l'image
+      case ActionButtonType.success:
+        return const Color(0xFF9CAF88); // Vert clair comme dans l'image
+    }
   }
 }
