@@ -4,7 +4,8 @@ import 'package:agrobloc/core/features/Agrobloc/data/models/commandeModel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CommandeService {
-  final String baseUrl = 'http://192.168.252.199:3000/commandes'; // 🔁 Mets à jour si besoin
+  final String baseUrl =
+      'http://192.168.252.199:3000/commandes'; // 🔁 Mets à jour si besoin
 
   Future<CommandeModel> enregistrerCommande({
     required String acheteurId,

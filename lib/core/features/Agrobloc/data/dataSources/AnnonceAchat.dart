@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
@@ -7,9 +6,10 @@ import '../models/AnnonceAchatModel.dart';
 
 class AnnonceAchatService {
   static const String _baseUrl = 'http://192.168.252.19:8080/annonces_achat';
-  
+
   // Fixed field mappings for consistent API communication
-  static const String _culturesUrl = 'http://192.168.252.19:8080/types_culture';
+  static const String _culturesUrl =
+      'http://192.168.252.249:8080/api/types-cultures';
 
   /// Récupère toutes les annonces avec le libellé de la culture
   Future<List<AnnonceAchat>> fetchAnnonces() async {
@@ -22,7 +22,8 @@ class AnnonceAchatService {
         final List<dynamic> body = json.decode(response.body);
         return body.map((item) => AnnonceAchat.fromJson(item)).toList();
       } else {
-        throw HttpException('Erreur ${response.statusCode}: ${response.reasonPhrase}');
+        throw HttpException(
+            'Erreur ${response.statusCode}: ${response.reasonPhrase}');
       }
     } on SocketException {
       throw Exception('Pas de connexion Internet');
@@ -39,15 +40,18 @@ class AnnonceAchatService {
       final response = await http
           .get(Uri.parse(_culturesUrl))
           .timeout(const Duration(seconds: 10));
-      
+
       if (response.statusCode == 200) {
         final List<dynamic> body = json.decode(response.body);
-        return body.map<Map<String, dynamic>>((item) => {
-          'id': item['id'].toString(),
-          'libelle': item['libelle'] ?? '',
-        }).toList();
+        return body
+            .map<Map<String, dynamic>>((item) => {
+                  'id': item['id'].toString(),
+                  'libelle': item['libelle'] ?? '',
+                })
+            .toList();
       } else {
-        throw HttpException('Erreur ${response.statusCode}: ${response.reasonPhrase}');
+        throw HttpException(
+            'Erreur ${response.statusCode}: ${response.reasonPhrase}');
       }
     } on SocketException {
       throw Exception('Pas de connexion Internet');
@@ -65,6 +69,7 @@ class AnnonceAchatService {
     required String userId,
     required String typeCultureId,
     required double quantite,
+    required double prix,
   }) async {
     try {
       final response = await http
@@ -77,6 +82,7 @@ class AnnonceAchatService {
               'user_id': userId,
               'type_culture_id': typeCultureId,
               'quantite': quantite,
+              'prix_kg': prix,
             }),
           )
           .timeout(const Duration(seconds: 10));
@@ -103,6 +109,7 @@ class AnnonceAchatService {
     required String userId,
     required String typeCultureId,
     required double quantite,
+    required double prix,
   }) async {
     try {
       final url = '$_baseUrl/$id';
@@ -116,6 +123,7 @@ class AnnonceAchatService {
               'user_id': userId,
               'type_culture_id': typeCultureId,
               'quantite': quantite,
+              'prix_kg': prix,
             }),
           )
           .timeout(const Duration(seconds: 10));
@@ -138,12 +146,10 @@ class AnnonceAchatService {
   Future<void> deleteAnnonceAchat(String id) async {
     try {
       final url = '$_baseUrl/$id';
-      final response = await http
-          .delete(
-            Uri.parse(url),
-            headers: {'Content-Type': 'application/json'},
-          )
-          .timeout(const Duration(seconds: 10));
+      final response = await http.delete(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode != 200 && response.statusCode != 204) {
         throw HttpException('Erreur ${response.statusCode}: ${response.body}');
@@ -161,14 +167,14 @@ class AnnonceAchatService {
   Future<AnnonceAchat> getAnnonceById(String id) async {
     try {
       final url = '$_baseUrl/$id';
-      final response = await http
-          .get(Uri.parse(url))
-          .timeout(const Duration(seconds: 10));
+      final response =
+          await http.get(Uri.parse(url)).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         return AnnonceAchat.fromJson(json.decode(response.body));
       } else {
-        throw HttpException('Erreur ${response.statusCode}: ${response.reasonPhrase}');
+        throw HttpException(
+            'Erreur ${response.statusCode}: ${response.reasonPhrase}');
       }
     } on SocketException {
       throw Exception('Pas de connexion Internet');

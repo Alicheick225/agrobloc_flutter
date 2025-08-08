@@ -111,7 +111,7 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
-          'Annonces d\'Achat',
+          'Offres d\'Achat',
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         backgroundColor: AppColors.primaryGreen,
