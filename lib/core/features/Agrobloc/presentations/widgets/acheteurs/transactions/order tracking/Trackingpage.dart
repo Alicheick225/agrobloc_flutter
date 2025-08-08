@@ -1,5 +1,5 @@
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/order%20tracking/nav.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/order%20tracking/order_tracking_widget.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/order%20tracking/nav.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/order%20tracking/order_tracking_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/order_status.dart';
 

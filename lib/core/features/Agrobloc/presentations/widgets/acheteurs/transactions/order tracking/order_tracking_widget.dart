@@ -1,7 +1,7 @@
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/order%20tracking/actioncard.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/order%20tracking/discuterBouton.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/order%20tracking/productInfo.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/transactions/order%20tracking/producteur_info.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/order%20tracking/actioncard.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/order%20tracking/discuterBouton.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/order%20tracking/productInfo.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/order%20tracking/producteur_info.dart';
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/order_status.dart';
 
