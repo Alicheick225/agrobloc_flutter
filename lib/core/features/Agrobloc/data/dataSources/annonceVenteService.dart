@@ -9,8 +9,8 @@ import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.da
 
 
 class AnnonceService {
-  static const String baseUrl = 'http://192.168.252.19:8080';
-  static const Duration timeoutDuration = Duration(seconds: 60);
+  static const String baseUrl = 'http://192.168.252.199:8080';
+  static const Duration timeoutDuration = Duration(seconds: 15);
 
   // Headers communs pour les requêtes simples (pas pour MultipartRequest)
   static const Map<String, String> headers = {

@@ -4,14 +4,12 @@ import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.da
 
 class OffreDetailPage extends StatelessWidget {
   final AnnonceVente recommendation;
-    final String acheteurId; // 👈 à ajouter
-
-
+  final String? acheteurId; // 👈 à ajouter
 
   const OffreDetailPage({
     super.key,
+    this.acheteurId, // 👈 à initialiser
     required this.recommendation,
-    required this.acheteurId , // 👈 à initialiser
   });
 
   @override
@@ -48,14 +46,16 @@ class OffreDetailPage extends StatelessWidget {
                       width: double.infinity,
                       height: 280,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => _imageErrorWidget(),
+                      errorBuilder: (context, error, stackTrace) =>
+                          _imageErrorWidget(),
                     )
                   : Image.network(
                       "http://192.168.252.19:8080$image",
                       width: double.infinity,
                       height: 280,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => _imageErrorWidget(),
+                      errorBuilder: (context, error, stackTrace) =>
+                          _imageErrorWidget(),
                     ),
 
               /// ✅ Bouton retour
@@ -80,7 +80,8 @@ class OffreDetailPage extends StatelessWidget {
                 top: 40,
                 right: 16,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     color: statut == "disponible" ? Colors.green : Colors.red,
                     borderRadius: BorderRadius.circular(8),
@@ -143,8 +144,7 @@ class OffreDetailPage extends StatelessWidget {
                         TextSpan(
                           text: "$quantity tonnes",
                           style: const TextStyle(
-                              color: Colors.green,
-                              fontWeight: FontWeight.w500),
+                              color: Colors.green, fontWeight: FontWeight.w500),
                         ),
                       ],
                     ),
@@ -174,7 +174,8 @@ class OffreDetailPage extends StatelessWidget {
                   /// ✅ Localisation
                   Row(
                     children: [
-                      const Icon(Icons.location_on, size: 18, color: Colors.grey),
+                      const Icon(Icons.location_on,
+                          size: 18, color: Colors.grey),
                       const SizedBox(width: 5),
                       Expanded(
                         child: Text(
@@ -188,25 +189,23 @@ class OffreDetailPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
 
-
                   Row(
-                      children: [
-                        ...List.generate(5, (index) {
-                          return Icon(
-                            index < note.round()
-                                ? Icons.star
-                                : Icons.star_border,
-                            color: Colors.amber,
-                            size: 18,
-                          );
-                        }),
-                        const SizedBox(width: 6),
-                        Text(
-                          "(${note.toStringAsFixed(1)}/5)",
-                          style: const TextStyle(fontSize: 13, color: Colors.black54),
-                        ),
-                      ],
-),
+                    children: [
+                      ...List.generate(5, (index) {
+                        return Icon(
+                          index < note.round() ? Icons.star : Icons.star_border,
+                          color: Colors.amber,
+                          size: 18,
+                        );
+                      }),
+                      const SizedBox(width: 6),
+                      Text(
+                        "(${note.toStringAsFixed(1)}/5)",
+                        style: const TextStyle(
+                            fontSize: 13, color: Colors.black54),
+                      ),
+                    ],
+                  ),
 
                   /// ✅ BOUTONS
                   Row(
@@ -236,21 +235,20 @@ class OffreDetailPage extends StatelessWidget {
                         child: ElevatedButton(
                           onPressed: () {
                             Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => CommandeProduitPage(
-                                  nomProduit: product,
-                                  acheteurId: acheteurId.toString(), // ✅ Corrigé ici
-                                  imageProduit: image.isNotEmpty
-                                      ? (image.startsWith('http')
-                                          ? image
-                                          : "http://192.168.252.19:8080$image")
-                                      : "",
-                                  prixUnitaire: price.toDouble(),
-                                  stockDisponible: quantity.toDouble(), 
-                              ),
-                              )
-                            );
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => CommandeProduitPage(
+                                    nomProduit: product,
+                                    imageProduit: image.isNotEmpty
+                                        ? (image.startsWith('http')
+                                            ? image
+                                            : "http://192.168.252.19:8080$image")
+                                        : "",
+                                    prixUnitaire: price.toDouble(),
+                                    stockDisponible: quantity.toDouble(), annonce: recommendation,
+
+                                  ),
+                                ));
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.green,

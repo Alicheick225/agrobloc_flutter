@@ -1,18 +1,19 @@
 import 'dart:convert';
-import 'package:agrobloc/core/features/Agrobloc/data/models/payementModeModel.dart';
 import 'package:http/http.dart' as http;
+import 'package:agrobloc/core/features/Agrobloc/data/models/payementModeModel.dart';
 
-class PaymentService {
-  final String baseUrl = "http://192.168.252.28:8082/api"; // Remplace par ton URL
+class PaiementService {
+  final String baseUrl = "http://192.168.252.249:8082/api";
 
-  Future<List<PaymentModel>> fetchPayments() async {
-    final response = await http.get(Uri.parse("$baseUrl/moyensPaiement"));
+  Future<List<PaymentModel>> getModesPaiement() async {
+    final url = Uri.parse("$baseUrl/typesPaiement");
+    final response = await http.get(url);
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
-      return data.map((json) => PaymentModel.fromJson(json)).toList();
+      return data.map((e) => PaymentModel.fromJson(e)).toList();
     } else {
-      throw Exception("Erreur lors du chargement des paiements");
+      throw Exception("Erreur de chargement des modes de paiement");
     }
   }
 }

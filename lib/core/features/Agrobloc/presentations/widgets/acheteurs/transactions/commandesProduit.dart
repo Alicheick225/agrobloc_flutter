@@ -1,17 +1,17 @@
-import 'package:agrobloc/core/features/Agrobloc/data/dataSources/commandeService.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/payementMethode.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/payementMode.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/payementModeModel.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/commandeService.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/payementMethode.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/paiementMoney.dart';
-
-// ... import statements inchangés ...
 
 class CommandeProduitPage extends StatefulWidget {
   final String nomProduit;
   final String imageProduit;
   final double prixUnitaire;
   final double stockDisponible;
-final String acheteurId;
+  final AnnonceVente annonce;
 
   const CommandeProduitPage({
     super.key,
@@ -19,9 +19,8 @@ final String acheteurId;
     required this.imageProduit,
     required this.prixUnitaire,
     required this.stockDisponible,
-    required this.acheteurId, // 🔥 ID de l'acheteur
+    required this.annonce,
   });
-  
 
   @override
   State<CommandeProduitPage> createState() => _CommandeProduitPageState();
@@ -31,18 +30,47 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
   int quantite = 1;
   String unite = "Kg";
 
-  List<PaymentModel> allPayments = [
-    PaymentModel(id: "1", libelle: "Carte bancaire (VISA)", logo: null),
-    PaymentModel(id: "2", libelle: "Virement bancaire", logo: null),
-    PaymentModel(id: "3", libelle: "Mobile money", logo: null),
-  ];
-
+  List<PaymentModel> allPayments = [];
   String? selectedPayment;
   bool showPaymentList = false;
+  bool isLoadingPayments = true;
 
   double get totalPrix {
     double qteKg = unite == "T" ? quantite * 1000 : quantite.toDouble();
     return widget.prixUnitaire * qteKg;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPayments();
+  }
+
+  Future<void> _loadPayments() async {
+    try {
+      final paiementService = PaiementService();
+      final modes = await paiementService.getModesPaiement();
+      setState(() {
+        allPayments = modes;
+        isLoadingPayments = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoadingPayments = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Erreur : $e")),
+      );
+    }
+  }
+
+  IconData _getPaymentIcon(String libelle) {
+    libelle = libelle.toLowerCase();
+    if (libelle.contains("mobile")) return Icons.phone_android;
+    if (libelle.contains("carte")) return Icons.credit_card;
+    if (libelle.contains("virement")) return Icons.account_balance;
+    if (libelle.contains("crypto")) return Icons.currency_bitcoin;
+    return Icons.payment;
   }
 
   @override
@@ -62,271 +90,310 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
         ),
         centerTitle: true,
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight),
-              child: IntrinsicHeight(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
-                      child: Text(
-                        "Prix  FCFA ${totalPrix.toStringAsFixed(0)}",
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green,
-                          fontSize: 18,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade300),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
+      body: isLoadingPayments
+          ? const Center(child: CircularProgressIndicator(color: Colors.green))
+          : LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: ConstrainedBox(
+                    constraints:
+                        BoxConstraints(minHeight: constraints.maxHeight),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: widget.imageProduit.startsWith("http")
-                                ? Image.network(widget.imageProduit,
-                                    width: 50, height: 50, fit: BoxFit.cover)
-                                : Image.asset(widget.imageProduit,
-                                    width: 50, height: 50, fit: BoxFit.cover),
+                          // Prix total
+                          Center(
+                            child: Text(
+                              "Prix  FCFA ${totalPrix.toStringAsFixed(0)}",
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green,
+                                fontSize: 18,
+                              ),
+                            ),
                           ),
-                          const SizedBox(width: 16),
-                          Text(
-                            widget.nomProduit,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 18),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade300),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                          const SizedBox(height: 16),
+
+                          // Infos produit
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey.shade300),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
                               children: [
-                                const Text("Quantité",
-                                    style: TextStyle(color: Colors.grey)),
-                                TextFormField(
-                                  initialValue: quantite.toString(),
-                                  keyboardType: TextInputType.number,
-                                  decoration: const InputDecoration(
-                                      border: InputBorder.none),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: widget.imageProduit.startsWith("http")
+                                      ? Image.network(widget.imageProduit,
+                                          width: 50,
+                                          height: 50,
+                                          fit: BoxFit.cover)
+                                      : Image.asset(widget.imageProduit,
+                                          width: 50,
+                                          height: 50,
+                                          fit: BoxFit.cover),
+                                ),
+                                const SizedBox(width: 16),
+                                Text(
+                                  widget.nomProduit,
                                   style: const TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold),
-                                  onChanged: (val) {
-                                    setState(() {
-                                      quantite = int.tryParse(val) ?? 1;
-                                      if (quantite < 1) quantite = 1;
-                                    });
-                                  },
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18),
                                 ),
                               ],
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          ToggleButtons(
-                            isSelected: [unite == "Kg", unite == "T"],
-                            onPressed: (index) {
+                          const SizedBox(height: 20),
+
+                          // Quantité
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey.shade300),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text("Quantité",
+                                          style:
+                                              TextStyle(color: Colors.grey)),
+                                      TextFormField(
+                                        initialValue: quantite.toString(),
+                                        keyboardType: TextInputType.number,
+                                        decoration: const InputDecoration(
+                                            border: InputBorder.none),
+                                        style: const TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold),
+                                        onChanged: (val) {
+                                          setState(() {
+                                            quantite = int.tryParse(val) ?? 1;
+                                            if (quantite < 1) quantite = 1;
+                                          });
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                ToggleButtons(
+                                  isSelected: [unite == "Kg", unite == "T"],
+                                  onPressed: (index) {
+                                    setState(() {
+                                      unite = index == 0 ? "Kg" : "T";
+                                    });
+                                  },
+                                  borderRadius: BorderRadius.circular(10),
+                                  selectedColor: Colors.white,
+                                  fillColor: Colors.green,
+                                  children: const [
+                                    Padding(
+                                      padding:
+                                          EdgeInsets.symmetric(horizontal: 16),
+                                      child: Text("Kg"),
+                                    ),
+                                    Padding(
+                                      padding:
+                                          EdgeInsets.symmetric(horizontal: 16),
+                                      child: Text("T"),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Sélection paiement
+                          GestureDetector(
+                            onTap: () {
                               setState(() {
-                                unite = index == 0 ? "Kg" : "T";
+                                showPaymentList = !showPaymentList;
                               });
                             },
-                            borderRadius: BorderRadius.circular(10),
-                            selectedColor: Colors.white,
-                            fillColor: Colors.green,
-                            children: const [
-                              Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 16),
-                                child: Text("Kg"),
-                              ),
-                              Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 16),
-                                child: Text("T"),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          showPaymentList = !showPaymentList;
-                        });
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            "Sélection du mode de paiement",
-                            style: TextStyle(
-                                color: Colors.green,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          CircleAvatar(
-                            backgroundColor: Colors.green.withOpacity(0.1),
-                            child: Text(
-                              "${allPayments.length}",
-                              style: const TextStyle(color: Colors.green),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  "Sélection du mode de paiement",
+                                  style: TextStyle(
+                                      color: Colors.green,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                CircleAvatar(
+                                  backgroundColor:
+                                      Colors.green.withOpacity(0.1),
+                                  child: Text(
+                                    "${allPayments.length}",
+                                    style:
+                                        const TextStyle(color: Colors.green),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    if (showPaymentList)
-                      Column(
-                        children: allPayments.map((payment) {
-                          return Card(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              side: BorderSide(
-                                color: selectedPayment == payment.libelle
-                                    ? Colors.green
-                                    : const Color.fromARGB(255, 250, 242, 242),
-                              ),
-                            ),
-                            child: RadioListTile<String>(
-                              value: payment.libelle,
-                              groupValue: selectedPayment,
-                              onChanged: (value) {
-                                setState(() {
-                                  selectedPayment = value;
-                                });
-                              },
-                              title: Text(payment.libelle),
-                              activeColor: Colors.green,
-                              secondary: const Icon(Icons.payment,
-                                  color: Colors.green),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    const Spacer(),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton(
-                        onPressed: selectedPayment == null
-                            ? null
-                            : () async {
-                                if (quantite < 1) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content: Text(
-                                            "La quantité doit être au moins 1")),
-                                  );
-                                  return;
-                                }
+                          const SizedBox(height: 20),
 
-                                final selectedPaymentObj = allPayments.firstWhere(
-                                  (p) => p.libelle == selectedPayment,
-                                  orElse: () => PaymentModel(
-                                      libelle: selectedPayment!, logo: null, id: ''),
+                          if (showPaymentList)
+                            Column(
+                              children: allPayments.map((payment) {
+                                return Card(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    side: BorderSide(
+                                      color:
+                                          selectedPayment == payment.libelle
+                                              ? Colors.green
+                                              : Colors.transparent,
+                                    ),
+                                  ),
+                                  child: RadioListTile<String>(
+                                    value: payment.libelle,
+                                    groupValue: selectedPayment,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        selectedPayment = value;
+                                      });
+                                    },
+                                    title: Text(payment.libelle),
+                                    activeColor: Colors.green,
+                                    secondary: Icon(
+                                      _getPaymentIcon(payment.libelle),
+                                      color: Colors.green,
+                                    ),
+                                  ),
                                 );
+                              }).toList(),
+                            ),
+                          const Spacer(),
 
-                                try {
-                                  // Quantité convertie en double en kg
-                                  final quantite = unite == "T"
-                                      ? this.quantite * 1000
-                                      : this.quantite.toDouble();
-                                  final totalPrix = quantite * widget.prixUnitaire;
-                                  final prixTotal = totalPrix.toDouble();
-                                  final modePaiementId = selectedPaymentObj.id;
-                                  final acheteurId = widget.acheteurId; // 🔥 Utiliser l'ID de l'acheteur réel
+                          // Bouton commande
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton(
+                              onPressed: selectedPayment == null
+                                  ? null
+                                  : () async {
+                                      if (quantite < 1) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                              content: Text(
+                                                  "La quantité doit être au moins 1")),
+                                        );
+                                        return;
+                                      }
 
-                                  final commandeService = CommandeService();
+                                      final selectedPaymentObj = allPayments
+                                          .firstWhere(
+                                            (p) =>
+                                                p.libelle == selectedPayment,
+                                          );
 
-                                  final commande = await commandeService
-                                      .enregistrerCommande(
-                                    quantite: quantite.toDouble(),
-                                    prixTotal: prixTotal,
-                                    modePaiementId: modePaiementId,
-                                    typeCulture: widget.nomProduit,
-                                     acheteurId: acheteurId, 
-                                    );
+                                      try {
+                                        final quantiteKg = unite == "T"
+                                            ? quantite * 1000
+                                            : quantite.toDouble();
+                                        final prixTotal = quantiteKg *
+                                            widget.prixUnitaire;
 
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                        content: Text(
-                                            "Commande ${commande.id} enregistrée")),
-                                  );
+                                        final commandeService =
+                                            CommandeService();
 
-                                  final isMobileMoney = selectedPayment!
-                                      .toLowerCase()
-                                      .contains('mobile');
+                                        final commande = await commandeService
+                                            .enregistrerCommande(
+                                          quantite: quantiteKg.toDouble(),
+                                          prixTotal: prixTotal,
+                                          modePaiementId: selectedPaymentObj.id,
+                                          typeCulture: widget.nomProduit,
+                                          annoncesVenteId: widget.annonce.id  ,
+                                        );
 
-                                  if (isMobileMoney) {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => MobileMoneyOrderPage(
-                                          selectedPayment: selectedPayment!,
-                                          totalAmount: prixTotal,
-                                          productName: widget.nomProduit,
-                                          unitPrice: widget.prixUnitaire,
-                                          quantity: quantite.toDouble(),
-                                          unit: unite,
-                                          logoUrl: selectedPaymentObj.logo,
-                                        ),
-                                      ),
-                                    );
-                                  } else {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => PaymentMethodPage(
-                                          selectedPayment: selectedPayment!,
-                                          totalAmount: prixTotal,
-                                          productName: widget.nomProduit,
-                                          unitPrice: widget.prixUnitaire,
-                                          quantity: quantite.toDouble(),
-                                          unit: unite,
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                } catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text("Erreur : $e")),
-                                  );
-                                }
-                              },
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.green,
-                          side: const BorderSide(color: Colors.green),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                        ),
-                        child: const Text("Enregistrez ma commande"),
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                              content: Text(
+                                                  "Commande ${commande.id} enregistrée")),
+                                        );
+
+                                        final isMobileMoney = selectedPayment!
+                                            .toLowerCase()
+                                            .contains('mobile');
+
+                                        if (isMobileMoney) {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  MobileMoneyOrderPage(
+                                                selectedPayment:
+                                                    selectedPayment!,
+                                                totalAmount: prixTotal,
+                                                productName:
+                                                    widget.nomProduit,
+                                                unitPrice:
+                                                    widget.prixUnitaire,
+                                                quantity: quantiteKg.toDouble(),
+                                                unit: unite,
+                                                logoUrl:
+                                                    selectedPaymentObj.logo,
+                                              ),
+                                            ),
+                                          );
+                                        } else {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  PaymentMethodPage(
+                                                selectedPayment:
+                                                    selectedPayment!,
+                                                totalAmount: prixTotal,
+                                                productName:
+                                                    widget.nomProduit,
+                                                unitPrice:
+                                                    widget.prixUnitaire,
+                                                quantity: quantiteKg.toDouble(),
+                                                unit: unite,
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      } catch (e) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                              content: Text("Erreur : $e")),
+                                        );
+                                      }
+                                    },
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: Colors.green,
+                                side: const BorderSide(color: Colors.green),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                              ),
+                              child: const Text("Enregistrez ma commande"),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ),
+                  ),
+                );
+              },
             ),
-          );
-        },
-      ),
     );
   }
 }
