@@ -23,9 +23,13 @@ class CommandeModel {
     return CommandeModel(
       id: json['id'],
       acheteurId: json['acheteur_id'],
-      quantite: double.tryParse(json['quantite'].toString()) ?? 0,
-      prixTotal: double.tryParse(json['prix_total'].toString()) ?? 0,
-      modePaiementId: json['mode_paiement_id'],
+      quantite: (json['quantite'] is int)
+          ? (json['quantite'] as int).toDouble()
+          : (json['quantite'] as num).toDouble(),
+      prixTotal: (json['prix_total'] is int)
+          ? (json['prix_total'] as int).toDouble()
+          : (json['prix_total'] as num).toDouble(),
+      modePaiementId: json['types_paiement_id'],
       statut: json['statut'],
       createdAt: DateTime.parse(json['created_at']),
       typeCulture: json['type_culture'],

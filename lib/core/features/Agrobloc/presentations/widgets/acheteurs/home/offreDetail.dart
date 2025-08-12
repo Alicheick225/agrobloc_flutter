@@ -50,7 +50,7 @@ class OffreDetailPage extends StatelessWidget {
                           _imageErrorWidget(),
                     )
                   : Image.network(
-                      "http://192.168.252.19:8080$image",
+                      "http://192.168.252.199:8080$image",
                       width: double.infinity,
                       height: 280,
                       fit: BoxFit.cover,
@@ -242,7 +242,7 @@ class OffreDetailPage extends StatelessWidget {
                                     imageProduit: image.isNotEmpty
                                         ? (image.startsWith('http')
                                             ? image
-                                            : "http://192.168.252.19:8080$image")
+                                            : "http://192.168.252.199:8080$image")
                                         : "",
                                     prixUnitaire: price.toDouble(),
                                     stockDisponible: quantity.toDouble(), annonce: recommendation,

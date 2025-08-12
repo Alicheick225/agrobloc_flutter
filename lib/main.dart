@@ -1,3 +1,4 @@
+import 'package:agrobloc/core/features/Agrobloc/presentations/pagesProducteurs/homeProducteur.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -55,16 +56,18 @@ class _MyAppState extends State<MyApp> {
             ),
       home: SelectProfilePage(),
       routes: {
-        '/homePage': (context) => const HomePage(
-              acheteurId: 'acheteur',
-              profile: 'acheteur',
-            ),
-        '/login': (context) => const LoginPage(profile: 'acheteur'),
-        '/parametres': (context) => ParametresPage(
-              onThemeChanged: _changerTheme,
-              modeSombreActuel: _modeSombre,
-            ),
-      },
+            '/homePage': (context) => const HomePage(
+                  acheteurId: 'acheteur',
+                  profile: 'acheteur',
+                ),
+            '/homePoducteur': (context) => const HomePoducteur(),
+            '/login': (context) => const LoginPage(profile: 'acheteur'),
+            '/parametres': (context) => ParametresPage(
+                  onThemeChanged: _changerTheme,
+                  modeSombreActuel: _modeSombre,
+                ),
+          },
+
     );
   }
 }

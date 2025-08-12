@@ -312,10 +312,9 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
                                         final commande = await commandeService
                                             .enregistrerCommande(
                                           quantite: quantiteKg.toDouble(),
-                                          prixTotal: prixTotal,
                                           modePaiementId: selectedPaymentObj.id,
-                                          typeCulture: widget.nomProduit,
-                                          annoncesVenteId: widget.annonce.id  ,
+                                          annoncesVenteId: widget.annonce.id,
+                                           unite: unite, 
                                         );
 
                                         ScaffoldMessenger.of(context)
