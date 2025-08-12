@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import '../models/AnnonceAchatModel.dart';
 
 class AnnonceAchatService {
-  static const String _baseUrl = 'http://192.168.252.19:8080/annonces_achat';
+  static const String _baseUrl = 'http://192.168.56.1:8081/annonces_achat';
 
   // Fixed field mappings for consistent API communication
   static const String _culturesUrl =
@@ -66,7 +66,7 @@ class AnnonceAchatService {
   Future<AnnonceAchat> createAnnonceAchat({
     required String statut,
     required String description,
-    required String userId,
+    // required String userId,
     required String typeCultureId,
     required double quantite,
     required double prix,
@@ -79,7 +79,7 @@ class AnnonceAchatService {
             body: jsonEncode({
               'statut': statut,
               'description': description,
-              'user_id': userId,
+              // 'user_id': userId,
               'type_culture_id': typeCultureId,
               'quantite': quantite,
               'prix_kg': prix,
