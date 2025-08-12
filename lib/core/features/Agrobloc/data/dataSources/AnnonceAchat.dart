@@ -66,7 +66,6 @@ class AnnonceAchatService {
   Future<AnnonceAchat> createAnnonceAchat({
     required String statut,
     required String description,
-    // required String userId,
     required String typeCultureId,
     required double quantite,
     required double prix,
@@ -79,7 +78,6 @@ class AnnonceAchatService {
             body: jsonEncode({
               'statut': statut,
               'description': description,
-              // 'user_id': userId,
               'type_culture_id': typeCultureId,
               'quantite': quantite,
               'prix_kg': prix,
@@ -106,7 +104,6 @@ class AnnonceAchatService {
     required String id,
     required String statut,
     required String description,
-    required String userId,
     required String typeCultureId,
     required double quantite,
     required double prix,
@@ -120,7 +117,6 @@ class AnnonceAchatService {
             body: jsonEncode({
               'statut': statut,
               'description': description,
-              'user_id': userId,
               'type_culture_id': typeCultureId,
               'quantite': quantite,
               'prix_kg': prix,

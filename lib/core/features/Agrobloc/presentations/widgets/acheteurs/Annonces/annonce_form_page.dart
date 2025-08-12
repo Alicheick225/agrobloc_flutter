@@ -56,7 +56,7 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
     _quantity = annonce.quantite;
     _prix = annonce.prix ?? 0;
     _prixController.text = _prix.toString();
-    
+
     // Attendre que les cultures soient chargées avant de définir la culture
     if (_cultures.isNotEmpty) {
       _setCultureFromLibelle(annonce.typeCultureLibelle);
@@ -94,7 +94,8 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
         _cultures = uniqueCultures.values.toList();
 
         // Set _selectedCultureId only if in edit mode and _selectedCultureId is null
-        if (_isEditMode && (_selectedCultureId == null || _selectedCultureId!.isEmpty)) {
+        if (_isEditMode &&
+            (_selectedCultureId == null || _selectedCultureId!.isEmpty)) {
           final existingCulture = _cultures.firstWhere(
             (c) => c['libelle'] == widget.annonceToEdit?.typeCultureLibelle,
             orElse: () => {'id': '', 'libelle': ''},
@@ -142,7 +143,6 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
         await _service.updateAnnonceAchat(
           id: widget.annonceToEdit!.id,
           description: _descriptionController.text.trim(),
-          userId: userId,
           typeCultureId: _selectedCultureId!,
           quantite: quantityInKg,
           prix: _prix,
@@ -439,62 +439,7 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
     );
   }
 
-  Widget _buildUserIdDisplay() {
-    final userId = UserService().userId;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'ID Utilisateur',
-            style: TextStyle(
-              color: primaryColor,
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-            ),
-          ),
-          Container(
-            margin: const EdgeInsets.only(top: 4, bottom: 8),
-            height: 2,
-            width: 40,
-            color: primaryColor,
-          ),
-          Text(
-            userId ?? 'Non connecté',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: userId != null ? Colors.green : Colors.red,
-            ),
-          ),
-          if (userId == null)
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0),
-              child: Text(
-                'Veuillez vous connecter pour créer une annonce',
-                style: TextStyle(
-                  color: Colors.red[700],
-                  fontSize: 12,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
+  // Removed the userId display widget as userId is not a form field and is obtained from UserService directly.
 
   Widget _buildPrixInput() {
     return Container(
