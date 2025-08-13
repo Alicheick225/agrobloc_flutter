@@ -50,7 +50,9 @@ class _ProfilPageState extends State<ProfilPage> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.settings, color: Colors.white),
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/parametres');
+                  },
                 ),
               ],
             ),

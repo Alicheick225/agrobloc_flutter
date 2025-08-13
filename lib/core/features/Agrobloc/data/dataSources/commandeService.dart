@@ -60,4 +60,42 @@ class CommandeService {
       throw Exception(errorData['message'] ?? 'Erreur inconnue');
     }
   }
+
+  /// Récupérer toutes les commandes de l'acheteur
+  Future<List<CommandeModel>> getAllCommandes() async {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      if (token == null) {
+        throw Exception("Token non trouvé. Veuillez vous connecter.");
+      }
+
+      final url = Uri.parse("$baseUrl/commandes-ventes");
+
+      final response = await http.get(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        
+        // Attention ici à la clé contenant la liste des commandes
+        if (!data.containsKey('commandes')) {
+          throw Exception("Réponse serveur invalide : clé 'commandes' manquante.");
+        }
+        
+        final List<dynamic> commandesJson = data['commandes'];
+        return commandesJson.map((json) => CommandeModel.fromJson(json)).toList();
+      } else {
+        throw Exception("Erreur récupération commandes : ${response.body}");
+      }
+  }
 }
+
+
+  
+
+
