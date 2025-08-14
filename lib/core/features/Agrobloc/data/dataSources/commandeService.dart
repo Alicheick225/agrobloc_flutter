@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/commandeModel.dart';
 
 class CommandeService {
-  final String baseUrl = 'http://192.168.252.199:3000/commandes';  // base URL sans le suffixe endpoint
+  final String baseUrl = 'http://192.168.252.199:3000/commandes'; // 🔁 Mets à jour si besoin
 
   Future<CommandeModel> enregistrerCommande({
     required String annoncesVenteId,

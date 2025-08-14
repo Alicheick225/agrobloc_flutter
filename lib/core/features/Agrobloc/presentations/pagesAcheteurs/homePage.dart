@@ -69,8 +69,8 @@ class _HomePageState extends State<HomePage> {
       final annonceService = AnnonceService();
       final ventesData = await annonceService.getAllAnnonces();
       final prefinancementService = PrefinancementService();
-      final financementsData = await prefinancementService
-          .fetchPrefinancements();
+      final financementsData =
+          await prefinancementService.fetchPrefinancements();
 
       setState(() {
         annonces = ventesData;
@@ -235,7 +235,10 @@ class _HomePageState extends State<HomePage> {
                           padding: const EdgeInsets.only(right: 8),
                           child: SizedBox(
                             width: 160,
-                            child: OffreCard(data: annonce, acheteurId: '',),
+                            child: OffreCard(
+                              data: annonce,
+                              acheteurId: '',
+                            ),
                           ),
                         );
                       },
@@ -307,8 +310,5 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
-
   }
 }
-
-
