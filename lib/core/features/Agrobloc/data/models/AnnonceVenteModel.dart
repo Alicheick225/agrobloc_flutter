@@ -8,9 +8,8 @@ class AnnonceVente {
   final String userNom;
   final String typeCultureLibelle;
   final String parcelleAdresse;
-  final String? datePublication; // Pas présent dans le JSON actuel, mais on le garde au cas où
-  final double? note; // Note peut être null, donc on utilise double?
-  
+  final String? datePublication; 
+  final double? note; 
 
 
   AnnonceVente({
@@ -31,15 +30,15 @@ class AnnonceVente {
     return AnnonceVente(
       id: json['id'].toString(),
       photo: json['photo'],
-      statut: json['statut'] ?? 'Indisponible'?? 'previsionnel', // Valeur par défaut si 'statut' est null
+      statut: json['statut'] ?? 'Indisponible'?? 'previsionnel', 
       description: json['description'] ?? '',
       prixKg: (json['prix_kg'] as num?)?.toDouble() ?? 0,
       quantite: (json['quantite'] as num?)?.toDouble() ?? 0,
-      userNom: json['nom'] ?? '', // ✅ Corrigé
-      typeCultureLibelle: json['libelle'] ?? '', // ✅ Corrigé
-      parcelleAdresse: json['adresse'] ?? '', // ✅ Corrigé
-      datePublication: json['date_publication'], // Peut être null
-      note: (json['note'] as num?)?.toDouble(), // Note peut être null
+      userNom: json['nom'] ?? '', 
+      typeCultureLibelle: json['libelle'] ?? '', 
+      parcelleAdresse: json['adresse'] ?? '', 
+      datePublication: json['date_publication'], 
+      note: (json['note'] as num?)?.toDouble(), 
     );
   }
 

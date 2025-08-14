@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/commandeService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/commandeModel.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/filter_status.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/nav.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/order%20tracking/Trackingpage.dart';
@@ -96,7 +97,7 @@ class _TransactionPageState extends State<TransactionPage> {
                       itemBuilder: (_, i) {
                         final commande = filtered[i];
                         return TransactionCard(
-                         nom: 'Acheteur ${commande.acheteurId}',
+                         annoncesVenteId: '(${commande.annoncesVenteId})',
                          prixUnitaire: commande.quantite.toStringAsFixed(0),
                          moyenPaiement: commande.modePaiementId,
                          montantTotal: '${commande.prixTotal.toStringAsFixed(0)} FCFA',
