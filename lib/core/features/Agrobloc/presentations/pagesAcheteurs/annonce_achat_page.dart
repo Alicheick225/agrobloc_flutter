@@ -231,7 +231,7 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                                             ),
                                             const SizedBox(height: 4),
                                             Text(
-                                              'Prix unitaire: ',
+                                              'Prix unitaire: ${annonce.prix}',
                                               style: AppTextStyles.subheading
                                                   .copyWith(
                                                       color: Colors.grey[600]),

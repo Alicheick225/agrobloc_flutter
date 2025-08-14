@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:agrobloc/core/features/Agrobloc/data/models/annoncePrefinancementModel.dart';
 
 class PrefinancementService {
-  static const String baseUrl = 'http://192.168.252.19:8080';
+  static const String baseUrl = 'http://192.168.252.199:8080';
 
   // Le constructeur n'a plus besoin de baseUrl car c'est une constante statique
   PrefinancementService();

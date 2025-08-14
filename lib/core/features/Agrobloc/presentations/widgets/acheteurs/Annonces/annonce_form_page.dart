@@ -199,15 +199,6 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
   }
 
   Widget _buildCultureDropdown() {
-    // S'assurer que la valeur est valide ou null
-    String? validSelectedCultureId;
-    if (_selectedCultureId != null && _selectedCultureId!.isNotEmpty) {
-      final cultureExists = _cultures.any(
-        (c) => c['id'].toString() == _selectedCultureId,
-      );
-      validSelectedCultureId = cultureExists ? _selectedCultureId : null;
-    }
-
     return InkWell(
       onTap: _isLoading
           ? null
@@ -253,29 +244,22 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.zero,
               ),
-              value: validSelectedCultureId,
-              items: _isLoading
-                  ? [
-                      const DropdownMenuItem(
-                        value: null,
-                        child: Text('Chargement...'),
-                      )
-                    ]
-                  : [
-                      const DropdownMenuItem(
-                        value: null,
-                        child: Text('Sélectionner une culture'),
-                      ),
-                      ..._cultures.map((culture) {
-                        return DropdownMenuItem<String>(
-                          value: culture['id'].toString(),
-                          child: Text(
-                            culture['libelle'],
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                        );
-                      }).toList(),
-                    ],
+              value: _selectedCultureId,
+              items: [
+                const DropdownMenuItem(
+                  value: null,
+                  child: Text('Sélectionner une culture'),
+                ),
+                ..._cultures.map((culture) {
+                  return DropdownMenuItem<String>(
+                    value: culture['id'].toString(),
+                    child: Text(
+                      culture['libelle'],
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  );
+                }).toList(),
+              ],
               onChanged: _isLoading
                   ? null
                   : (value) {

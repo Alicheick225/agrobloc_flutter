@@ -23,25 +23,16 @@ class CommandeModel {
     return CommandeModel(
       id: json['id'],
       acheteurId: json['acheteur_id'],
-      quantite: double.parse(json['quantite']),
-      prixTotal: double.parse(json['prix_total']),
-      modePaiementId: json['mode_paiement_id'],
+      quantite: (json['quantite'] is int)
+          ? (json['quantite'] as int).toDouble()
+          : (json['quantite'] as num).toDouble(),
+      prixTotal: (json['prix_total'] is int)
+          ? (json['prix_total'] as int).toDouble()
+          : (json['prix_total'] as num).toDouble(),
+      modePaiementId: json['types_paiement_id'],
       statut: json['statut'],
       createdAt: DateTime.parse(json['created_at']),
       typeCulture: json['type_culture'],
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'acheteur_id': acheteurId,
-      'quantite': quantite.toString(),
-      'prix_total': prixTotal.toString(),
-      'mode_paiement_id': modePaiementId,
-      'statut': statut,
-      'created_at': createdAt.toIso8601String(),
-      'type_culture': typeCulture,
-    };
   }
 }

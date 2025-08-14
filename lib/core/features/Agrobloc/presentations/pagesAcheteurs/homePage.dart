@@ -20,7 +20,7 @@ import 'package:agrobloc/core/features/Agrobloc/presentations/pagesAcheteurs/pro
 /// Page principale affichant les différentes sections et la navigation
 class HomePage extends StatefulWidget {
   final String acheteurId; // ID de l'acheteur pour les transactions
-  const HomePage({super.key, required this.acheteurId});
+  const HomePage({super.key, required this.acheteurId, required String profile});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -253,10 +253,7 @@ class _HomePageState extends State<HomePage> {
               children: annonces.map((annonce) {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 16),
-                  child: RecommendationCard(
-                    recommendation: annonce,
-                    acheteurId: '',
-                  ),
+                  child: RecommendationCard(recommendation: annonce, acheteurId: '', annonceVenteId: '',),
                 );
               }).toList(),
             ),
