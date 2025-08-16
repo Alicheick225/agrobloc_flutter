@@ -111,7 +111,7 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
-          'Annonces d\'Achat',
+          'Offres d\'Achat',
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         backgroundColor: AppColors.primaryGreen,
@@ -231,7 +231,7 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                                             ),
                                             const SizedBox(height: 4),
                                             Text(
-                                              'Prix unitaire: ',
+                                              'Prix unitaire: ${annonce.prix}',
                                               style: AppTextStyles.subheading
                                                   .copyWith(
                                                       color: Colors.grey[600]),

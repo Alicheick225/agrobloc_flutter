@@ -18,6 +18,12 @@ class LoginPage extends StatefulWidget {
     this.prefillPassword,
   });
 
+  static const Map<String, String> profilIdToName = {
+  'f23423d4-ca9e-409b-b3fb-26126ab66581': 'producteur',
+  '7b74a4f6-67b6-474a-9bf5-d63e04d2a804': 'cooperative',
+  '35a3c32a-17f8-4771-a0d8-9295b1bc5917': 'acheteur',
+};
+
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
@@ -93,40 +99,51 @@ class _LoginPageState extends State<LoginPage> {
     return true;
   }
 
-  Future<void> _login() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      print('internalProfile: $internalProfile');
-      print('email: ${emailController.text.trim()}');
-      print('phone: ${phoneController.text.trim()}');
-
-      final user = await _authService.login(
-        (['acheteur', 'cooperative'].contains(internalProfile))
-            ? emailController.text.trim()
-            : phoneController.text.trim(),
-        passwordController.text,
-      );
-
-      // TODO: gérer la persistance du "Se souvenir de moi"
-
-      Navigator.pushReplacementNamed(context, '/homePage');
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur de connexion: $e')),
-      );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
+ Future<void> _login() async {
+  print('Login button pressed');
+  if (!_formKey.currentState!.validate()) {
+    return;
   }
+
+  setState(() {
+    _isLoading = true;
+  });
+
+  try {
+    final user = await _authService.login(
+
+      (['acheteur', 'cooperative'].contains(internalProfile))
+          ? emailController.text.trim()
+          : phoneController.text.trim(),
+      passwordController.text,
+      rememberMe: _rememberMe,
+    );
+
+    // Redirection selon profilId reçu
+    if (user.profilId == '7b74a4f6-67b6-474a-9bf5-d63e04d2a804') {
+  // acheteur
+  Navigator.pushReplacementNamed(context, '/homePage');
+} else if (user.profilId == 'f23423d4-ca9e-409b-b3fb-26126ab66581') {
+  // producteur
+  Navigator.pushReplacementNamed(context, '/homePoducteur');
+} else {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text("Profil utilisateur inconnu : ${user.profilId}")),
+  );
+}
+
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Erreur de connexion: $e')),
+    );
+  } finally {
+    setState(() {
+      _isLoading = false;
+    });
+  }
+  
+}
+
 
   @override
   Widget build(BuildContext context) {

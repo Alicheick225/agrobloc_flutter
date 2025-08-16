@@ -5,11 +5,8 @@ import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
 
-
-
-
 class AnnonceService {
-  static const String baseUrl = 'http://192.168.252.19:8080';
+  static const String baseUrl = 'http://192.168.252.199:8080';
   static const Duration timeoutDuration = Duration(seconds: 60);
 
   // Headers communs pour les requêtes simples (pas pour MultipartRequest)
@@ -28,13 +25,14 @@ class AnnonceService {
       final queryParameters = <String, String>{};
       if (userId != null) queryParameters['user_id'] = userId;
       if (statut != null) queryParameters['statut'] = statut;
-      if (typeCultureId != null) queryParameters['type_culture_id'] = typeCultureId;
+      if (typeCultureId != null)
+        queryParameters['type_culture_id'] = typeCultureId;
 
       final uri = Uri.parse('$baseUrl/annonces_vente')
           .replace(queryParameters: queryParameters);
 
-      final response = await http.get(uri, headers: headers)
-          .timeout(timeoutDuration);
+      final response =
+          await http.get(uri, headers: headers).timeout(timeoutDuration);
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
@@ -50,10 +48,12 @@ class AnnonceService {
   /// ✅ Récupérer une annonce par ID
   Future<AnnonceVente> getAnnonceById(String id) async {
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/annonce_vente/$id'),
-        headers: headers,
-      ).timeout(timeoutDuration);
+      final response = await http
+          .get(
+            Uri.parse('$baseUrl/annonce_vente/$id'),
+            headers: headers,
+          )
+          .timeout(timeoutDuration);
 
       if (response.statusCode == 200) {
         return AnnonceVente.fromJson(jsonDecode(response.body));
@@ -77,7 +77,8 @@ class AnnonceService {
     XFile? photo,
   }) async {
     try {
-      var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/annonce_vente'));
+      var request =
+          http.MultipartRequest('POST', Uri.parse('$baseUrl/annonce_vente'));
 
       // ⚠️ Ne pas ajouter Content-Type JSON pour MultipartRequest
       request.fields.addAll({
@@ -124,7 +125,8 @@ class AnnonceService {
     XFile? photo,
   }) async {
     try {
-      var request = http.MultipartRequest('PUT', Uri.parse('$baseUrl/annonce_vente/$id'));
+      var request =
+          http.MultipartRequest('PUT', Uri.parse('$baseUrl/annonce_vente/$id'));
 
       request.fields.addAll({
         'statut': statut,
@@ -160,10 +162,12 @@ class AnnonceService {
   /// ✅ Supprimer une annonce
   Future<void> deleteAnnonce(String id) async {
     try {
-      final response = await http.delete(
-        Uri.parse('$baseUrl/annonce_vente/$id'),
-        headers: headers,
-      ).timeout(timeoutDuration);
+      final response = await http
+          .delete(
+            Uri.parse('$baseUrl/annonce_vente/$id'),
+            headers: headers,
+          )
+          .timeout(timeoutDuration);
 
       if (response.statusCode != 200) {
         throw _handleError(response);

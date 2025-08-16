@@ -21,7 +21,7 @@ class CardWidget extends StatelessWidget {
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
+        //borderRadius: BorderRadius.circular(0),
         border: Border.all(color: Colors.grey[200]!),
       ),
       child: Row(
@@ -37,7 +37,7 @@ class CardWidget extends StatelessWidget {
                 ? Icon(Icons.check, color: Colors.white, size: 8)
                 : null,
           ),
-          SizedBox(width: 12),
+          SizedBox(width: 1),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
