@@ -4,7 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/commandeModel.dart';
 
 class CommandeService {
-  final String baseUrl = 'http://192.168.252.199:3000/commandes'; // 🔁 Mets à jour si besoin
+  final String baseUrl =
+      'http://192.168.252.199:3000/commandes'; // 🔁 Mets à jour si besoin
 
   Future<CommandeModel> enregistrerCommande({
     required String annoncesVenteId,
@@ -27,7 +28,6 @@ class CommandeService {
       'types_paiement_id': modePaiementId,
     });
     print("🔎 Corps envoyé : $body");
-
 
     final response = await http.post(
       url,
@@ -63,39 +63,44 @@ class CommandeService {
 
   /// Récupérer toutes les commandes de l'acheteur
   Future<List<CommandeModel>> getAllCommandes() async {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token');
-      if (token == null) {
-        throw Exception("Token non trouvé. Veuillez vous connecter.");
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    if (token == null) {
+      throw Exception("Token non trouvé. Veuillez vous connecter.");
+    }
+
+    final url = Uri.parse("$baseUrl/commandes-ventes");
+
+    final response = await http.get(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+    );
+
+    print('📡 Response status: ${response.statusCode}');
+    print('📡 Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+
+      // Attention ici à la clé contenant la liste des commandes
+      if (!data.containsKey('commandes')) {
+        throw Exception(
+            "Réponse serveur invalide : clé 'commandes' manquante.");
       }
 
-      final url = Uri.parse("$baseUrl/commandes-ventes");
+      final List<dynamic> commandesJson = data['commandes'];
 
-      final response = await http.get(
-        url,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $token",
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = jsonDecode(response.body);
-        
-        // Attention ici à la clé contenant la liste des commandes
-        if (!data.containsKey('commandes')) {
-          throw Exception("Réponse serveur invalide : clé 'commandes' manquante.");
-        }
-        
-        final List<dynamic> commandesJson = data['commandes'];
-        return commandesJson.map((json) => CommandeModel.fromJson(json)).toList();
-      } else {
-        throw Exception("Erreur récupération commandes : ${response.body}");
+      // ✅ Debug pour voir la structure des données
+      if (commandesJson.isNotEmpty) {
+        print('🔍 Structure d\'une commande : ${commandesJson.first}');
       }
+
+      return commandesJson.map((json) => CommandeModel.fromJson(json)).toList();
+    } else {
+      throw Exception("Erreur récupération commandes : ${response.body}");
+    }
   }
 }
-
-
-  
-
-

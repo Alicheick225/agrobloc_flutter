@@ -3,13 +3,11 @@ import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dar
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceAchatModel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:agrobloc/core/themes/app_colors.dart';
-import 'package:agrobloc/core/themes/app_text_styles.dart';
 
 class AnnonceFormPage extends StatefulWidget {
   final AnnonceAchat? annonceToEdit;
 
-  const AnnonceFormPage({Key? key, this.annonceToEdit}) : super(key: key);
+  const AnnonceFormPage({super.key, this.annonceToEdit});
 
   @override
   _AnnonceFormPageState createState() => _AnnonceFormPageState();
@@ -258,7 +256,7 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
                       style: const TextStyle(fontSize: 16),
                     ),
                   );
-                }).toList(),
+                }),
               ],
               onChanged: _isLoading
                   ? null

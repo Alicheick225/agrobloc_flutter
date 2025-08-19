@@ -6,11 +6,11 @@ class NavWidget extends StatelessWidget {
   final VoidCallback? onInfoPressed;
 
   const NavWidget({
-    Key? key,
+    super.key,
     required this.title,
     this.onBackPressed,
     this.onInfoPressed,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

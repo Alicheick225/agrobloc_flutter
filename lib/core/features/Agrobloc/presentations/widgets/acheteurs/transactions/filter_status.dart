@@ -6,10 +6,10 @@ class FilterStatus extends StatelessWidget {
   final ValueChanged<CommandeStatus?> onStatusChanged;
 
   const FilterStatus({
-    Key? key,
+    super.key,
     this.selectedStatus,
     required this.onStatusChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

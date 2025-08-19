@@ -25,8 +25,9 @@ class AnnonceService {
       final queryParameters = <String, String>{};
       if (userId != null) queryParameters['user_id'] = userId;
       if (statut != null) queryParameters['statut'] = statut;
-      if (typeCultureId != null)
+      if (typeCultureId != null) {
         queryParameters['type_culture_id'] = typeCultureId;
+      }
 
       final uri = Uri.parse('$baseUrl/annonces_vente')
           .replace(queryParameters: queryParameters);
