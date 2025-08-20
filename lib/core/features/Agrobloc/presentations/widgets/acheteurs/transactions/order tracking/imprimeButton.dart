@@ -7,15 +7,15 @@ class ImprimerWidget extends StatelessWidget {
   final bool isLoading;
 
   const ImprimerWidget({
-    Key? key,
+    super.key,
     this.onPressed,
     this.buttonText = 'Imprimer votre reçu de paiement',
     this.isLoading = false, required CommandeStatus commandeStatus,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
         onPressed: isLoading ? null : (onPressed ?? _defaultPrintAction),

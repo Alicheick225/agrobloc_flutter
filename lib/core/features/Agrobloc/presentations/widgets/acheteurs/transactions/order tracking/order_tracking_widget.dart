@@ -11,10 +11,10 @@ class OrderTrackingWidget extends StatelessWidget {
   final Function(OrderStatus)? onStatusUpdate;
 
 const OrderTrackingWidget({
-  Key? key,
+  super.key,
   required this.orderData,
   required this.onStatusUpdate,
-}) : super(key: key);
+});
 
   @override
 Widget build(BuildContext context) {

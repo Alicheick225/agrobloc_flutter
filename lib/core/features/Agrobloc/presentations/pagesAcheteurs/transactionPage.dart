@@ -48,6 +48,7 @@ class _TransactionPageState extends State<TransactionPage> {
           children: [
             const NavTransactionWidget(),
             const SizedBox(height: 16),
+
             /// Boutons de filtres
             FilterTransactionButtons(
               selectedIndex: selectedFilter,
@@ -58,13 +59,13 @@ class _TransactionPageState extends State<TransactionPage> {
             const SizedBox(height: 16),
             //FILTRE PAR STATUT
             //FilterStatus(
-             //   selectedStatus: _selectedStatus,
-               // onStatusChanged: (status) {
-                //  setState(() {
-                //  _selectedStatus = status;
-                  //      });
-                  //  },
-                //  ),
+            //   selectedStatus: _selectedStatus,
+            // onStatusChanged: (status) {
+            //  setState(() {
+            //  _selectedStatus = status;
+            //      });
+            //  },
+            //  ),
             const SizedBox(height: 16),
 
             const SizedBox(height: 16),
@@ -82,10 +83,13 @@ class _TransactionPageState extends State<TransactionPage> {
                     final commandes = snapshot.data!;
                     final filtered = _selectedStatus == null
                         ? commandes
-                        : commandes.where((c) => c.statut == _selectedStatus).toList();
+                        : commandes
+                            .where((c) => c.statut == _selectedStatus)
+                            .toList();
 
                     if (filtered.isEmpty) {
-                      return const Center(child: Text('Aucune commande avec ce statut.'));
+                      return const Center(
+                          child: Text('Aucune commande avec ce statut.'));
                     }
 
                     return ListView.builder(
@@ -93,20 +97,14 @@ class _TransactionPageState extends State<TransactionPage> {
                       itemBuilder: (_, i) {
                         final commande = filtered[i];
                         return TransactionCard(
-                         nom: 'Acheteur ${commande.acheteurId}',
-                         prixUnitaire: commande.quantite.toStringAsFixed(0),
-                         moyenPaiement: commande.modePaiementId,
-                         montantTotal: '${commande.prixTotal.toStringAsFixed(0)} FCFA',
-                         statut: commande.statut.name,
-                         statutColor: commande.statut.color,
-                         onDetails: () {
-                          Navigator.push(
+                          commande: commande,
+                          onDetails: () => Navigator.push(
                             context,
-                              MaterialPageRoute(
-                                builder: (_) => OrderTrackingScreen(orderId: commande.id),
-                              ),
-                            );
-                          },
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  OrderTrackingScreen(orderId: commande.id),
+                            ),
+                          ),
                         );
                       },
                     );

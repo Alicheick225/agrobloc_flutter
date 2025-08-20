@@ -4,7 +4,7 @@ import 'package:agrobloc/core/features/Agrobloc/data/models/annoncePrefinancemen
 class FinancementCard extends StatelessWidget {
   final AnnonceFinancement data;
 
-  const FinancementCard({Key? key, required this.data}) : super(key: key);
+  const FinancementCard({super.key, required this.data});
 
   @override
   Widget build(BuildContext context) {
