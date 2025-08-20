@@ -1,3 +1,4 @@
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/order%20tracking/sequestre.dart';
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
@@ -51,7 +52,10 @@ class _ProfilPageState extends State<ProfilPage> {
                 IconButton(
                   icon: const Icon(Icons.settings, color: Colors.white),
                   onPressed: () {
-                    Navigator.pushNamed(context, '/parametres');
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const CompteSequestrePage()),
+                    );
                   },
                 ),
               ],
@@ -83,7 +87,7 @@ class _ProfilPageState extends State<ProfilPage> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  user?.nom ?? "Ali Cheick",
+                  user?.nom ?? "Nom d'utilisateur",
                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 Text(

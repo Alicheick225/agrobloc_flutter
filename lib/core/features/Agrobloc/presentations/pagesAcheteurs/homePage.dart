@@ -1,4 +1,6 @@
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/AnnoncePrefinancementService.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/soldesequestreCard.dart';
+import 'package:agrobloc/core/utils/api_token.dart';
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/annoncePrefinancementModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/home/commande_enregistree.dart';
@@ -191,109 +193,122 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// Contenu filtré affiché selon le filtre sélectionné (annonces ou financements)
-  Widget _buildFilteredContent() {
-    switch (_selectedFilterIndex) {
-      case 0:
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            /// Top offres avec pagination
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text("Top offres",
-                    style: Theme.of(context).textTheme.titleLarge),
-                TextButton(
-                  onPressed: () {
-                    if (annonces.isNotEmpty) {
-                      setState(() {
-                        final maxPage = (annonces.length / _pageSize).ceil();
-                        _currentPage = (_currentPage + 1) % maxPage;
-                        _updatePagination();
-                      });
-                    }
-                  },
-                  child: const Text(
-                    "Suivant >",
-                    style: TextStyle(
-                        color: Colors.green, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            SizedBox(
-              height: 200,
-              child: paginatedAnnonces.isEmpty
-                  ? const Center(child: Text("Aucune offre disponible"))
-                  : ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: paginatedAnnonces.length,
-                      itemBuilder: (context, index) {
-                        final annonce = paginatedAnnonces[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: SizedBox(
-                            width: 160,
-                            child: OffreCard(data: annonce, acheteurId: '',),
-                          ),
-                        );
-                      },
-                    ),
-            ),
-            const SizedBox(height: 45),
+/// Contenu filtré affiché selon le filtre sélectionné (annonces ou financements)
+Widget _buildFilteredContent() {
+  switch (_selectedFilterIndex) {
+    case 0:
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SoldeSequestreCard(montant: 100000.00), // Exemple de solde séquestré
 
-            /// Section Recommandé
-            Text("Recommandé", style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 5),
-            Column(
-              children: annonces.map((annonce) {
+          /// Top offres avec pagination
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("Top offres",
+                  style: Theme.of(context).textTheme.titleLarge),
+              TextButton(
+                onPressed: () {
+                  if (annonces.isNotEmpty) {
+                    setState(() {
+                      final maxPage = (annonces.length / _pageSize).ceil();
+                      _currentPage = (_currentPage + 1) % maxPage;
+                      _updatePagination();
+                    });
+                  }
+                },
+                child: const Text(
+                  "Suivant >",
+                  style: TextStyle(
+                      color: Colors.green, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          SizedBox(
+            height: 200,
+            child: paginatedAnnonces.isEmpty
+                ? const Center(child: Text("Aucune offre disponible"))
+                : ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: paginatedAnnonces.length,
+                    itemBuilder: (context, index) {
+                      final annonce = paginatedAnnonces[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: SizedBox(
+                          width: 160,
+                          child: OffreCard(
+                            data: annonce,
+                            acheteurId: '',
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+          const SizedBox(height: 45),
+
+          /// Section Recommandé
+          Text("Recommandé",
+              style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 5),
+          Column(
+            children: annonces.map((annonce) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: RecommendationCard(
+                  recommendation: annonce,
+                  acheteurId: '',
+                  annonceVenteId: '',
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      );
+
+    case 1:
+      return paginatedFinancements.isEmpty
+          ? const Center(child: Text("Aucun financement disponible"))
+          : ListView.builder(
+              padding:
+                  const EdgeInsets.symmetric(vertical: 16, horizontal: 18),
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: paginatedFinancements.length,
+              itemBuilder: (context, index) {
+                final financement = paginatedFinancements[index];
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 16),
-                  child: RecommendationCard(recommendation: annonce, acheteurId: '', annonceVenteId: '',),
-                );
-              }).toList(),
-            ),
-          ],
-        );
-
-      case 1:
-        return paginatedFinancements.isEmpty
-            ? const Center(child: Text("Aucun financement disponible"))
-            : ListView.builder(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 16, horizontal: 18),
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: paginatedFinancements.length,
-                itemBuilder: (context, index) {
-                  final financement = paginatedFinancements[index];
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                FinancementDetailsPage(data: financement),
-                          ),
-                        );
-                      },
-                      child: FinancementCard(
-                        key: ValueKey(financement.id),
-                        data: financement,
-                      ),
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              FinancementDetailsPage(data: financement),
+                        ),
+                      );
+                    },
+                    child: FinancementCard(
+                      key: ValueKey(financement.id),
+                      data: financement,
                     ),
-                  );
-                },
-              );
+                  ),
+                );
+              },
+            );
 
-      default:
-        return const Center(
-            child: Text("Aucun contenu disponible pour ce filtre."));
-    }
+    default:
+      return const Center(
+          child: Text("Aucun contenu disponible pour ce filtre."));
   }
+}
+
 
   @override
   Widget build(BuildContext context) {

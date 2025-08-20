@@ -98,6 +98,7 @@ class FinancementCard extends StatelessWidget {
                   /// ✅ Action à définir (navigation vers détails)
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text("Voir plus...")),
+                    
                   );
                 },
                 child: const Text(

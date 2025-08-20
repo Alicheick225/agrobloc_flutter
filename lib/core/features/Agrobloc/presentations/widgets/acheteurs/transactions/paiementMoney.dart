@@ -41,11 +41,7 @@ class _MobileMoneyOrderPageState extends State<MobileMoneyOrderPage> {
         super.initState();
 
         // Liste des moyens de paiement Mobile Money supportés
-        final supportedPayments = [
-          "Orange Money",
-          "MTN  money",
-          "wave",
-          "moov money",
+        final supportedPayments = ["Mobile Money"
         ];
 
         // Si le moyen de paiement sélectionné n'est pas Mobile Money → redirection

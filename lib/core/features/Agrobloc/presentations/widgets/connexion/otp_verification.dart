@@ -4,8 +4,13 @@ import 'package:flutter/services.dart';
 /// Page de vérification du code OTP envoyé au numéro de téléphone de l'utilisateur
 class OtpVerificationPage extends StatefulWidget {
   final String phoneNumber;
+  final Function(String otp)? onOtpSubmitted;
 
-  const OtpVerificationPage({super.key, required this.phoneNumber});
+  const OtpVerificationPage({
+    super.key,
+    required this.phoneNumber,
+    this.onOtpSubmitted,
+  });
 
   @override
   State<OtpVerificationPage> createState() => _OtpVerificationPageState();
@@ -24,15 +29,42 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
     super.dispose();
   }
 
-  /// Renvoie le code OTP (fonctionnalité à implémenter)
+  /// Renvoie le code OTP complet saisi
+  String get _otpCode => _otpControllers.map((c) => c.text).join();
+
+  /// Fonction pour renvoyer le code OTP
   void _resendCode() {
-    // TODO: Implémenter la logique de renvoi du code OTP
+    // TODO: Implémenter la logique réelle de renvoi du code OTP
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Code renvoyé')),
     );
+
+    // Reset des champs
+    for (var controller in _otpControllers) {
+      controller.clear();
+    }
+    FocusScope.of(context).requestFocus(FocusNode());
   }
 
-  /// Construit l'interface utilisateur de la page de vérification OTP
+  /// Fonction appelée lors de la validation du code OTP
+  void _validateOtp() {
+    if (_otpCode.length < 4 || _otpCode.contains('')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Veuillez entrer le code complet')),
+      );
+      return;
+    }
+
+    if (widget.onOtpSubmitted != null) {
+      widget.onOtpSubmitted!(_otpCode);
+    }
+
+    // TODO: Ajouter la logique d'appel à l'API pour valider le code OTP
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Code OTP soumis: $_otpCode')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -51,20 +83,18 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
           child: Column(
             children: [
               const SizedBox(height: 16),
-              // Message indiquant le numéro de téléphone auquel le code a été envoyé
               Text(
                 'Nous avons envoyé le code OTP au numéro ${widget.phoneNumber}',
                 textAlign: TextAlign.center,
                 style: const TextStyle(fontSize: 16, color: Colors.black87),
               ),
               const SizedBox(height: 24),
-              // Champs de saisie pour chaque chiffre du code OTP
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: List.generate(4, (index) {
                   return SizedBox(
-                    width: 40,
-                    height: 50,
+                    width: 50,
+                    height: 60,
                     child: TextField(
                       controller: _otpControllers[index],
                       keyboardType: TextInputType.number,
@@ -89,24 +119,22 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                 }),
               ),
               const SizedBox(height: 24),
-              // Lien pour renvoyer le code OTP
               GestureDetector(
                 onTap: _resendCode,
                 child: const Text(
-                  "je n’ai pas reçu de code ? cliquez pour renvoyer",
+                  "Je n’ai pas reçu de code ? Cliquez pour renvoyer",
                   style: TextStyle(
-                      color: Colors.green, decoration: TextDecoration.underline),
+                    color: Colors.green,
+                    decoration: TextDecoration.underline,
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
-              // Bouton pour valider le code OTP
               SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // TODO: Valider le code OTP et continuer le processus
-                  },
+                  onPressed: _validateOtp,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
                     shape: RoundedRectangleBorder(
