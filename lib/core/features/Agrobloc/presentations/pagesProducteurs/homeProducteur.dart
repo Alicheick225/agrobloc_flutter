@@ -1,3 +1,4 @@
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/AnnonceFrom.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -53,10 +54,10 @@ class BottomBarProducteur extends StatelessWidget {
   final ValueChanged<int> onTap;
 
   const BottomBarProducteur({
-    Key? key,
+    super.key,
     required this.selectedIndex,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -183,7 +184,14 @@ Container(
                       "Saisissez les détails de votre récolte pour mieux la valoriser",
                   buttonText: "entamez une offre de vente",
                   icon: Icons.house_outlined,
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AnnonceForm(),
+                      ),
+                    );
+                  },
                 ),
                 SizedBox(height: 20.h),
                 _buildCard(

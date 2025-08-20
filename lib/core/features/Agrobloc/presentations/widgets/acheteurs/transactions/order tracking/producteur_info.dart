@@ -7,11 +7,11 @@ class ProducerInfoWidget extends StatelessWidget {
   final OrderStatus orderStatus;
 
   const ProducerInfoWidget({
-    Key? key,
+    super.key,
     required this.producerName,
     required this.phoneNumber,
     required this.orderStatus,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

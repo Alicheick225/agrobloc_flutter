@@ -1,4 +1,6 @@
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/AnnoncePrefinancementService.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/soldesequestreCard.dart';
+import 'package:agrobloc/core/utils/api_token.dart';
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/annoncePrefinancementModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/home/commande_enregistree.dart';
@@ -235,10 +237,7 @@ class _HomePageState extends State<HomePage> {
                           padding: const EdgeInsets.only(right: 8),
                           child: SizedBox(
                             width: 160,
-                            child: OffreCard(
-                              data: annonce,
-                              acheteurId: '',
-                            ),
+                            child: OffreCard(data: annonce, acheteurId: '',),
                           ),
                         );
                       },
@@ -246,57 +245,63 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 45),
 
-            /// Section Recommandé
-            Text("Recommandé", style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 5),
-            Column(
-              children: annonces.map((annonce) {
+          /// Section Recommandé
+          Text("Recommandé",
+              style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 5),
+          Column(
+            children: annonces.map((annonce) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: RecommendationCard(
+                  recommendation: annonce,
+                  acheteurId: '',
+                  annonceVenteId: '',
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      );
+
+    case 1:
+      return paginatedFinancements.isEmpty
+          ? const Center(child: Text("Aucun financement disponible"))
+          : ListView.builder(
+              padding:
+                  const EdgeInsets.symmetric(vertical: 16, horizontal: 18),
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: paginatedFinancements.length,
+              itemBuilder: (context, index) {
+                final financement = paginatedFinancements[index];
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 16),
-                  child: RecommendationCard(recommendation: annonce, acheteurId: '', annonceVenteId: '',),
-                );
-              }).toList(),
-            ),
-          ],
-        );
-
-      case 1:
-        return paginatedFinancements.isEmpty
-            ? const Center(child: Text("Aucun financement disponible"))
-            : ListView.builder(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 16, horizontal: 18),
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: paginatedFinancements.length,
-                itemBuilder: (context, index) {
-                  final financement = paginatedFinancements[index];
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                FinancementDetailsPage(data: financement),
-                          ),
-                        );
-                      },
-                      child: FinancementCard(
-                        key: ValueKey(financement.id),
-                        data: financement,
-                      ),
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              FinancementDetailsPage(data: financement),
+                        ),
+                      );
+                    },
+                    child: FinancementCard(
+                      key: ValueKey(financement.id),
+                      data: financement,
                     ),
-                  );
-                },
-              );
+                  ),
+                );
+              },
+            );
 
-      default:
-        return const Center(
-            child: Text("Aucun contenu disponible pour ce filtre."));
-    }
+    default:
+      return const Center(
+          child: Text("Aucun contenu disponible pour ce filtre."));
   }
+}
+
 
   @override
   Widget build(BuildContext context) {

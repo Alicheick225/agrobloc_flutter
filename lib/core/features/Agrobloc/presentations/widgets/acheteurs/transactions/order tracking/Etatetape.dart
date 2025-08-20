@@ -4,9 +4,9 @@ class CardWidget extends StatelessWidget {
   final List<TransactionActor> actors;
 
   const CardWidget({
-    Key? key,
+    super.key,
     required this.actors,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

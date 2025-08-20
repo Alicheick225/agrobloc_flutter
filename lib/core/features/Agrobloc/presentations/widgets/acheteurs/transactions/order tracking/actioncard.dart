@@ -16,14 +16,14 @@ class ActionButtonWidget extends StatelessWidget {
   final double height;
 
   const ActionButtonWidget({
-    Key? key,
+    super.key,
     required this.text,
     this.onPressed,
     this.type = ActionButtonType.primary,
     this.isEnabled = true,
     this.width,
     this.height = 56,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

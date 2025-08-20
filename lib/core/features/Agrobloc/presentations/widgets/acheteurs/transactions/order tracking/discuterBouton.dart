@@ -7,12 +7,12 @@ class ChatWidget extends StatelessWidget {
   final VoidCallback? onChatPressed;
 
   const ChatWidget({
-    Key? key,
+    super.key,
     required this.userName,
     required this.userInitial,
     this.unreadCount = 0,
     this.onChatPressed,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

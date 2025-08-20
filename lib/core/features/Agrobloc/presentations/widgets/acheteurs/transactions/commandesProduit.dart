@@ -1,10 +1,10 @@
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/payementMode.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/servicePayement.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/payementModeModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/commandeService.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/payementMethode.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/paiementMoney.dart';
 
 class CommandeProduitPage extends StatefulWidget {
   final String nomProduit;
@@ -66,7 +66,7 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
 
   IconData _getPaymentIcon(String libelle) {
     libelle = libelle.toLowerCase();
-    if (libelle.contains("mobile")) return Icons.phone_android;
+    if (libelle.contains("mobile money")) return Icons.phone_android;
     if (libelle.contains("carte")) return Icons.credit_card;
     if (libelle.contains("virement")) return Icons.account_balance;
     if (libelle.contains("crypto")) return Icons.currency_bitcoin;
@@ -284,83 +284,75 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
                                   ? null
                                   : () async {
                                       if (quantite < 1) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
+                                        ScaffoldMessenger.of(context).showSnackBar(
                                           const SnackBar(
-                                              content: Text(
-                                                  "La quantité doit être au moins 1")),
+                                              content: Text("La quantité doit être au moins 1")),
                                         );
                                         return;
                                       }
 
-                                      final selectedPaymentObj = allPayments
-                                          .firstWhere(
-                                            (p) =>
-                                                p.libelle == selectedPayment,
-                                          );
+                                      final selectedPaymentObj = allPayments.firstWhere(
+                                        (p) => p.libelle == selectedPayment,
+                                      );
 
                                       try {
                                         final quantiteKg = unite == "T"
                                             ? quantite * 1000
                                             : quantite.toDouble();
-                                        final prixTotal = quantiteKg *
-                                            widget.prixUnitaire;
+                                        final prixTotal = quantiteKg * widget.prixUnitaire;
 
-                                        final commandeService =
-                                            CommandeService();
+                                        final commandeService = CommandeService();
 
-                                        final commande = await commandeService
-                                            .enregistrerCommande(
+                                        final commande = await commandeService.enregistrerCommande(
                                           quantite: quantiteKg.toDouble(),
                                           modePaiementId: selectedPaymentObj.id,
                                           annoncesVenteId: widget.annonce.id,
-                                           unite: unite, 
+                                          unite: unite,
                                         );
 
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
+                                        ScaffoldMessenger.of(context).showSnackBar(
                                           SnackBar(
-                                              content: Text(
-                                                  "Commande ${commande.id} enregistrée")),
+                                              content:
+                                                  Text("Commande ${commande.id} enregistrée ✅")),
                                         );
 
                                         final isMobileMoney = selectedPayment!
                                             .toLowerCase()
-                                            .contains('mobile');
+                                            .contains('mobile money');
 
                                         if (isMobileMoney) {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (_) =>
-                                                  MobileMoneyOrderPage(
-                                                selectedPayment:
-                                                    selectedPayment!,
-                                                totalAmount: prixTotal,
-                                                productName:
-                                                    widget.nomProduit,
-                                                unitPrice:
-                                                    widget.prixUnitaire,
-                                                quantity: quantiteKg.toDouble(),
-                                                unit: unite,
-                                                logoUrl:
-                                                    selectedPaymentObj.logo,
-                                              ),
-                                            ),
-                                          );
+                                          // ✅ Appel direct au service de paiement
+                                          final paiementService = FusionMoneyService();
+
+                                          try {
+                                            await paiementService.makePayment(
+                                              montant: prixTotal,
+                                              numeroClient: "+22501020304", // tu peux remplacer par numéro client connecté
+                                              nomClient: "Client Agrobloc",
+                                              context: context,
+                                            );
+
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(
+                                                  content: Text("Paiement Mobile Money réussi ✅")),
+                                            );
+                                          } catch (e) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                  content: Text(
+                                                      "Erreur lors du paiement Mobile Money : $e")),
+                                            );
+                                          }
                                         } else {
+                                          // Autres moyens → page normale
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
-                                              builder: (_) =>
-                                                  PaymentMethodPage(
-                                                selectedPayment:
-                                                    selectedPayment!,
+                                              builder: (_) => PaymentMethodPage(
+                                                selectedPayment: selectedPayment!,
                                                 totalAmount: prixTotal,
-                                                productName:
-                                                    widget.nomProduit,
-                                                unitPrice:
-                                                    widget.prixUnitaire,
+                                                productName: widget.nomProduit,
+                                                unitPrice: widget.prixUnitaire,
                                                 quantity: quantiteKg.toDouble(),
                                                 unit: unite,
                                               ),
@@ -368,18 +360,15 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
                                           );
                                         }
                                       } catch (e) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                              content: Text("Erreur : $e")),
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text("Erreur : $e")),
                                         );
                                       }
                                     },
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: Colors.green,
                                 side: const BorderSide(color: Colors.green),
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 16),
+                                padding: const EdgeInsets.symmetric(vertical: 16),
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12)),
                               ),

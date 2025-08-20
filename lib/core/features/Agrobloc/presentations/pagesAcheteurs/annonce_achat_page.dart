@@ -7,7 +7,7 @@ import 'package:agrobloc/core/themes/app_text_styles.dart';
 
 /// Page d'annonce d'achat pour créer ou modifier une offre d'achat
 class AnnonceAchatPage extends StatefulWidget {
-  const AnnonceAchatPage({Key? key}) : super(key: key);
+  const AnnonceAchatPage({super.key});
 
   @override
   State<AnnonceAchatPage> createState() => _AnnonceAchatPageState();
