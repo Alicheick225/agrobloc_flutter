@@ -21,8 +21,8 @@ class CommandeModel {
   final CommandeStatus statut;
   final DateTime createdAt;
   final String typeCulture;
-  final String nomCulture; // Libellé du type de culture depuis l'API
-  final String? photoPlanteur; // Photo du planteur
+  final String nomCulture;
+  final String? photoPlanteur;
 
   CommandeModel({
     required this.id,

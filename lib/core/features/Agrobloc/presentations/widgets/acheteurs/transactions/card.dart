@@ -7,7 +7,7 @@ class TransactionCard extends StatelessWidget {
   final VoidCallback onDetails;
 
   const TransactionCard({
-    super.key,
+    super.key, // Assure-toi que le chemin est correct
     required this.commande,
     required this.onDetails,
   });
@@ -28,14 +28,14 @@ class TransactionCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                // ✅ Avatar avec photo du planteur ou initiale du nom de culture
+                // Avatar avec photo du planteur ou initiale du nom de culture
                 _buildAvatar(),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // ✅ Nom de la culture depuis l'API
+                      //Nom de la culture depuis l'API
                       Text(
                         commande.nomCulture,
                         style: const TextStyle(
@@ -46,7 +46,7 @@ class TransactionCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        "certifié BIO CI (1/4) 100%",
+                        "certifié BIO CI",
                         style: TextStyle(
                           color: Colors.grey[600],
                           fontSize: 12,
