@@ -135,95 +135,108 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                           itemCount: _annonces.length,
                           itemBuilder: (context, index) {
                             final annonce = _annonces[index];
-                            final isValidated =
-                                annonce.statut.toLowerCase() == 'validé';
+                            final isValidated = annonce.statut.toLowerCase() == 'validé';
 
                             return Card(
                               color: Colors.white,
                               elevation: 2,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
+                              
                               margin: const EdgeInsets.only(bottom: 16),
                               child: Padding(
                                 padding: const EdgeInsets.all(16),
-                                child: Column(
+                                child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Row(
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: [
-                                        CircleAvatar(
-                                          radius: 24,
-                                          backgroundImage: NetworkImage(
-                                            'https://via.placeholder.com/48',
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                annonce.userNom,
-                                                style: AppTextStyles.heading.copyWith(
-                                                  fontSize: 18,
-                                                  color: Colors.grey[700],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            IconButton(
-                                              icon: const Icon(Icons.edit_outlined),
+                                    
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            annonce.typeCultureLibelle,
+                                            style: AppTextStyles.heading.copyWith(
+                                              fontSize: 16,
                                               color: AppColors.primaryGreen,
-                                              onPressed: () => _navigateToEditForm(annonce),
                                             ),
-                                            IconButton(
-                                              icon: const Icon(Icons.delete_outline),
-                                              color: Colors.red,
-                                              onPressed: () => _confirmDeleteAnnonce(annonce),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'Culture: ${annonce.typeCultureLibelle}',
-                                      style: AppTextStyles.subheading.copyWith(
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Quantité: ${annonce.quantite}',
-                                      style: AppTextStyles.subheading.copyWith(
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Prix unitaire: ${annonce.prix}',
-                                      style: AppTextStyles.subheading.copyWith(
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Row(
-                                      children: [
-                                        const Text('Statut: '),
-                                        Text(
-                                          annonce.statut,
-                                          style: TextStyle(
-                                            color: isValidated
-                                                ? Colors.green
-                                                : Colors.orange,
-                                            fontWeight: FontWeight.bold,
                                           ),
+                                          const SizedBox(height: 8),
+                                          Text.rich(
+                                            TextSpan(
+                                              children: [
+                                                TextSpan(
+                                                  text: 'Quantité: ',
+                                                  style: TextStyle(
+                                                    color: Colors.grey[700],
+                                                  ),
+                                                ),
+                                                TextSpan(
+                                                  text: '${annonce.quantite} kg',
+                                                  style: const TextStyle(
+                                                    color: Color.fromARGB(255, 55, 55, 55),
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text.rich(
+                                            TextSpan(
+                                              children: [
+                                                TextSpan(
+                                                  text: 'Prix unitaire: ',
+                                                  style: TextStyle(
+                                                    color: Colors.grey[700],
+                                                  ),
+                                                ),
+                                                TextSpan(
+                                                  text: '${annonce.prix}',
+                                                  style: const TextStyle(
+                                                    color: Color.fromARGB(255, 55, 55, 55),
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text.rich(
+                                            TextSpan(
+                                              children: [
+                                                TextSpan(
+                                                  text: 'Statut: ',
+                                                  style: TextStyle(
+                                                    color: Colors.grey[700],
+                                                  ),
+                                                ),
+                                                TextSpan(
+                                                  text: annonce.statut,
+                                                  style: TextStyle(
+                                                    color: isValidated
+                                                        ? Colors.green
+                                                        : const Color.fromARGB(255, 99, 169, 248),
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(Icons.edit_outlined),
+                                          color: AppColors.primaryGreen,
+                                          onPressed: () => _navigateToEditForm(annonce),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.delete_outline),
+                                          color: AppColors.primaryGreen,
+                                          onPressed: () => _confirmDeleteAnnonce(annonce),
                                         ),
                                       ],
                                     ),
@@ -234,6 +247,7 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                           },
                         ),
                 ),
+
               ],
             ),
       floatingActionButton: FloatingActionButton(

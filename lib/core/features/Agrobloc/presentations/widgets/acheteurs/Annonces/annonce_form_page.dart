@@ -55,15 +55,18 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
     _prix = annonce.prix ?? 0;
     _prixController.text = _prix.toString();
 
-    // Attendre que les cultures soient chargées avant de définir la culture
+    // Use the typeCultureId directly for more reliable matching
     if (_cultures.isNotEmpty) {
-      _setCultureFromLibelle(annonce.typeCultureLibelle);
+      _setCultureFromId(annonce.typeCultureId);
+    } else {
+      // Store the culture ID to set once cultures are loaded
+      _selectedCultureId = annonce.typeCultureId;
     }
   }
 
-  void _setCultureFromLibelle(String libelle) {
+  void _setCultureFromId(String cultureId) {
     final matchingCulture = _cultures.firstWhere(
-      (c) => c['libelle'] == libelle,
+      (c) => c['id'].toString() == cultureId,
       orElse: () => {'id': '', 'libelle': ''},
     );
 
@@ -319,12 +322,12 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
               Text(
                 _quantity.toStringAsFixed(0),
                 style: TextStyle(
-                  fontSize: 32,
+                  fontSize: 26,
                   fontWeight: FontWeight.bold,
                   color: Colors.grey[700],
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 60),
               ToggleButtons(
                 borderColor: primaryColor,
                 selectedBorderColor: primaryColor,
@@ -340,11 +343,11 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
                 },
                 children: const [
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    padding: EdgeInsets.symmetric(horizontal: 8),
                     child: Text('Kg'),
                   ),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    padding: EdgeInsets.symmetric(horizontal: 8),
                     child: Text('T'),
                   ),
                 ],
@@ -354,8 +357,8 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
           Slider(
             value: _quantity,
             min: 0,
-            max: 1000,
-            divisions: 1000,
+            max: 10000,
+            divisions: 10000,
             label: _quantity.toStringAsFixed(0),
             onChanged: (value) {
               setState(() {

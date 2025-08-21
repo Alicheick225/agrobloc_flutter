@@ -6,6 +6,7 @@ class AnnonceAchat {
   final double prix;
   final String userNom;
   final String typeCultureLibelle;
+  final String typeCultureId;
 
   AnnonceAchat({
     required this.id,
@@ -15,6 +16,7 @@ class AnnonceAchat {
     required this.prix,
     required this.userNom,
     required this.typeCultureLibelle,
+    required this.typeCultureId,
   });
 
   factory AnnonceAchat.fromJson(Map<String, dynamic> json) {
@@ -25,7 +27,8 @@ class AnnonceAchat {
         quantite: (json['quantite'] as num?)?.toDouble() ?? 0.0,
         prix: (json['prix_kg'] as num?)?.toDouble() ?? 0.0,
         userNom: json['nom'] ?? '',
-        typeCultureLibelle: json['libelle'] ?? '');
+        typeCultureLibelle: json['libelle'] ?? '',
+        typeCultureId: json['type_culture_id']?.toString() ?? '');
   }
 
   Map<String, dynamic> toJson() {
@@ -37,6 +40,7 @@ class AnnonceAchat {
       'prix_kg': prix,
       'nom': userNom,
       'libelle': typeCultureLibelle,
+      'type_culture_id': typeCultureId,
     };
   }
 
@@ -58,6 +62,7 @@ class AnnonceAchat {
       prix: prix ?? this.prix,
       userNom: userNom ?? this.userNom,
       typeCultureLibelle: typeCultureLibelle ?? this.typeCultureLibelle,
+      typeCultureId: typeCultureId ?? this.typeCultureId,
     );
   }
 
@@ -71,7 +76,8 @@ class AnnonceAchat {
           description == other.description &&
           quantite == other.quantite &&
           userNom == other.userNom &&
-          typeCultureLibelle == other.typeCultureLibelle;
+          typeCultureLibelle == other.typeCultureLibelle &&
+          typeCultureId == other.typeCultureId;
 
   @override
   int get hashCode =>
@@ -80,5 +86,6 @@ class AnnonceAchat {
       description.hashCode ^
       quantite.hashCode ^
       userNom.hashCode ^
-      typeCultureLibelle.hashCode;
+      typeCultureLibelle.hashCode ^
+      typeCultureId.hashCode;
 }
