@@ -58,8 +58,7 @@ class ActionButtonWidget extends StatelessWidget {
   Color _getBackgroundColor() {
     if (!isEnabled) return Colors.grey.shade300;
 
-    switch (type ?? ActionButtonType.primary) {
-      // ← sécurité
+    switch (type) {
       case ActionButtonType.primary:
         return Colors.blue.shade600;
       case ActionButtonType.secondary:

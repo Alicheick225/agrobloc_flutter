@@ -1,13 +1,21 @@
 import 'dart:ui';
 import 'package:agrobloc/core/themes/app_colors.dart';
 
-enum CommandeStatus { enCours, termine, annule }
+enum CommandeStatus {
+  enAttentePaiement, // en attente de paiement
+  enAttenteLivraison, // en attente de livraison
+  enAttenteReception, // en attente de réception
+  annulee, // annulée
+  terminee, // terminée
+}
 
 extension CommandeStatusExt on CommandeStatus {
   Color get color => {
-        CommandeStatus.enCours: AppColors.enCours,
-        CommandeStatus.termine: AppColors.termine,
-        CommandeStatus.annule: AppColors.annule,
+        CommandeStatus.enAttentePaiement: AppColors.enAttentePaiement,
+        CommandeStatus.enAttenteLivraison: AppColors.enCours,
+        CommandeStatus.enAttenteReception: AppColors.enAttenteReception,
+        CommandeStatus.annulee: AppColors.annule,
+        CommandeStatus.terminee: AppColors.termine, // Vert
       }[this]!;
 }
 
@@ -48,7 +56,7 @@ class CommandeModel {
       modePaiementId: json['mode_paiement_id'] ?? '',
       statut: CommandeStatus.values.firstWhere(
         (e) => e.name == (json['statut'] ?? ''),
-        orElse: () => CommandeStatus.enCours,
+        orElse: () => CommandeStatus.enAttentePaiement,
       ),
       createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
       typeCulture: json['type_culture'] ?? '',

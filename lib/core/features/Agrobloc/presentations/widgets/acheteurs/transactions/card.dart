@@ -223,14 +223,16 @@ class TransactionCard extends StatelessWidget {
 
   String _getStatusText(CommandeStatus status) {
     switch (status) {
-      case CommandeStatus.enCours:
-        return "En cours";
-      case CommandeStatus.termine:
-        return "Terminée";
-      case CommandeStatus.annule:
-        return "Annulée";
-      default:
-        return status.name;
+      case CommandeStatus.enAttentePaiement:
+        return 'En attente de paiement';
+      case CommandeStatus.enAttenteLivraison:
+        return 'En attente de livraison';
+      case CommandeStatus.enAttenteReception:
+        return 'En attente de réception';
+      case CommandeStatus.annulee:
+        return 'Annulée';
+      case CommandeStatus.terminee:
+        return 'Terminée';
     }
   }
 }

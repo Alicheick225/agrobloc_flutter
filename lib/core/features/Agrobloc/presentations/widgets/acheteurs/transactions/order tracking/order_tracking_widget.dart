@@ -44,11 +44,7 @@ class OrderTrackingWidget extends StatelessWidget {
             onToggle: () {},
           ),
           const SizedBox(height: 24),
-          ProducerInfoWidget(
-            producerName: _getPlanteurName(),
-            phoneNumber: _getPlanteurPhone(),
-            orderStatus: _convertToOrderStatus(commande.statut),
-          ),
+          ProducerInfoWidget(commande: commande),
           const SizedBox(height: 24),
           _buildCurrentActions(),
         ],
@@ -57,7 +53,6 @@ class OrderTrackingWidget extends StatelessWidget {
   }
 
   /* ------------------- Méthodes privées ------------------- */
-
   Widget _buildStatusTimeline(BuildContext context) {
     final currentOrderStatus = _convertToOrderStatus(commande.statut);
 
@@ -71,11 +66,8 @@ class OrderTrackingWidget extends StatelessWidget {
             Row(
               children: [
                 const Text(
-                  'Suivi de la commande',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  'Suivi',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const Spacer(),
                 Container(
@@ -105,18 +97,8 @@ class OrderTrackingWidget extends StatelessWidget {
                 children: [
                   _buildHorizontalStatusStep(
                     context: context,
-                    title: 'Confirmation',
-                    description: 'Planteur confirme',
-                    isCompleted: _isStatusCompleted(
-                        OrderStatus.waitingPlanteurConfirmation),
-                    isActive: currentOrderStatus ==
-                        OrderStatus.waitingPlanteurConfirmation,
-                    icon: Icons.pending_actions,
-                  ),
-                  _buildHorizontalStatusStep(
-                    context: context,
                     title: 'Paiement',
-                    description: 'Acheteur paie',
+                    description: 'En cours',
                     isCompleted: _isStatusCompleted(OrderStatus.waitingPayment),
                     isActive: currentOrderStatus == OrderStatus.waitingPayment,
                     icon: Icons.payment,
@@ -125,7 +107,7 @@ class OrderTrackingWidget extends StatelessWidget {
                   _buildHorizontalStatusStep(
                     context: context,
                     title: 'Livraison',
-                    description: 'Livraison en cours',
+                    description: 'En cours',
                     isCompleted:
                         _isStatusCompleted(OrderStatus.waitingDelivery),
                     isActive: currentOrderStatus == OrderStatus.waitingDelivery,
@@ -140,6 +122,7 @@ class OrderTrackingWidget extends StatelessWidget {
                     isActive: currentOrderStatus == OrderStatus.completed,
                     icon: Icons.check_circle,
                     activeColor: Colors.green,
+                    isLast: true,
                   ),
                 ],
               ),
@@ -251,21 +234,6 @@ class OrderTrackingWidget extends StatelessWidget {
 
   List<Widget> _getCurrentActionButtons(OrderStatus status) {
     switch (status) {
-      case OrderStatus.waitingPlanteurConfirmation:
-        return [
-          ActionButtonWidget(
-            text: 'Confirmer la commande',
-            type: ActionButtonType.success,
-            onPressed: () => onStatusUpdate?.call(OrderStatus.waitingPayment),
-          ),
-          const SizedBox(height: 12),
-          ActionButtonWidget(
-            text: 'Annuler la transaction',
-            type: ActionButtonType.danger,
-            onPressed: () {},
-          ),
-        ];
-
       case OrderStatus.waitingPayment:
         return [
           ActionButtonWidget(
@@ -305,9 +273,12 @@ class OrderTrackingWidget extends StatelessWidget {
             onPressed: null,
           ),
         ];
+
+      // On retire waitingPlanteurConfirmation
+      default:
+        return const [];
     }
   }
-
   /* ------------------- Utilitaires ------------------- */
 
   String _getPlanteurName() => 'Producteur ${commande.nomCulture}';
@@ -318,23 +289,31 @@ class OrderTrackingWidget extends StatelessWidget {
 
   String _getStatusText(CommandeStatus status) {
     switch (status) {
-      case CommandeStatus.enCours:
-        return 'En cours';
-      case CommandeStatus.termine:
-        return 'Terminée';
-      case CommandeStatus.annule:
+      case CommandeStatus.enAttentePaiement:
+        return 'En attente de paiement';
+      case CommandeStatus.enAttenteLivraison:
+        return 'En attente de livraison';
+      case CommandeStatus.enAttenteReception:
+        return 'En attente de réception';
+      case CommandeStatus.annulee:
         return 'Annulée';
+      case CommandeStatus.terminee:
+        return 'Terminée';
     }
   }
 
   OrderStatus _convertToOrderStatus(CommandeStatus commandeStatus) {
     switch (commandeStatus) {
-      case CommandeStatus.enCours:
+      case CommandeStatus.enAttentePaiement:
+        return OrderStatus.waitingPayment;
+      case CommandeStatus.enAttenteLivraison:
         return OrderStatus.waitingDelivery;
-      case CommandeStatus.termine:
+      case CommandeStatus.enAttenteReception:
+        return OrderStatus.waitingReception; // <-- OK maintenant
+      case CommandeStatus.annulee:
+        return OrderStatus.cancelled; // <-- OK maintenant
+      case CommandeStatus.terminee:
         return OrderStatus.completed;
-      case CommandeStatus.annule:
-        return OrderStatus.waitingPlanteurConfirmation; // ou un statut dédié
     }
   }
 

@@ -53,7 +53,7 @@ class _ProductInfoWidgetState extends State<ProductInfoWidget> {
             // Montant à facturer
             _buildInfoRow(
               'Montant à facturer',
-              '${cmd.prixTotal.toStringAsFixed(2)} €',
+              '${cmd.prixTotal.toStringAsFixed(2)} FCFA',
               isHighlighted: true,
             ),
             const SizedBox(height: 16),
@@ -61,7 +61,7 @@ class _ProductInfoWidgetState extends State<ProductInfoWidget> {
             // Prix unitaire (approximation)
             _buildInfoRow(
               'Prix Unitaire',
-              '${(cmd.prixTotal / cmd.quantite).toStringAsFixed(2)} €/kg',
+              '${(cmd.prixTotal / cmd.quantite).toStringAsFixed(2)} FCFA/kg',
             ),
             const SizedBox(height: 16),
 
