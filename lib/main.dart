@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // 🆕 NOUVEAU : Import du service de notifications
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/notificationService.dart';
+// 🆕 NOUVEAU : Import du UserService
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
 
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/connexion/select_profile.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/pagesAcheteurs/homePage.dart';
@@ -11,11 +13,15 @@ import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/connexion/
 // ignore: unused_import
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/parametre.dart';
 
-// 🆕 MODIFIÉ : Fonction main avec initialisation des notifications
+// 🆕 MODIFIÉ : Fonction main avec initialisation des notifications et UserService
 Future<void> main() async {
   // 🆕 NOUVEAU : Assurer l'initialisation des widgets
   WidgetsFlutterBinding.ensureInitialized();
   
+  // Récupération des préférences existantes
+  final prefs = await SharedPreferences.getInstance();
+  bool modeSombreInitial = prefs.getBool('modeSombre') ?? false;
+
   // 🆕 NOUVEAU : Initialiser le service de notifications au démarrage
   try {
     await NotificationService().initializePushNotifications();
@@ -23,10 +29,29 @@ Future<void> main() async {
   } catch (e) {
     debugPrint('❌ Erreur lors de l\'initialisation des notifications: $e');
   }
-  
-  // Récupération des préférences existantes
-  final prefs = await SharedPreferences.getInstance();
-  bool modeSombreInitial = prefs.getBool('modeSombre') ?? false;
+
+  // 🆕 NOUVEAU : Initialiser le UserService au démarrage
+  try {
+    final userService = UserService();
+    final hasStoredData = await userService.hasStoredUserData();
+    
+    if (hasStoredData) {
+      final loaded = await userService.loadUser();
+      if (loaded) {
+        debugPrint('✅ UserService initialisé avec succès - Utilisateur connecté');
+      } else {
+        debugPrint('ℹ️ UserService: données utilisateur invalides ou problème de connexion');
+        debugPrint('ℹ️ Redirection vers l\'écran de connexion nécessaire');
+      }
+    } else {
+      debugPrint('ℹ️ UserService: aucune donnée utilisateur trouvée - première utilisation');
+      debugPrint('ℹ️ Redirection vers l\'écran de sélection de profil');
+    }
+  } catch (e) {
+    debugPrint('⚠️ Erreur lors de l\'initialisation du UserService: $e');
+    debugPrint('ℹ️ L\'application continue avec l\'utilisateur déconnecté');
+    // Continuer même en cas d'erreur, l'utilisateur pourra se reconnecter
+  }
 
   runApp(MyApp(modeSombreInitial: modeSombreInitial));
 }
