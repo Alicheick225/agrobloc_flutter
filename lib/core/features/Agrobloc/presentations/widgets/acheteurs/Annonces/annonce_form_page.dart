@@ -123,13 +123,25 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // Vérifier si l'utilisateur est connecté avant de soumettre
-    final userId = UserService().userId;
-    if (userId == null) {
+    // Vérifier si l'utilisateur est authentifié avant de soumettre
+    try {
+      final isAuthenticated = await UserService().isUserAuthenticated();
+      if (!isAuthenticated) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Session expirée. Veuillez vous reconnecter pour proposer une offre.'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+        return;
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Vous devez être connecté pour proposer une offre.'),
+        SnackBar(
+          content: Text('Erreur d\'authentification: ${e.toString()}'),
           backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
         ),
       );
       return;
@@ -185,18 +197,35 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
   }
 
   Future<String> _getUserId() async {
-    final userId = UserService().userId;
-    if (userId == null) {
-      // Afficher un message d'erreur plus clair et rediriger vers la page de connexion
+    try {
+      final isAuthenticated = await UserService().isUserAuthenticated();
+      if (!isAuthenticated) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Vous devez être connecté pour proposer une offre.'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+        throw Exception('Utilisateur non connecté');
+      }
+      
+      final userId = UserService().userId;
+      if (userId == null || userId.isEmpty) {
+        throw Exception('ID utilisateur non disponible');
+      }
+      
+      return userId;
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Vous devez être connecté pour proposer une offre.'),
+        SnackBar(
+          content: Text('Erreur: ${e.toString()}'),
           backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
         ),
       );
-      throw Exception('Utilisateur non connecté');
+      rethrow;
     }
-    return userId;
   }
 
   Widget _buildCultureDropdown() {

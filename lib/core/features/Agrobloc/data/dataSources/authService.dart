@@ -108,9 +108,32 @@ class AuthService {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      return AuthentificationModel.fromJson(data);
+      
+      // Vérifier si la réponse contient un message d'erreur même avec status 200
+      if (data is Map<String, dynamic> && data.containsKey('message')) {
+        final errorMessage = data['message'] as String?;
+        if (errorMessage != null && errorMessage.toLowerCase().contains('accès refusé')) {
+          throw Exception('Accès refusé: $errorMessage');
+        } else if (errorMessage != null && errorMessage.isNotEmpty) {
+          throw Exception('Erreur API: $errorMessage');
+        }
+      }
+      
+      // Vérifier si la réponse contient les données utilisateur attendues
+      if (data is Map<String, dynamic> && 
+          (data.containsKey('id') || data.containsKey('nom') || data.containsKey('email'))) {
+        return AuthentificationModel.fromJson(data);
+      } else {
+        throw Exception('Réponse API invalide: format de données utilisateur incorrect');
+      }
     } else {
-      throw Exception('Impossible de charger l\'utilisateur: ${response.body}');
+      // Gérer les autres codes d'erreur HTTP
+      final errorData = jsonDecode(response.body);
+      final errorMessage = errorData is Map<String, dynamic> && errorData.containsKey('message')
+          ? errorData['message'] as String
+          : response.body;
+      
+      throw Exception('Impossible de charger l\'utilisateur: $errorMessage');
     }
   }
 }
