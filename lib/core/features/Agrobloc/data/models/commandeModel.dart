@@ -21,6 +21,8 @@ class CommandeModel {
   final CommandeStatus statut;
   final DateTime createdAt;
   final String typeCulture;
+  final String nomCulture; // Libellé du type de culture depuis l'API
+  final String? photoPlanteur; // Photo du planteur
 
   CommandeModel({
     required this.id,
@@ -32,6 +34,8 @@ class CommandeModel {
     required this.statut,
     required this.createdAt,
     required this.typeCulture,
+    required this.nomCulture,
+    this.photoPlanteur,
   });
 
   factory CommandeModel.fromJson(Map<String, dynamic> json) {
@@ -48,6 +52,10 @@ class CommandeModel {
       ),
       createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
       typeCulture: json['type_culture'] ?? '',
+      nomCulture: json['nom_culture']?.toString() ??
+          json['type_culture']?.toString() ??
+          'Culture inconnue',
+      photoPlanteur: json['photo_planteur']?.toString(),
     );
   }
 
@@ -61,8 +69,41 @@ class CommandeModel {
         'statut': statut.name,
         'created_at': createdAt.toIso8601String(),
         'type_culture': typeCulture,
+        'nom_culture': nomCulture,
+        'photo_planteur': photoPlanteur,
       };
 
+// ✅ Getters pour différents formats d'affichage du nom
+  String get nomCommande {
+    return nomCulture;
+  }
+
+  String get nomCommandeAvecDate {
+    final dateFormat = '${createdAt.day}/${createdAt.month}/${createdAt.year}';
+    return '$nomCulture - $dateFormat';
+  }
+
+  String get nomCommandeCourt {
+    return nomCulture.length > 20
+        ? '${nomCulture.substring(0, 20)}...'
+        : nomCulture;
+  }
+
+  String get nomCommandeAvecQuantite {
+    return '${quantite.toStringAsFixed(1)}kg de $nomCulture';
+  }
+
+  // ✅ Getter pour l'URL complète de la photo si nécessaire
+  String? get photoPlanteurUrl {
+    if (photoPlanteur == null || photoPlanteur!.isEmpty) return null;
+
+    // Si c'est déjà une URL complète
+    if (photoPlanteur!.startsWith('http')) return photoPlanteur;
+
+    // Sinon, construire l'URL complète avec votre base URL
+    return 'http://192.168.252.199:3000/uploads/$photoPlanteur';
+  }
+
   @override
-  String toString() => 'CommandeModel $id - ${statut.name} (${typeCulture})';
+  String toString() => 'CommandeModel $id - ${statut.name} ($nomCulture)';
 }

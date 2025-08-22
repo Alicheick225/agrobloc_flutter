@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/annoncePrefinancementModel.dart';
 
 class FinancementDetailsPage extends StatelessWidget {
-  final AnnonceFinancement data;
+  final AnnoncePrefinancement data;
 
   const FinancementDetailsPage({super.key, required this.data});
 

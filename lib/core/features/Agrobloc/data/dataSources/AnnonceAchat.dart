@@ -6,7 +6,7 @@ import '../models/AnnonceAchatModel.dart';
 import '../dataSources/userService.dart';
 
 class AnnonceAchatService {
-  static const String _baseUrl = 'http://192.168.252.204:8081/annonces_achat';
+  static const String _baseUrl = 'http://192.168.252.199:8080/annonces_achat';
 
   // Fixed field mappings for consistent API communication
   static const String _culturesUrl =

@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'forgot_password.dart';
 import 'widgetAuth.dart';
@@ -8,8 +7,8 @@ import 'package:agrobloc/core/features/Agrobloc/data/dataSources/authService.dar
 /// Page de connexion permettant à l'utilisateur de se connecter avec son profil
 class LoginPage extends StatefulWidget {
   final String profile;
-  final String? prefillIdentifiant; // email or phone to prefill
-  final String? prefillPassword; // password to prefill
+  final String? prefillIdentifiant; // email ou téléphone
+  final String? prefillPassword; // mot de passe
 
   const LoginPage({
     super.key,
@@ -19,26 +18,25 @@ class LoginPage extends StatefulWidget {
   });
 
   static const Map<String, String> profilIdToName = {
-  'f23423d4-ca9e-409b-b3fb-26126ab66581': 'producteur',
-  '7b74a4f6-67b6-474a-9bf5-d63e04d2a804': 'cooperative',
-  '35a3c32a-17f8-4771-a0d8-9295b1bc5917': 'acheteur',
-};
+    'f23423d4-ca9e-409b-b3fb-26126ab66581': 'producteur',
+    '7b74a4f6-67b6-474a-9bf5-d63e04d2a804': 'cooperative',
+    '35a3c32a-17f8-4771-a0d8-9295b1bc5917': 'acheteur',
+  };
 
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
 
-/// État de la page de connexion gérant les contrôleurs et la logique de connexion
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
 
   late final TextEditingController emailController;
   late final TextEditingController phoneController;
   final passwordController = TextEditingController();
+
   bool _obscurePassword = true;
   bool _isLoading = false;
   bool _rememberMe = false;
-
   late String internalProfile;
 
   final AuthService _authService = AuthService();
@@ -53,6 +51,7 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
     internalProfile = widget.profile == 'planteur' ? 'producteur' : widget.profile;
+
     if (isPrefillEmail) {
       emailController = TextEditingController(text: widget.prefillIdentifiant ?? '');
       phoneController = TextEditingController(text: '');
@@ -60,6 +59,7 @@ class _LoginPageState extends State<LoginPage> {
       emailController = TextEditingController(text: '');
       phoneController = TextEditingController(text: widget.prefillIdentifiant ?? '');
     }
+
     if (widget.prefillPassword != null) {
       passwordController.text = widget.prefillPassword!;
     }
@@ -71,83 +71,44 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
-  bool _validateInputs() {
-    final emailOrPhone = (internalProfile == 'acheteur' || internalProfile == 'cooperative')
-        ? emailController.text.trim()
-        : phoneController.text.trim();
-    final password = passwordController.text;
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) return;
 
-    if (emailOrPhone.isEmpty || password.isEmpty) {
-      return false;
-    }
+    setState(() => _isLoading = true);
 
-    if (internalProfile == 'acheteur' || internalProfile == 'cooperative') {
-      final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
-      if (!emailRegex.hasMatch(emailOrPhone)) {
-        return false;
-      }
-    } else if (internalProfile == 'producteur') {
-      final phoneRegex = RegExp(r'^\d{8,}$');
-      if (!phoneRegex.hasMatch(emailOrPhone)) {
-        return false;
-      }
-    } else {
-      // For other profiles, you can add validation if needed
-      return false;
-    }
-
-    return true;
-  }
-
- Future<void> _login() async {
-  print('Login button pressed');
-  if (!_formKey.currentState!.validate()) {
-    return;
-  }
-
-  setState(() {
-    _isLoading = true;
-  });
-
-  try {
-    final user = await _authService.login(
-
-      (['acheteur', 'cooperative'].contains(internalProfile))
+    try {
+      final identifier = (['acheteur', 'cooperative'].contains(internalProfile))
           ? emailController.text.trim()
-          : phoneController.text.trim(),
-      passwordController.text,
-      rememberMe: _rememberMe,
-    );
+          : phoneController.text.trim();
 
-    // Redirection selon profilId reçu
-    if (user.profilId == '7b74a4f6-67b6-474a-9bf5-d63e04d2a804') {
-  // acheteur
-  Navigator.pushReplacementNamed(context, '/homePage');
-} else if (user.profilId == 'f23423d4-ca9e-409b-b3fb-26126ab66581') {
-  // producteur
-  Navigator.pushReplacementNamed(context, '/homePoducteur');
-} else {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text("Profil utilisateur inconnu : ${user.profilId}")),
-  );
-}
+      final user = await _authService.login(identifier, passwordController.text, rememberMe: _rememberMe);
 
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Erreur de connexion: $e')),
-    );
-  } finally {
-    setState(() {
-      _isLoading = false;
-    });
+      // Redirection selon profil
+      switch (user.profilId) {
+        case '7b74a4f6-67b6-474a-9bf5-d63e04d2a804':
+          Navigator.pushReplacementNamed(context, '/homePage');
+          break;
+        case 'f23423d4-ca9e-409b-b3fb-26126ab66581':
+          Navigator.pushReplacementNamed(context, '/homePoducteur');
+          break;
+        default:
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Profil utilisateur inconnu : ${user.profilId}")),
+          );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur de connexion: $e')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
-  
-}
-
 
   @override
   Widget build(BuildContext context) {
     final bool showEmailInput = (widget.profile == 'acheteur' || widget.profile == 'cooperative' || isPrefillEmail);
+
     return Scaffold(
       resizeToAvoidBottomInset: true,
       body: SingleChildScrollView(
@@ -171,10 +132,7 @@ class _LoginPageState extends State<LoginPage> {
                       right: 0,
                       child: ClipPath(
                         clipper: _CustomClipperShape(),
-                        child: Container(
-                          height: 50,
-                          color: Colors.white,
-                        ),
+                        child: Container(height: 50, color: Colors.white),
                       ),
                     ),
                   ],
@@ -182,157 +140,86 @@ class _LoginPageState extends State<LoginPage> {
               ),
               Padding(
                 padding: const EdgeInsets.all(24.0),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    minHeight: 0,
-                    maxHeight: double.infinity,
-                  ),
-                  child: Column(
-                    children: [
-                      const Text(
-                        "Se connecter",
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text("Heureux de vous revoir !"),
-                      const SizedBox(height: 16),
-                      showEmailInput
-                          ? customTextField(
-                              icon: Icons.email,
-                              hintText: "Email",
-                              controller: emailController,
-                              keyboardType: TextInputType.emailAddress,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Veuillez saisir un email';
-                                }
-                                final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
-                                if (!emailRegex.hasMatch(value)) {
-                                  return 'Veuillez saisir un email valide';
-                                }
-                                return null;
-                              },
-                            )
-                          : customTextField(
-                              icon: Icons.phone,
-                              hintText: "Numéro de téléphone",
-                              controller: phoneController,
-                              keyboardType: TextInputType.phone,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Veuillez saisir un numéro de téléphone';
-                                }
-                                final phoneRegex = RegExp(r'^\d{8,}$');
-                                if (!phoneRegex.hasMatch(value)) {
-                                  return 'Veuillez saisir un numéro valide';
-                                }
-                                return null;
-                              },
-                            ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: passwordController,
-                        obscureText: _obscurePassword,
-                        keyboardType: TextInputType.text,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Veuillez saisir un mot de passe';
-                          }
-                          return null;
-                        },
-                        decoration: InputDecoration(
-                          prefixIcon: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: const [
-                              SizedBox(width: 8),
-                              Icon(Icons.lock, color: Colors.green),
-                              SizedBox(width: 8),
-                              VerticalDivider(
-                                color: Colors.green,
-                                thickness: 1,
-                                width: 1,
-                              ),
-                              SizedBox(width: 8),
-                            ],
-                          ),
-                          hintText: "Mot de passe",
-                          hintStyle: const TextStyle(color: Colors.grey),
-                          enabledBorder: const UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.green),
-                          ),
-                          focusedBorder: const UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.green, width: 2),
-                          ),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                              color: Colors.green,
-                            ),
-                            onPressed: _togglePasswordVisibility,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Checkbox(
-                                value: _rememberMe,
-                                onChanged: (val) {
-                                  setState(() {
-                                    _rememberMe = val ?? false;
-                                  });
-                                },
-                              ),
-                              const Text("Se souvenir de moi"),
-                            ],
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => ForgotPasswordPage()),
-                              );
+                child: Column(
+                  children: [
+                    const Text("Se connecter", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                    const SizedBox(height: 8),
+                    const Text("Heureux de vous revoir !"),
+                    const SizedBox(height: 16),
+                    showEmailInput
+                        ? customTextField(
+                            icon: Icons.email,
+                            hintText: "Email",
+                            controller: emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) return 'Veuillez saisir un email';
+                              final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+                              if (!emailRegex.hasMatch(value)) return 'Veuillez saisir un email valide';
+                              return null;
                             },
-                            child: const Text(
-                              "mot de passe oublié ?",
-                              style: TextStyle(
-                                color: Colors.green,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
                           )
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      _isLoading
-                          ? const CircularProgressIndicator()
-                          : customButton(
-                              "Se connecter",
-                              _login,
-                            ),
-                      const SizedBox(height: 16),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => SignUpPage(profile: widget.profile),
-                            ),
-                          );
-                        },
-                        child: const Text(
-                          "Inscrivez-vous ici !",
-                          style: TextStyle(
-                            color: Colors.green,
-                            fontWeight: FontWeight.bold,
+                        : customTextField(
+                            icon: Icons.phone,
+                            hintText: "Numéro de téléphone",
+                            controller: phoneController,
+                            keyboardType: TextInputType.phone,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) return 'Veuillez saisir un numéro';
+                              final phoneRegex = RegExp(r'^\d{8,}$');
+                              if (!phoneRegex.hasMatch(value)) return 'Veuillez saisir un numéro valide';
+                              return null;
+                            },
                           ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: passwordController,
+                      obscureText: _obscurePassword,
+                      decoration: InputDecoration(
+                        prefixIcon: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            SizedBox(width: 8),
+                            Icon(Icons.lock, color: Colors.green),
+                            SizedBox(width: 8),
+                            VerticalDivider(color: Colors.green, thickness: 1, width: 1),
+                            SizedBox(width: 8),
+                          ],
+                        ),
+                        hintText: "Mot de passe",
+                        enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.green)),
+                        focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.green, width: 2)),
+                        suffixIcon: IconButton(
+                          icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, color: Colors.green),
+                          onPressed: _togglePasswordVisibility,
                         ),
                       ),
-                    ],
-                  ),
+                      validator: (value) => (value == null || value.isEmpty) ? 'Veuillez saisir un mot de passe' : null,
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Checkbox(value: _rememberMe, onChanged: (val) => setState(() => _rememberMe = val ?? false)),
+                            const Text("Se souvenir de moi"),
+                          ],
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ForgotPasswordPage())),
+                          child: const Text("mot de passe oublié ?", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _isLoading ? const CircularProgressIndicator() : customButton("Se connecter", _login),
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SignUpPage(profile: widget.profile))),
+                      child: const Text("Inscrivez-vous ici !", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -343,7 +230,6 @@ class _LoginPageState extends State<LoginPage> {
   }
 }
 
-/// Widget personnalisé pour la forme du clipper utilisée dans la page de connexion
 class _CustomClipperShape extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {

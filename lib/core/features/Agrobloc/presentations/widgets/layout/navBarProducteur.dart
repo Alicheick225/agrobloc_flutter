@@ -6,10 +6,10 @@ class BottomBarProducteur extends StatelessWidget {
   final ValueChanged<int> onTap;
 
   const BottomBarProducteur({
-    Key? key,
+    super.key,
     required this.selectedIndex,
-    required this.onTap,
-  }) : super(key: key);
+    required this.onTap, required int currentIndex, required Color selectedItemColor, required bool showUnselectedLabels, required BottomNavigationBarType type, required MaterialColor unselectedItemColor,
+  });
 
   @override
   Widget build(BuildContext context) {

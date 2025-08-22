@@ -27,8 +27,12 @@ class UserService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('userId', user.id);
     await prefs.setString('token', token);
+    await prefs.setString('userNom', user.nom); // <-- ajoute ceci
+
 
     print('✅ UserService: utilisateur et token sauvegardés');
+    print("Token envoyé: '$token'");
+    print("User ID envoyé: '$userId'");
   }
 
   /// Récupère le token depuis SharedPreferences
@@ -73,4 +77,12 @@ class UserService {
 
     print('✅ UserService: session utilisateur nettoyée');
   }
+
+  Future<void> debugUserSession() async {
+  final prefs = await SharedPreferences.getInstance();
+  print("🔎 Debug session utilisateur :");
+  print(" - userId: ${prefs.getString('userId')}");
+  print(" - token: ${prefs.getString('token')}");
+}
+
 }

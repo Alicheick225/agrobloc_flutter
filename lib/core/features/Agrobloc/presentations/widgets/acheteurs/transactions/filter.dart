@@ -5,10 +5,10 @@ class FilterTransactionButtons extends StatelessWidget {
   final Function(int) onFilterSelected;
 
   const FilterTransactionButtons({
-    Key? key,
+    super.key,
     required this.selectedIndex,
     required this.onFilterSelected,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

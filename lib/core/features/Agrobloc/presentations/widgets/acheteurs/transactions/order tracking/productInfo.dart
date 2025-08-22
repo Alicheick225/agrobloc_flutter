@@ -10,7 +10,7 @@ class ProductInfoWidget extends StatefulWidget {
   final VoidCallback? onToggle;
 
   const ProductInfoWidget({
-    Key? key,
+    super.key,
     required this.productName,
     required this.totalAmount,
     required this.unitPrice,
@@ -18,7 +18,7 @@ class ProductInfoWidget extends StatefulWidget {
     required this.userInitial,
     this.isExpanded = false,
     this.onToggle,
-  }) : super(key: key);
+  });
 
   @override
   State<ProductInfoWidget> createState() => _ProductInfoWidgetState();

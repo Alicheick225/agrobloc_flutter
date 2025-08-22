@@ -1,12 +1,8 @@
-import 'dart:convert';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/card.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/filter.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/commandeService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/commandeModel.dart';
-import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/filter_status.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/nav.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/order%20tracking/Trackingpage.dart';
 
@@ -52,6 +48,7 @@ class _TransactionPageState extends State<TransactionPage> {
           children: [
             const NavTransactionWidget(),
             const SizedBox(height: 16),
+
             /// Boutons de filtres
             FilterTransactionButtons(
               selectedIndex: selectedFilter,
@@ -62,13 +59,13 @@ class _TransactionPageState extends State<TransactionPage> {
             const SizedBox(height: 16),
             //FILTRE PAR STATUT
             //FilterStatus(
-             //   selectedStatus: _selectedStatus,
-               // onStatusChanged: (status) {
-                //  setState(() {
-                //  _selectedStatus = status;
-                  //      });
-                  //  },
-                //  ),
+            //   selectedStatus: _selectedStatus,
+            // onStatusChanged: (status) {
+            //  setState(() {
+            //  _selectedStatus = status;
+            //      });
+            //  },
+            //  ),
             const SizedBox(height: 16),
 
             const SizedBox(height: 16),
@@ -86,10 +83,13 @@ class _TransactionPageState extends State<TransactionPage> {
                     final commandes = snapshot.data!;
                     final filtered = _selectedStatus == null
                         ? commandes
-                        : commandes.where((c) => c.statut == _selectedStatus).toList();
+                        : commandes
+                            .where((c) => c.statut == _selectedStatus)
+                            .toList();
 
                     if (filtered.isEmpty) {
-                      return const Center(child: Text('Aucune commande avec ce statut.'));
+                      return const Center(
+                          child: Text('Aucune commande avec ce statut.'));
                     }
 
                     return ListView.builder(
@@ -97,20 +97,14 @@ class _TransactionPageState extends State<TransactionPage> {
                       itemBuilder: (_, i) {
                         final commande = filtered[i];
                         return TransactionCard(
-                         annoncesVenteId: '(${commande.annoncesVenteId})',
-                         prixUnitaire: commande.quantite.toStringAsFixed(0),
-                         moyenPaiement: commande.modePaiementId,
-                         montantTotal: '${commande.prixTotal.toStringAsFixed(0)} FCFA',
-                         statut: commande.statut.name,
-                         statutColor: commande.statut.color,
-                         onDetails: () {
-                          Navigator.push(
+                          commande: commande,
+                          onDetails: () => Navigator.push(
                             context,
-                              MaterialPageRoute(
-                                builder: (_) => OrderTrackingScreen(orderId: commande.id),
-                              ),
-                            );
-                          },
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  OrderTrackingScreen(orderId: commande.id),
+                            ),
+                          ),
                         );
                       },
                     );
