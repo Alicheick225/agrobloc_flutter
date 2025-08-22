@@ -51,4 +51,20 @@ class CommandeService {
       throw Exception("Erreur récupération commandes : ${response.body}");
     }
   }
+
+  Future<bool> confirmerPaiement(String commandeId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    final url = Uri.parse('$baseUrl/commandes/$commandeId/confirmer-paiement');
+
+    final res = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    return res.statusCode == 200;
+  }
 }
