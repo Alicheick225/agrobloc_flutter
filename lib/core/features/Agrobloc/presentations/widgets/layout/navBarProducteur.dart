@@ -8,7 +8,7 @@ class BottomBarProducteur extends StatelessWidget {
   const BottomBarProducteur({
     super.key,
     required this.selectedIndex,
-    required this.onTap,
+    required this.onTap, required int currentIndex, required Color selectedItemColor, required bool showUnselectedLabels, required BottomNavigationBarType type, required MaterialColor unselectedItemColor,
   });
 
   @override

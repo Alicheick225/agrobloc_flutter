@@ -1,4 +1,5 @@
-class AnnonceFinancement {
+
+class AnnoncePrefinancement {
   final String id;
   final String statut;
   final String description;
@@ -8,9 +9,9 @@ class AnnonceFinancement {
   final String nom;
   final String libelle;
   final String adresse;
-  final double surface;
+  final String surface;
 
-  AnnonceFinancement({
+  AnnoncePrefinancement({
     required this.id,
     required this.statut,
     required this.description,
@@ -23,18 +24,22 @@ class AnnonceFinancement {
     required this.surface,
   });
 
-  factory AnnonceFinancement.fromJson(Map<String, dynamic> json) {
-    return AnnonceFinancement(
+  factory AnnoncePrefinancement.fromJson(Map<String, dynamic> json) {
+    return AnnoncePrefinancement(
       id: json['id'],
-      statut: json['statut'] ?? '',
-      description: json['description'] ?? '',
-      montantPref: (json['montant_pref'] as num?)?.toDouble() ?? 0,
-      prixKgPref: (json['prix_kg_pref'] as num?)?.toDouble() ?? 0,
-      quantite: (json['quantite'] as num?)?.toDouble() ?? 0,
-      nom: json['nom'] ?? '',
-      libelle: json['libelle'] ?? '',
-      adresse: json['adresse'] ?? '',
-      surface: double.tryParse(json['surface'] ?? '0') ?? 0,
+      statut: json['statut'],
+      description: json['description'],
+      montantPref: (json['montant_pref'] as num).toDouble(),
+      prixKgPref: (json['prix_kg_pref'] as num).toDouble(),
+      quantite: (json['quantite'] as num).toDouble(),
+      nom: json['nom'],
+      libelle: json['libelle'],
+      adresse: json['adresse'],
+      surface: json['surface'].toString(),
     );
   }
+
+  Object? toJson() {}
 }
+
+  
