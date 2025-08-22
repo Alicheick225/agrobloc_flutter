@@ -1,10 +1,14 @@
 // commande_service.dart
 import 'dart:convert';
 import 'package:agrobloc/core/utils/api_token.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/commandeModel.dart';
 
 class CommandeService {
   final ApiClient api = ApiClient('http://192.168.252.199:3000/commandes');
+
+  final String baseUrl = "http:///192.168.252.199:3000";
 
   Future<CommandeModel> enregistrerCommande({
     required String annoncesVenteId,
