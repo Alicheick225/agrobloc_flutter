@@ -243,7 +243,7 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
                           ),
                           const SizedBox(height: 20),
 
-                          if (showPaymentList)
+                          //if (showPaymentList)
                             Column(
                               children: allPayments.map((payment) {
                                 return Card(
@@ -274,7 +274,8 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
                                 );
                               }).toList(),
                             ),
-                          const Spacer(),
+
+                            const SizedBox(height: 20),
 
                           // Bouton commande
                           SizedBox(

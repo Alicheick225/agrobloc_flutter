@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:agrobloc/core/features/Agrobloc/data/models/order_status.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/commandeModel.dart';
 
 class ProducerInfoWidget extends StatelessWidget {
-  final String producerName;
-  final String phoneNumber;
-  final OrderStatus orderStatus;
+  final CommandeModel commande;
 
   const ProducerInfoWidget({
     super.key,
-    required this.producerName,
-    required this.phoneNumber,
-    required this.orderStatus,
+    required this.commande,
   });
 
   @override
   Widget build(BuildContext context) {
+    final planteurName = commande.photoPlanteurUrl?.split('/').last ??
+        'Producteur ${commande.nomCulture}';
+    final phoneNumber =
+        'À renseigner'; // <-- ajoute ce champ côté back si besoin
+
     return Card(
       color: Colors.white,
       elevation: 1,
@@ -27,7 +28,7 @@ class ProducerInfoWidget extends StatelessWidget {
           children: [
             _buildInfoRow(
               'Nom du producteur',
-              producerName,
+              planteurName,
               valueColor: Colors.grey.shade700,
             ),
             const SizedBox(height: 16),
@@ -39,8 +40,8 @@ class ProducerInfoWidget extends StatelessWidget {
             const SizedBox(height: 16),
             _buildInfoRow(
               'Statut commande',
-              _getStatusText(orderStatus),
-              valueColor: _getStatusColor(orderStatus),
+              _getStatusText(commande.statut),
+              valueColor: commande.statut.color,
             ),
           ],
         ),
@@ -81,29 +82,18 @@ class ProducerInfoWidget extends StatelessWidget {
     );
   }
 
-  String _getStatusText(OrderStatus status) {
-    switch (status) {
-      case OrderStatus.waitingPlanteurConfirmation:
-        return 'En attente de confirmation';
-      case OrderStatus.waitingPayment:
-        return 'En attente de paiement';
-      case OrderStatus.waitingDelivery:
-        return 'En cours de livraison';
-      case OrderStatus.completed:
-        return 'Commande terminée';
-    }
+String _getStatusText(CommandeStatus status) {
+  switch (status) {
+    case CommandeStatus.enAttentePaiement:
+      return 'En attente de paiement';
+    case CommandeStatus.enAttenteLivraison:
+      return 'En attente de livraison';
+    case CommandeStatus.enAttenteReception:
+      return 'En attente de réception';
+    case CommandeStatus.annulee:
+      return 'Annulée';
+    case CommandeStatus.terminee:
+      return 'Terminée';
   }
-
-  Color _getStatusColor(OrderStatus status) {
-    switch (status) {
-      case OrderStatus.waitingPlanteurConfirmation:
-        return Colors.orange.shade600;
-      case OrderStatus.waitingPayment:
-        return Colors.blue.shade600;
-      case OrderStatus.waitingDelivery:
-        return Colors.purple.shade600;
-      case OrderStatus.completed:
-        return Colors.green.shade600;
-    }
-  }
+}
 }

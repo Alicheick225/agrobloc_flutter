@@ -57,16 +57,16 @@ class ActionButtonWidget extends StatelessWidget {
 
   Color _getBackgroundColor() {
     if (!isEnabled) return Colors.grey.shade300;
-    
+
     switch (type) {
       case ActionButtonType.primary:
         return Colors.blue.shade600;
       case ActionButtonType.secondary:
         return Colors.grey.shade600;
       case ActionButtonType.danger:
-        return const Color(0xFFB85450); // Rouge brique comme dans l'image
+        return const Color(0xFFB85450);
       case ActionButtonType.success:
-        return const Color(0xFF9CAF88); // Vert clair comme dans l'image
+        return const Color(0xFF2E7D32);
     }
   }
 }

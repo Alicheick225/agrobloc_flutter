@@ -6,6 +6,7 @@ class Parcelle {
   final double surface;
   final String adresse;
   final String userId;
+  final String userNom; // ajoute cette propriété pour le nom de l'utilisateur
 
   Parcelle({
     required this.id,
@@ -14,6 +15,7 @@ class Parcelle {
     required this.surface,
     required this.adresse,
     required this.userId,
+    required this.userNom,
   });
 
   factory Parcelle.fromJson(Map<String, dynamic> json) {
@@ -24,6 +26,7 @@ class Parcelle {
       surface: (json['surface'] as num).toDouble(),
       adresse: json['adresse'],
       userId: json['user_id'],
+      userNom: json['user_nom'] ?? 'Inconnu', // récupère le nom de l'utilisateur
     );
   }
 
@@ -35,6 +38,7 @@ class Parcelle {
       'surface': surface,
       'adresse': adresse,
       'user_id': userId,
+      'user_nom': userNom,
     };
   }
 }

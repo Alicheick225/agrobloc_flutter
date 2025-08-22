@@ -2,7 +2,9 @@ enum OrderStatus {
   waitingPlanteurConfirmation,
   waitingPayment,
   waitingDelivery,
-  completed
+  waitingReception, // <-- ajouté
+  cancelled, // <-- ajouté
+  completed,
 }
 
 class OrderTrackingData {

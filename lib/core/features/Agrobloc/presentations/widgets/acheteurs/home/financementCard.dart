@@ -1,8 +1,48 @@
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/AnnoncePrefinancementService.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/home/detailFinancement.dart';
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/annoncePrefinancementModel.dart';
 
+class ListePrefinancementsPage extends StatelessWidget {
+  const ListePrefinancementsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final service = PrefinancementService();
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Préfinancements"),
+        backgroundColor: Colors.green,
+      ),
+      body: FutureBuilder<List<AnnoncePrefinancement>>(
+        future: service.fetchPrefinancements(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Text("Erreur : ${snapshot.error}"),
+            );
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text("Aucun préfinancement trouvé"));
+          }
+
+          final annonces = snapshot.data!;
+          return ListView.builder(
+            itemCount: annonces.length,
+            itemBuilder: (context, index) {
+              return FinancementCard(data: annonces[index]);
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
 class FinancementCard extends StatelessWidget {
-  final AnnonceFinancement data;
+  final AnnoncePrefinancement data;
 
   const FinancementCard({super.key, required this.data});
 
@@ -17,7 +57,7 @@ class FinancementCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// ✅ Titre principal
+            // Titre principal
             Text(
               'Préfinancement demandé - Culture de ${data.libelle ?? "N/A"}',
               style: const TextStyle(
@@ -28,7 +68,7 @@ class FinancementCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
 
-            /// ✅ Nom + Adresse + Voir profil
+            // Nom + Adresse + Voir profil
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -55,7 +95,6 @@ class FinancementCard extends StatelessWidget {
                 ),
                 InkWell(
                   onTap: () {
-                    /// ✅ Future action : ouvrir profil
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text("Voir profil...")),
                     );
@@ -76,15 +115,15 @@ class FinancementCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
 
-            /// ✅ Détails du financement
+            // Détails du financement
             _buildRow("Superficie :", "${data.surface ?? 0} ha"),
             _buildRow("Quantité estimée :", "${data.quantite ?? 0} kg"),
             _buildRow("Prix préférentiel :", "${data.prixKgPref ?? 0} FCFA/kg"),
-            _buildRow("Montant à préfinancer :", "${data.montantPref ?? 0} FCFA"),
-
+            _buildRow(
+                "Montant à préfinancer :", "${data.montantPref ?? 0} FCFA"),
             const SizedBox(height: 16),
 
-            /// ✅ Bouton Voir plus
+            // Bouton Voir plus
             Center(
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
@@ -92,13 +131,15 @@ class FinancementCard extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
                 onPressed: () {
-                  /// ✅ Action à définir (navigation vers détails)
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Voir plus...")),
-                    
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => FinancementDetailsPage(data: data),
+                    ),
                   );
                 },
                 child: const Text(
@@ -113,7 +154,6 @@ class FinancementCard extends StatelessWidget {
     );
   }
 
-  /// ✅ Méthode utilitaire pour afficher une ligne clé:valeur
   Widget _buildRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
