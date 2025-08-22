@@ -1,5 +1,5 @@
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/Annonces/annonce_form_page.dart';
 import 'package:flutter/material.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/Annonces/annonce_form_page.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/AnnonceAchat.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceAchatModel.dart';
@@ -7,7 +7,6 @@ import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:agrobloc/core/themes/app_text_styles.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/recherche_bar.dart';
 
-/// Page d'annonce d'achat pour créer ou modifier une offre d'achat
 class AnnonceAchatPage extends StatefulWidget {
   const AnnonceAchatPage({super.key});
 
@@ -18,8 +17,10 @@ class AnnonceAchatPage extends StatefulWidget {
 class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
   final AnnonceAchatService _service = AnnonceAchatService();
   final UserService _userService = UserService();
+
   final List<AnnonceAchat> _annonces = [];
   final List<AnnonceAchat> _filteredAnnonces = [];
+
   bool _isLoading = true;
   bool _showOnlyMyAnnonces = false;
 
@@ -29,16 +30,13 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
     _loadAnnonces();
   }
 
-  /// Charge les annonces selon le filtre
+  /// Charge les annonces selon le filtre côté serveur
   Future<void> _loadAnnonces() async {
     try {
       setState(() => _isLoading = true);
-
-      await _userService.ensureUserLoaded();
-      final currentUserId = _userService.userId;
-
       List<AnnonceAchat> annonces;
-      if (_showOnlyMyAnnonces && currentUserId != null) {
+
+      if (_showOnlyMyAnnonces) {
         annonces = await _service.fetchAnnoncesByUser();
       } else {
         annonces = await _service.fetchAnnonces();
@@ -73,32 +71,22 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
 
   /// Navigation vers le formulaire de création
   Future<void> _navigateToForm() async {
-    try {
-      final isAuthenticated = await UserService().isUserAuthenticated();
-      if (!isAuthenticated) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Vous devez être connecté pour créer une offre.'),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 3),
-          ),
-        );
-        return;
-      }
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const AnnonceFormPage()),
-      ).then((_) => _loadAnnonces());
-    } catch (e) {
+    final isAuthenticated = await _userService.isUserAuthenticated();
+    if (!isAuthenticated) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur d\'authentification: ${e.toString()}'),
+        const SnackBar(
+          content: Text('Vous devez être connecté pour créer une offre.'),
           backgroundColor: Colors.red,
-          duration: const Duration(seconds: 3),
+          duration: Duration(seconds: 3),
         ),
       );
+      return;
     }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AnnonceFormPage()),
+    ).then((_) => _loadAnnonces());
   }
 
   /// Navigation vers le formulaire pour modifier une annonce

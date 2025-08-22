@@ -4,6 +4,7 @@ class AnnonceAchat {
   final String description;
   final double quantite;
   final double prix;
+  final String userId; // ID de l'utilisateur qui a créé l'annonce
   final String userNom;
   final String typeCultureLibelle;
   final String typeCultureId;
@@ -14,6 +15,7 @@ class AnnonceAchat {
     required this.description,
     required this.quantite,
     required this.prix,
+    required this.userId,
     required this.userNom,
     required this.typeCultureLibelle,
     required this.typeCultureId,
@@ -21,23 +23,26 @@ class AnnonceAchat {
 
   factory AnnonceAchat.fromJson(Map<String, dynamic> json) {
     return AnnonceAchat(
-        id: json['id']?.toString() ?? '',
-        statut: json['statut'] ?? '',
-        description: json['description'] ?? '',
-        quantite: (json['quantite'] as num?)?.toDouble() ?? 0.0,
-        prix: (json['prix_kg'] as num?)?.toDouble() ?? 0.0,
-        userNom: json['nom'] ?? '',
-        typeCultureLibelle: json['libelle'] ?? '',
-        typeCultureId: json['type_culture_id']?.toString() ?? '');
+      id: json['id']?.toString() ?? '',
+      statut: json['statut'] ?? '',
+      description: json['description'] ?? '',
+      quantite: (json['quantite'] as num?)?.toDouble() ?? 0.0,
+      prix: (json['prix_kg'] as num?)?.toDouble() ?? 0.0,
+      userId: json['user_id']?.toString() ?? '', // Nouveau champ
+      userNom: json['nom'] ?? '',
+      typeCultureLibelle: json['libelle'] ?? '',
+      typeCultureId: json['type_culture_id']?.toString() ?? '',
+    );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'ID': id,
-      'Statut': statut,
-      'Description': description,
-      'Quantite': quantite,
+      'id': id,
+      'statut': statut,
+      'description': description,
+      'quantite': quantite,
       'prix_kg': prix,
+      'user_id': userId, // Nouveau champ
       'nom': userNom,
       'libelle': typeCultureLibelle,
       'type_culture_id': typeCultureId,
@@ -50,6 +55,7 @@ class AnnonceAchat {
     String? description,
     double? quantite,
     double? prix,
+    String? userId,
     String? userNom,
     String? typeCultureLibelle,
     String? typeCultureId,
@@ -60,6 +66,7 @@ class AnnonceAchat {
       description: description ?? this.description,
       quantite: quantite ?? this.quantite,
       prix: prix ?? this.prix,
+      userId: userId ?? this.userId,
       userNom: userNom ?? this.userNom,
       typeCultureLibelle: typeCultureLibelle ?? this.typeCultureLibelle,
       typeCultureId: typeCultureId ?? this.typeCultureId,
@@ -75,6 +82,7 @@ class AnnonceAchat {
           statut == other.statut &&
           description == other.description &&
           quantite == other.quantite &&
+          userId == other.userId &&
           userNom == other.userNom &&
           typeCultureLibelle == other.typeCultureLibelle &&
           typeCultureId == other.typeCultureId;
@@ -85,6 +93,7 @@ class AnnonceAchat {
       statut.hashCode ^
       description.hashCode ^
       quantite.hashCode ^
+      userId.hashCode ^
       userNom.hashCode ^
       typeCultureLibelle.hashCode ^
       typeCultureId.hashCode;
