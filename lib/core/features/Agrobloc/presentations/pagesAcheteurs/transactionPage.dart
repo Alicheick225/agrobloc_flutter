@@ -101,8 +101,8 @@ class _TransactionPageState extends State<TransactionPage> {
                           onDetails: () => Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) =>
-                                  OrderTrackingScreen(orderId: commande.id),
+                              builder: (_) => OrderTrackingScreen(
+                                  orderId: commande.id, commande: commande),
                             ),
                           ),
                         );
