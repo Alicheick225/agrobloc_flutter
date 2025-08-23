@@ -55,15 +55,18 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
     _prix = annonce.prix ?? 0;
     _prixController.text = _prix.toString();
 
-    // Attendre que les cultures soient chargées avant de définir la culture
+    // Use the typeCultureId directly for more reliable matching
     if (_cultures.isNotEmpty) {
-      _setCultureFromLibelle(annonce.typeCultureLibelle);
+      _setCultureFromId(annonce.typeCultureId);
+    } else {
+      // Store the culture ID to set once cultures are loaded
+      _selectedCultureId = annonce.typeCultureId;
     }
   }
 
-  void _setCultureFromLibelle(String libelle) {
+  void _setCultureFromId(String cultureId) {
     final matchingCulture = _cultures.firstWhere(
-      (c) => c['libelle'] == libelle,
+      (c) => c['id'].toString() == cultureId,
       orElse: () => {'id': '', 'libelle': ''},
     );
 
@@ -120,13 +123,25 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // Vérifier si l'utilisateur est connecté avant de soumettre
-    final userId = UserService().userId;
-    if (userId == null) {
+    // Vérifier si l'utilisateur est authentifié avant de soumettre
+    try {
+      final isAuthenticated = await UserService().isUserAuthenticated();
+      if (!isAuthenticated) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Session expirée. Veuillez vous reconnecter pour proposer une offre.'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+        return;
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Vous devez être connecté pour proposer une offre.'),
+        SnackBar(
+          content: Text('Erreur d\'authentification: ${e.toString()}'),
           backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
         ),
       );
       return;
@@ -182,18 +197,35 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
   }
 
   Future<String> _getUserId() async {
-    final userId = UserService().userId;
-    if (userId == null) {
-      // Afficher un message d'erreur plus clair et rediriger vers la page de connexion
+    try {
+      final isAuthenticated = await UserService().isUserAuthenticated();
+      if (!isAuthenticated) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Vous devez être connecté pour proposer une offre.'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+        throw Exception('Utilisateur non connecté');
+      }
+      
+      final userId = UserService().userId;
+      if (userId == null || userId.isEmpty) {
+        throw Exception('ID utilisateur non disponible');
+      }
+      
+      return userId;
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Vous devez être connecté pour proposer une offre.'),
+        SnackBar(
+          content: Text('Erreur: ${e.toString()}'),
           backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
         ),
       );
-      throw Exception('Utilisateur non connecté');
+      rethrow;
     }
-    return userId;
   }
 
   Widget _buildCultureDropdown() {
@@ -319,12 +351,12 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
               Text(
                 _quantity.toStringAsFixed(0),
                 style: TextStyle(
-                  fontSize: 32,
+                  fontSize: 26,
                   fontWeight: FontWeight.bold,
                   color: Colors.grey[700],
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 60),
               ToggleButtons(
                 borderColor: primaryColor,
                 selectedBorderColor: primaryColor,
@@ -340,11 +372,11 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
                 },
                 children: const [
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    padding: EdgeInsets.symmetric(horizontal: 8),
                     child: Text('Kg'),
                   ),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    padding: EdgeInsets.symmetric(horizontal: 8),
                     child: Text('T'),
                   ),
                 ],
@@ -354,8 +386,8 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
           Slider(
             value: _quantity,
             min: 0,
-            max: 1000,
-            divisions: 1000,
+            max: 10000,
+            divisions: 10000,
             label: _quantity.toStringAsFixed(0),
             onChanged: (value) {
               setState(() {
