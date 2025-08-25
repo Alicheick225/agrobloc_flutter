@@ -22,7 +22,6 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
   final List<AnnonceAchat> _filteredAnnonces = [];
 
   bool _isLoading = true;
-  bool _showOnlyMyAnnonces = false;
 
   @override
   void initState() {
@@ -30,17 +29,11 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
     _loadAnnonces();
   }
 
-  /// Charge les annonces selon le filtre côté serveur
+  /// Charge uniquement les annonces de l'utilisateur connecté
   Future<void> _loadAnnonces() async {
     try {
       setState(() => _isLoading = true);
-      List<AnnonceAchat> annonces;
-
-      if (_showOnlyMyAnnonces) {
-        annonces = await _service.fetchAnnoncesByUser();
-      } else {
-        annonces = await _service.fetchAnnonces();
-      }
+      final annonces = await _service.fetchAnnoncesByUser();
 
       if (!mounted) return;
       setState(() {
@@ -56,17 +49,12 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
       if (!mounted) return;
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: ${e.toString()}')),
+        SnackBar(
+          content: Text('Erreur: ${e.toString()}'),
+          backgroundColor: AppColors.primaryGreen,
+        ),
       );
     }
-  }
-
-  /// Bascule le filtre entre toutes les annonces et mes annonces
-  void _toggleFilter() {
-    setState(() {
-      _showOnlyMyAnnonces = !_showOnlyMyAnnonces;
-    });
-    _loadAnnonces();
   }
 
   /// Navigation vers le formulaire de création
@@ -104,12 +92,18 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
     try {
       await _service.deleteAnnonceAchat(annonce.id);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Annonce supprimée avec succès')),
+        const SnackBar(
+          content: Text('Annonce supprimée avec succès'),
+          backgroundColor: AppColors.primaryGreen,
+        ),
       );
       _loadAnnonces();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur lors de la suppression: ${e.toString()}')),
+        SnackBar(
+          content: Text('Erreur lors de la suppression: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -122,13 +116,23 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
         return AlertDialog(
           title: const Text('Confirmer la suppression'),
           content: const Text('Voulez-vous vraiment supprimer cette annonce ?'),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           actions: <Widget>[
             TextButton(
               child: const Text('Non'),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.grey[700],
+              ),
               onPressed: () => Navigator.of(context).pop(false),
             ),
             TextButton(
               child: const Text('Oui'),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primaryGreen,
+              ),
               onPressed: () => Navigator.of(context).pop(true),
             ),
           ],
@@ -145,22 +149,12 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
-          'Offres d\'Achat',
+          'Mes Offres d\'Achat',
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         backgroundColor: AppColors.primaryGreen,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
-        actions: [
-          IconButton(
-            icon: Icon(
-              _showOnlyMyAnnonces ? Icons.filter_alt : Icons.filter_alt_outlined,
-              color: Colors.white,
-            ),
-            onPressed: _toggleFilter,
-            tooltip: _showOnlyMyAnnonces ? 'Voir toutes les annonces' : 'Voir mes annonces',
-          ),
-        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -174,9 +168,7 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                   child: _filteredAnnonces.isEmpty
                       ? Center(
                           child: Text(
-                            _showOnlyMyAnnonces
-                                ? 'Aucune annonce créée par vous'
-                                : 'Aucune annonce d\'achat disponible',
+                            'Aucune annonce créée par vous',
                             style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                           ),
                         )
@@ -202,10 +194,14 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            annonce.typeCultureLibelle,
+                                            annonce.typeCultureLibelle.isNotEmpty 
+                                              ? annonce.typeCultureLibelle
+                                              : 'Type de culture non spécifié',
                                             style: AppTextStyles.heading.copyWith(
                                               fontSize: 16,
-                                              color: AppColors.primaryGreen,
+                                              color: annonce.typeCultureLibelle.isNotEmpty
+                                                ? AppColors.primaryGreen
+                                                : Colors.grey,
                                             ),
                                           ),
                                           const SizedBox(height: 8),
@@ -235,7 +231,7 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                                                   style: TextStyle(color: Colors.grey[700]),
                                                 ),
                                                 TextSpan(
-                                                  text: '${annonce.prix}',
+                                                  text: '${annonce.prix} FCFA',
                                                   style: const TextStyle(
                                                     color: Color.fromARGB(255, 55, 55, 55),
                                                     fontWeight: FontWeight.bold,
