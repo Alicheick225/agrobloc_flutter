@@ -22,15 +22,23 @@ class AnnonceAchat {
   });
 
   factory AnnonceAchat.fromJson(Map<String, dynamic> json) {
+    // Extraire le libellé depuis l'objet type_culture s'il existe
+    final typeCulture = json['type_culture'] as Map<String, dynamic>?;
+    final typeCultureLibelle = typeCulture?['libelle']?.toString() ?? '';
+    
+    // Extraire le nom utilisateur depuis l'objet users s'il existe
+    final users = json['users'] as Map<String, dynamic>?;
+    final userNom = users?['nom']?.toString() ?? json['nom']?.toString() ?? '';
+    
     return AnnonceAchat(
       id: json['id']?.toString() ?? '',
       statut: json['statut'] ?? '',
       description: json['description'] ?? '',
       quantite: (json['quantite'] as num?)?.toDouble() ?? 0.0,
       prix: (json['prix_kg'] as num?)?.toDouble() ?? 0.0,
-      userId: json['user_id']?.toString() ?? '', // Nouveau champ
-      userNom: json['nom'] ?? '',
-      typeCultureLibelle: json['libelle'] ?? '',
+      userId: json['user_id']?.toString() ?? '',
+      userNom: userNom,
+      typeCultureLibelle: typeCultureLibelle,
       typeCultureId: json['type_culture_id']?.toString() ?? '',
     );
   }
@@ -42,10 +50,11 @@ class AnnonceAchat {
       'description': description,
       'quantite': quantite,
       'prix_kg': prix,
-      'user_id': userId, // Nouveau champ
+      'user_id': userId,
       'nom': userNom,
-      'libelle': typeCultureLibelle,
       'type_culture_id': typeCultureId,
+      // Note: type_culture est un objet séparé dans la réponse API,
+      // donc nous ne l'incluons pas ici dans la requête
     };
   }
 

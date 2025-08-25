@@ -22,7 +22,6 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
   final List<AnnonceAchat> _filteredAnnonces = [];
 
   bool _isLoading = true;
-  bool _showOnlyMyAnnonces = false;
 
   @override
   void initState() {
@@ -30,17 +29,11 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
     _loadAnnonces();
   }
 
-  /// Charge les annonces selon le filtre côté serveur
+  /// Charge uniquement les annonces de l'utilisateur connecté
   Future<void> _loadAnnonces() async {
     try {
       setState(() => _isLoading = true);
-      List<AnnonceAchat> annonces;
-
-      if (_showOnlyMyAnnonces) {
-        annonces = await _service.fetchAnnoncesByUser();
-      } else {
-        annonces = await _service.fetchAnnonces();
-      }
+      final annonces = await _service.fetchAnnoncesByUser();
 
       if (!mounted) return;
       setState(() {
@@ -59,14 +52,6 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
         SnackBar(content: Text('Erreur: ${e.toString()}')),
       );
     }
-  }
-
-  /// Bascule le filtre entre toutes les annonces et mes annonces
-  void _toggleFilter() {
-    setState(() {
-      _showOnlyMyAnnonces = !_showOnlyMyAnnonces;
-    });
-    _loadAnnonces();
   }
 
   /// Navigation vers le formulaire de création
@@ -144,45 +129,13 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Row(
-          children: [
-            const Text(
-              'Offres d\'Achat',
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-            ),
-            if (_showOnlyMyAnnonces) ...[
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Text(
-                  'Mes annonces',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ],
+        title: const Text(
+          'Mes Offres d\'Achat',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         backgroundColor: AppColors.primaryGreen,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
-        actions: [
-          IconButton(
-            icon: Icon(
-              _showOnlyMyAnnonces ? Icons.filter_alt : Icons.filter_alt_outlined,
-              color: _showOnlyMyAnnonces ? Colors.amber : Colors.white,
-            ),
-            onPressed: _toggleFilter,
-            tooltip: _showOnlyMyAnnonces ? 'Voir toutes les annonces' : 'Voir mes annonces',
-          ),
-        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -196,9 +149,7 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                   child: _filteredAnnonces.isEmpty
                       ? Center(
                           child: Text(
-                            _showOnlyMyAnnonces
-                                ? 'Aucune annonce créée par vous'
-                                : 'Aucune annonce d\'achat disponible',
+                            'Aucune annonce créée par vous',
                             style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                           ),
                         )
@@ -224,10 +175,14 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            annonce.typeCultureLibelle,
+                                            annonce.typeCultureLibelle.isNotEmpty 
+                                              ? annonce.typeCultureLibelle
+                                              : 'Type de culture non spécifié',
                                             style: AppTextStyles.heading.copyWith(
                                               fontSize: 16,
-                                              color: AppColors.primaryGreen,
+                                              color: annonce.typeCultureLibelle.isNotEmpty
+                                                ? AppColors.primaryGreen
+                                                : Colors.grey,
                                             ),
                                           ),
                                           const SizedBox(height: 8),
