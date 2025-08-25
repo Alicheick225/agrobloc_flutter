@@ -1,6 +1,7 @@
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/payementMode.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/servicePayement.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/order%20tracking/Trackingpage.dart';
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/payementModeModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/commandeService.dart';
@@ -280,101 +281,62 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
                           // Bouton commande
                           SizedBox(
                             width: double.infinity,
-                            child: OutlinedButton(
-                              onPressed: selectedPayment == null
-                                  ? null
-                                  : () async {
-                                      if (quantite < 1) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(
-                                              content: Text("La quantité doit être au moins 1")),
-                                        );
-                                        return;
-                                      }
+                                  child: OutlinedButton(
+                                    onPressed: selectedPayment == null
+                                        ? null
+                                        : () async {
+                                            if (quantite < 1) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(content: Text("La quantité doit être au moins 1")),
+                                              );
+                                              return;
+                                            }
 
-                                      final selectedPaymentObj = allPayments.firstWhere(
-                                        (p) => p.libelle == selectedPayment,
-                                      );
+                                            try {
+                                              final quantiteKg = unite == "T" ? quantite * 1000 : quantite.toDouble();
 
-                                      try {
-                                        final quantiteKg = unite == "T"
-                                            ? quantite * 1000
-                                            : quantite.toDouble();
-                                        final prixTotal = quantiteKg * widget.prixUnitaire;
+                                              final commandeService = CommandeService();
 
-                                        final commandeService = CommandeService();
+                                              final commande = await commandeService.enregistrerCommande(
+                                                quantite: quantiteKg.toDouble(),
+                                                modePaiementId: allPayments.firstWhere(
+                                                  (p) => p.libelle == selectedPayment,
+                                                ).id,
+                                                annoncesVenteId: widget.annonce.id,
+                                                unite: unite,
+                                              );
 
-                                        final commande = await commandeService.enregistrerCommande(
-                                          quantite: quantiteKg.toDouble(),
-                                          modePaiementId: selectedPaymentObj.id,
-                                          annoncesVenteId: widget.annonce.id,
-                                          unite: unite,
-                                        );
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(content: Text("Commande ${commande.id} enregistrée ✅")),
+                                              );
 
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                              content:
-                                                  Text("Commande ${commande.id} enregistrée ✅")),
-                                        );
+                                              // 🔹 Nouvelle logique : redirection vers OrderTrackingScreen
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (_) => OrderTrackingScreen(
+                                                    orderId: commande.id.toString(),
+                                                    commande: commande,
+                                                  ),
+                                                ),
+                                              );
 
-                                        final isMobileMoney = selectedPayment!
-                                            .toLowerCase()
-                                            .contains('mobile money');
-
-                                        if (isMobileMoney) {
-                                          // ✅ Appel direct au service de paiement
-                                          final paiementService = FusionMoneyService();
-
-                                          try {
-                                            await paiementService.makePayment(
-                                              montant: prixTotal,
-                                              numeroClient: "+22501020304", // tu peux remplacer par numéro client connecté
-                                              nomClient: "Client Agrobloc",
-                                              context: context,
-                                            );
-
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              const SnackBar(
-                                                  content: Text("Paiement Mobile Money réussi ✅")),
-                                            );
-                                          } catch (e) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(
-                                                  content: Text(
-                                                      "Erreur lors du paiement Mobile Money : $e")),
-                                            );
-                                          }
-                                        } else {
-                                          // Autres moyens → page normale
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (_) => PaymentMethodPage(
-                                                selectedPayment: selectedPayment!,
-                                                totalAmount: prixTotal,
-                                                productName: widget.nomProduit,
-                                                unitPrice: widget.prixUnitaire,
-                                                quantity: quantiteKg.toDouble(),
-                                                unit: unite,
-                                              ),
-                                            ),
-                                          );
-                                        }
-                                      } catch (e) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text("Erreur : $e")),
-                                        );
-                                      }
-                                    },
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.green,
-                                side: const BorderSide(color: Colors.green),
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12)),
-                              ),
-                              child: const Text("Enregistrez ma commande"),
-                            ),
+                                            } catch (e) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(content: Text("Erreur : $e")),
+                                              );
+                                            }
+                                          },
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Colors.green,
+                                      side: const BorderSide(color: Colors.green),
+                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12)),
+                                    ),
+                                    child: const Text("Enregistrez ma commande"),
+                                  )
+                            ,
                           ),
                         ],
                       ),

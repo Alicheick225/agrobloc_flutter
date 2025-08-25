@@ -21,7 +21,7 @@ import 'package:agrobloc/core/features/Agrobloc/presentations/pagesAcheteurs/pro
 
 class HomePage extends StatefulWidget {
   final String acheteurId;
-  const HomePage({super.key, required this.acheteurId, required String profile});
+  const HomePage({super.key, required this.acheteurId});
 
   @override
   State<HomePage> createState() => _HomePageState();

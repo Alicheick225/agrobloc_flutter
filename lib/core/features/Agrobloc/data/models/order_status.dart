@@ -1,5 +1,4 @@
 enum OrderStatus {
-  waitingPlanteurConfirmation,
   waitingPayment,
   waitingDelivery,
   waitingReception, // <-- ajouté
