@@ -66,7 +66,7 @@ class OrderTrackingWidget extends StatelessWidget {
             Row(
               children: [
                 const Text(
-                  'Suivi',
+                  'Suivis',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const Spacer(),
@@ -237,13 +237,13 @@ class OrderTrackingWidget extends StatelessWidget {
       case OrderStatus.waitingPayment:
         return [
           ActionButtonWidget(
-            text: 'Faire le paiement',
+            text: 'PAYER MAINTENANT',
             type: ActionButtonType.success,
             onPressed: () => onStatusUpdate?.call(OrderStatus.waitingDelivery),
           ),
           const SizedBox(height: 12),
           ActionButtonWidget(
-            text: 'Annuler la transaction',
+            text: 'ANNULER LA COMMANDE',
             type: ActionButtonType.danger,
             onPressed: () {},
           ),

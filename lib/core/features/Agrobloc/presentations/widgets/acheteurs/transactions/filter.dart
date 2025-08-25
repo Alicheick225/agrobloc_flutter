@@ -12,7 +12,7 @@ class FilterTransactionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final filters = ['Achats', 'Préfinancements'];
+    final filters = ['En cours', 'Terminé', 'Annulé'];
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,

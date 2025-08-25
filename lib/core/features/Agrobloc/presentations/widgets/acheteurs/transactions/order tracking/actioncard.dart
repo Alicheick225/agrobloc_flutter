@@ -64,7 +64,7 @@ class ActionButtonWidget extends StatelessWidget {
       case ActionButtonType.secondary:
         return Colors.grey.shade600;
       case ActionButtonType.danger:
-        return const Color(0xFFB85450);
+        return const Color(0xFFFF0000);
       case ActionButtonType.success:
         return const Color(0xFF2E7D32);
     }
