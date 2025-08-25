@@ -16,7 +16,7 @@ class _FilterButtonsState extends State<FilterButtons> {
   final List<String> filters = [
     'Offre de vente',
     'Financements',
-    'Mes offres',
+    'Prévisions',
   ];
 
   void _handleTap(int index) {

@@ -144,9 +144,31 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text(
-          'Offres d\'Achat',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        title: Row(
+          children: [
+            const Text(
+              'Offres d\'Achat',
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+            ),
+            if (_showOnlyMyAnnonces) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  'Mes annonces',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
         backgroundColor: AppColors.primaryGreen,
         elevation: 0,
@@ -155,7 +177,7 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
           IconButton(
             icon: Icon(
               _showOnlyMyAnnonces ? Icons.filter_alt : Icons.filter_alt_outlined,
-              color: Colors.white,
+              color: _showOnlyMyAnnonces ? Colors.amber : Colors.white,
             ),
             onPressed: _toggleFilter,
             tooltip: _showOnlyMyAnnonces ? 'Voir toutes les annonces' : 'Voir mes annonces',
