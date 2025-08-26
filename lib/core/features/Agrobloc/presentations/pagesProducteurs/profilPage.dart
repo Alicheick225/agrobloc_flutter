@@ -7,6 +7,7 @@ import 'package:agrobloc/core/features/Agrobloc/data/models/authentificationMode
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/profils/avispage.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/connexion/logout_dialog.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/order%20tracking/sequestre.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/profils/mesinformations_page.dart';
 
 class ProfilPage extends StatefulWidget {
   const ProfilPage({super.key});
@@ -53,8 +54,8 @@ class _ProfilPageState extends State<ProfilPage> {
         Navigator.push(context, MaterialPageRoute(builder: (context) => const ConditionsPage()));
         break;
       case "Se déconnecter":
-        // Appelez la fonction du nouveau fichier
-        showLogoutDialog(context);
+        // ✅ Ici on passe bien "producteur" comme profileId
+        showLogoutDialog(context, "producteur");
         break;
       default:
         ScaffoldMessenger.of(context).showSnackBar(
@@ -74,7 +75,7 @@ class _ProfilPageState extends State<ProfilPage> {
         backgroundColor: AppColors.primaryGreen,
         title: const Text("Mon Profil", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
         centerTitle: true,
-        automaticallyImplyLeading: false, 
+        automaticallyImplyLeading: false,
         actions: [
           IconButton(
             icon: const Icon(Icons.settings, color: Colors.white),
@@ -152,16 +153,8 @@ class _ProfilPageState extends State<ProfilPage> {
   }
 }
 
-class MesInformationsPage extends StatelessWidget {
-  const MesInformationsPage({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Mes Informations'), backgroundColor: AppColors.primaryGreen, foregroundColor: Colors.white),
-      body: const Center(child: Text('Page Mes Informations')),
-    );
-  }
-}
+// ⚠️ J’ai supprimé le doublon de `MesInformationsPage` ici !
+// On garde seulement MesFavorisPage, HistoriqueTransactionsPage, MoyensPaiementPage, ConditionsPage
 
 class MesFavorisPage extends StatelessWidget {
   const MesFavorisPage({super.key});

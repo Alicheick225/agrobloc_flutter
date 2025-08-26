@@ -89,7 +89,7 @@ class _LoginPageState extends State<LoginPage> {
           Navigator.pushReplacementNamed(context, '/homePage');
           break;
         case 'f23423d4-ca9e-409b-b3fb-26126ab66581':
-          Navigator.pushReplacementNamed(context, '/homePoducteur');
+          Navigator.pushReplacementNamed(context, '/homeProducteur');
           break;
         default:
           ScaffoldMessenger.of(context).showSnackBar(

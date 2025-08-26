@@ -1,60 +1,57 @@
-// lib/core/features/Agrobloc/presentations/dialogs/logout_dialog.dart
-
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/connexion/login.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/pagesAcheteurs/homePage.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/pagesProducteurs/homeProducteur.dart';
 
-/// Affiche une boîte de dialogue de confirmation et gère la déconnexion
-void showLogoutDialog(BuildContext context) {
+Future<void> showLogoutDialog(BuildContext context, String profileId) async {
   showDialog(
     context: context,
-    builder: (BuildContext dialogContext) {
+    builder: (BuildContext ctx) {
       return AlertDialog(
-        title: const Text('Déconnexion'),
-        content: const Text('Êtes-vous sûr de vouloir vous déconnecter ?'),
+        title: const Text("Déconnexion"),
+        content: const Text("Voulez-vous vraiment vous déconnecter ?"),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Annuler'),
+            child: const Text("Annuler"),
+            onPressed: () => Navigator.of(ctx).pop(),
           ),
           TextButton(
+            child: const Text("Déconnexion"),
             onPressed: () async {
-              final userService = UserService();
-              final storedProfileId = await userService.getStoredProfileId();
-              
-              await userService.logoutUser();
-              
-              Navigator.of(dialogContext).pop();
+              Navigator.of(ctx).pop(); // ferme le popup
 
-              if (storedProfileId == 'f23423d4-ca9e-409b-b3fb-26126ab66581') {
-                // ID du profil producteur
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/loginProducteur',
-                  (route) => false,
-                );
-              } else if (storedProfileId == '7b74a4f6-67b6-474a-9bf5-d63e04d2a804') {
-                // ID du profil acheteur
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/loginAcheteur',
-                  (route) => false,
-                );
-              } else {
-                // Fallback si le profil n'est pas reconnu
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/login',
-                  (route) => false,
+              try {
+                // Déconnexion côté local + serveur (si token présent)
+                await UserService().logoutUser();
+
+                // 🔀 Redirection en fonction du rôle
+                if (profileId == "producteur") {
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    "/loginProducteur",
+                    (route) => false,
+                  );
+                } else if (profileId == "acheteur") {
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    "/loginAcheteur",
+                    (route) => false,
+                  );
+                } else {
+                  // fallback si profileId inconnu
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    "/login",
+                    (route) => false,
+                  );
+                }
+              } catch (e) {
+                debugPrint("❌ Erreur lors de la déconnexion: $e");
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Erreur lors de la déconnexion"),
+                  ),
                 );
               }
             },
-            child: const Text(
-              'Se déconnecter',
-              style: TextStyle(color: Colors.red),
-            ),
           ),
         ],
       );

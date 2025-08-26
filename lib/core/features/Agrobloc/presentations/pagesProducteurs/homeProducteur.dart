@@ -1,7 +1,12 @@
+// Fichier: homeProducteur.dart
+
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/AnnonceFrom.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/prefinancementForm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+// Import de la page de profil
+import 'package:agrobloc/core/features/Agrobloc/presentations/pagesProducteurs/profilPage.dart';
 
 void main() {
   runApp(const MaterialApp(home: HomeProducteur()));
@@ -17,11 +22,12 @@ class HomeProducteur extends StatefulWidget {
 class _HomeProducteurState extends State<HomeProducteur> {
   int _selectedIndex = 0;
 
+  // Mise à jour de la liste des pages pour inclure ProfilPage
   final List<Widget> pages = [
     const OffreDeVentePage(),
     const Center(child: Text("Messages")),
     const Center(child: Text("Transactions")),
-    const Center(child: Text("Profil")),
+    const ProfilPage(), // La page Profil est maintenant le 4ème élément
   ];
 
   void _onNavBarTap(int index) {
@@ -39,6 +45,7 @@ class _HomeProducteurState extends State<HomeProducteur> {
       builder: (context, child) {
         return Scaffold(
           backgroundColor: Colors.white,
+          // Le corps de la page est géré par la liste `pages`
           body: pages[_selectedIndex],
           bottomNavigationBar: BottomBarProducteur(
             selectedIndex: _selectedIndex,
