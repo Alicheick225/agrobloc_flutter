@@ -92,7 +92,7 @@ class _MyAppState extends State<MyApp> {
       // 🔹 Si c’est le premier lancement, on affiche SelectProfilePage
       home: widget.isFirstLaunch ? const SelectProfilePage() : const LoginPage(profile: 'acheteur'), // Ensure correct access
       routes: {
-        '/homePage': (context) => const HomePage(acheteurId: 'acheteur', profile: 'acheteur'),
+        '/homePage': (context) => const HomePage(acheteurId: 'acheteur'),
         '/homeProducteur': (context) => const HomePoducteur(),
         '/login': (context) => const LoginPage(profile: 'acheteur'),
       },
