@@ -222,5 +222,17 @@ class UserService {
   print(" - userId: ${prefs.getString('userId')}");
   print(" - token: ${prefs.getString('token')}");
 }
-
+  // 🆕 NOUVEAU : Récupère l'ID du profil stocké dans SharedPreferences
+  Future<String?> getStoredProfileId() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final profileId = prefs.getString('profileId');
+      if (profileId != null && profileId.isNotEmpty) {
+        return profileId;
+      }
+    } catch (e) {
+      print('❌ UserService: erreur lors de la récupération de l\'ID de profil: $e');
+    }
+    return null;
+  }
 }

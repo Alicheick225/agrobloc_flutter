@@ -30,7 +30,9 @@ Future<void> main() async {
     debugPrint('❌ Erreur lors de l\'initialisation des notifications: $e');
   }
 
-  // 🆕 NOUVEAU : Initialiser le UserService au démarrage
+  // 🆕 NOUVEAU : Logique de routage initial
+  String initialRoute = '/'; // Route par défaut
+  
   try {
     final userService = UserService();
     final hasStoredData = await userService.hasStoredUserData();
@@ -38,28 +40,43 @@ Future<void> main() async {
     if (hasStoredData) {
       final loaded = await userService.loadUser();
       if (loaded) {
-        debugPrint('✅ UserService initialisé avec succès - Utilisateur connecté');
+        // L'utilisateur est connecté, on détermine son profil
+        final storedProfileId = await userService.getStoredProfileId();
+        if (storedProfileId == 'f23423d4-ca9e-409b-b3fb-26126ab66581') {
+          initialRoute = '/homeProducteur';
+        } else if (storedProfileId == '7b74a4f6-67b6-474a-9bf5-d63e04d2a804') {
+          initialRoute = '/homeAcheteur';
+        } else {
+          initialRoute = '/';
+        }
+        debugPrint('✅ Utilisateur connecté. Redirection vers : $initialRoute');
       } else {
         debugPrint('ℹ️ UserService: données utilisateur invalides ou problème de connexion');
         debugPrint('ℹ️ Redirection vers l\'écran de connexion nécessaire');
+        initialRoute = '/';
       }
     } else {
       debugPrint('ℹ️ UserService: aucune donnée utilisateur trouvée - première utilisation');
       debugPrint('ℹ️ Redirection vers l\'écran de sélection de profil');
+      initialRoute = '/';
     }
   } catch (e) {
     debugPrint('⚠️ Erreur lors de l\'initialisation du UserService: $e');
     debugPrint('ℹ️ L\'application continue avec l\'utilisateur déconnecté');
-    // Continuer même en cas d'erreur, l'utilisateur pourra se reconnecter
+    initialRoute = '/';
   }
 
-  runApp(MyApp(modeSombreInitial: modeSombreInitial));
+  runApp(MyApp(
+    modeSombreInitial: modeSombreInitial,
+    initialRoute: initialRoute, // Passe la route initiale à l'application
+  ));
 }
 
 class MyApp extends StatefulWidget {
   final bool modeSombreInitial;
+  final String initialRoute; // 🆕 NOUVEAU : Propriété pour la route initiale
 
-  const MyApp({super.key, required this.modeSombreInitial});
+  const MyApp({super.key, required this.modeSombreInitial, required this.initialRoute});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -82,9 +99,8 @@ class _MyAppState extends State<MyApp> {
   // 🆕 NOUVEAU : Initialiser les notifications
   Future<void> _initializeNotifications() async {
     try {
-      // Vous pouvez récupérer l'ID utilisateur depuis SharedPreferences ou votre système d'auth
-      final prefs = await SharedPreferences.getInstance();
-      String? currentUserId = prefs.getString('currentUserId');
+      final userService = UserService(); // Utilisez le Singleton
+      String? currentUserId = userService.userId;
       
       if (currentUserId != null) {
         // Enregistrer le token de l'utilisateur
@@ -152,32 +168,49 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Agrobloc',
-      theme: ThemeData.light().copyWith(
-        primaryColor: const Color(0xFF5d9643),
-        scaffoldBackgroundColor: Colors.white,
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF5d9643),
-          foregroundColor: Colors.white,
-        ),
-        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-          backgroundColor: Colors.white,
-          selectedItemColor: Color(0xFF5d9643),
-          unselectedItemColor: Colors.grey,
-        ),
-      ),
-      home: const SelectProfilePage(),
+      theme: _modeSombre
+          ? ThemeData.dark().copyWith(
+              primaryColor: const Color(0xFF5d9643),
+              scaffoldBackgroundColor: const Color(0xFF121212),
+              appBarTheme: const AppBarTheme(
+                backgroundColor: Color(0xFF5d9643),
+                foregroundColor: Colors.white,
+              ),
+              bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+                backgroundColor: Color(0xFF121212),
+                selectedItemColor: const Color(0xFF5d9643),
+                unselectedItemColor: Colors.grey,
+              ),
+            )
+          : ThemeData.light().copyWith(
+              primaryColor: const Color(0xFF5d9643),
+              scaffoldBackgroundColor: Colors.white,
+              appBarTheme: const AppBarTheme(
+                backgroundColor: Color(0xFF5d9643),
+                foregroundColor: Colors.white,
+              ),
+              bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+                backgroundColor: Colors.white,
+                selectedItemColor: const Color(0xFF5d9643),
+                unselectedItemColor: Colors.grey,
+              ),
+            ),
+      // 🆕 MODIFIÉ : Utiliser la route initiale dynamique
+      initialRoute: widget.initialRoute,
       routes: {
-        '/homePage': (context) => const HomePage(
+        '/': (context) => const SelectProfilePage(),
+        '/loginAcheteur': (context) => const LoginPage(profile: 'acheteur'),
+        '/loginProducteur': (context) => const LoginPage(profile: 'producteur'),
+        '/homeAcheteur': (context) => const HomePage(
               acheteurId: 'acheteur',
               profile: 'acheteur',
             ),
-        '/homePoducteur': (context) => const HomePoducteur(),
-        '/login': (context) => const LoginPage(profile: 'acheteur'),
+        // ❌ CORRECTION : suppression de 'const' pour HomeProducteur
+        '/homeProducteur': (context) => const HomeProducteur(),
       },
     );
   }
 }
-
 
 // 🆕 NOUVEAU : Extension pour accéder au service de notifications depuis n'importe où
 extension NotificationExtension on BuildContext {
@@ -188,4 +221,3 @@ extension NotificationExtension on BuildContext {
     }
   }
 }
-

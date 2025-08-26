@@ -4,6 +4,7 @@ import 'package:agrobloc/core/utils/api_token.dart';
 import '../models/authentificationModel.dart';
 import '../models/forgotPasswordModel.dart';
 import '../dataSources/userService.dart';
+import 'package:http/http.dart' as http; // Importez la bibliothèque http pour le logout
 
 /// Service gérant l'authentification de l'utilisateur
 class AuthService {
@@ -37,6 +38,27 @@ class AuthService {
       return user;
     } else {
       throw Exception('Erreur de connexion: ${response.body}');
+    }
+  }
+
+  /// Déconnexion utilisateur
+  /// Appelle l'API de déconnexion pour invalider le token côté serveur.
+  Future<void> logout() async {
+    try {
+      final response = await api.post(
+        '/deconnexion', // Remplacez par le nom de votre endpoint de déconnexion si différent
+        {},
+      );
+      if (response.statusCode == 200) {
+        print('✅ AuthService: Déconnexion API réussie.');
+      } else {
+        // En cas d'erreur de l'API (ex: 401 si token déjà expiré),
+        // on procède quand même à la déconnexion locale.
+        print('❌ AuthService: Erreur de l\'API de déconnexion: ${response.body}');
+      }
+    } catch (e) {
+      // Gérer les erreurs de réseau ou d'API
+      print('❌ AuthService: Erreur lors de l\'appel de l\'API de déconnexion: $e');
     }
   }
 

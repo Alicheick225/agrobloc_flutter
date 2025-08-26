@@ -4,17 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 void main() {
-  runApp(const MaterialApp(home: HomePoducteur()));
+  runApp(const MaterialApp(home: HomeProducteur()));
 }
 
-class HomePoducteur extends StatefulWidget {
-  const HomePoducteur({super.key});
+class HomeProducteur extends StatefulWidget {
+  const HomeProducteur({super.key});
 
   @override
-  State<HomePoducteur> createState() => _HomeProducteurState();
+  State<HomeProducteur> createState() => _HomeProducteurState();
 }
 
-class _HomeProducteurState extends State<HomePoducteur> {
+class _HomeProducteurState extends State<HomeProducteur> {
   int _selectedIndex = 0;
 
   final List<Widget> pages = [
@@ -107,74 +107,71 @@ class OffreDeVentePage extends StatelessWidget {
       child: Column(
         children: [
           // Header vert
-Container(
-  width: double.infinity,
-  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 40.h),
-  decoration: BoxDecoration(
-    color: const Color(0xFF527E3F),
-    borderRadius: BorderRadius.only(
-      bottomLeft: Radius.circular(40.r),
-      bottomRight: Radius.circular(40.r),
-    ),
-  ),
-  child: SafeArea(
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            CircleAvatar(
-              backgroundColor: Colors.white.withOpacity(0.2),
-              radius: 24.r,
-              child: Icon(Icons.eco, color: Colors.white, size: 28.sp),
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 40.h),
+            decoration: BoxDecoration(
+              color: const Color(0xFF527E3F),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(40.r),
+                bottomRight: Radius.circular(40.r),
+              ),
             ),
-            SizedBox(width: 12.w),
-            RichText(
-              text: TextSpan(
-                text: 'Bonjour, ',
-                style: TextStyle(color: Colors.white, fontSize: 16.sp),
+            child: SafeArea(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TextSpan(
-                    text: 'Mr Kouassi Bernard',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 18.sp),
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: Colors.white.withOpacity(0.2),
+                        radius: 24.r,
+                        child: Icon(Icons.eco, color: Colors.white, size: 28.sp),
+                      ),
+                      SizedBox(width: 12.w),
+                      RichText(
+                        text: TextSpan(
+                          text: 'Bonjour, ',
+                          style: TextStyle(color: Colors.white, fontSize: 16.sp),
+                          children: [
+                            TextSpan(
+                              text: 'Mr Kouassi Bernard',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 18.sp),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 20.h),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF9DB98B).withOpacity(0.4),
+                      borderRadius: BorderRadius.circular(30.r),
+                    ),
+                    child: TextField(
+                      decoration: InputDecoration(
+                        hintText: "Faire une recherche",
+                        prefixIcon: const Icon(Icons.search, color: Colors.white70),
+                        suffixIcon: const Icon(Icons.mic, color: Colors.white70),
+                        border: InputBorder.none,
+                        hintStyle: TextStyle(color: Colors.white70),
+                        contentPadding: EdgeInsets.symmetric(vertical: 12.h),
+                      ),
+                      style: const TextStyle(color: Colors.white),
+                      cursorColor: Colors.white,
+                    ),
                   ),
                 ],
               ),
             ),
-          ],
-        ),
-        SizedBox(height: 20.h),
-        Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFF9DB98B).withOpacity(0.4),
-            borderRadius: BorderRadius.circular(30.r),
           ),
-          child: TextField(
-            decoration: InputDecoration(
-              hintText: "Faire une recherche",
-              prefixIcon: const Icon(Icons.search, color: Colors.white70),
-              suffixIcon: const Icon(Icons.mic, color: Colors.white70),
-              border: InputBorder.none,
-              hintStyle: TextStyle(color: Colors.white70),
-              contentPadding: EdgeInsets.symmetric(vertical: 12.h),
-            ),
-            style: const TextStyle(color: Colors.white),
-            cursorColor: Colors.white,
-          ),
-        ),
-      ],
-    ),
-  ),
-),
-
-
 
           SizedBox(height: 16.h),
-
           SizedBox(height: 30.h),
 
-          // Cartes blanches avec ombrage
+          // Cartes
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 20.w),
             child: Column(
@@ -280,8 +277,7 @@ Container(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15.r),
                     ),
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+                    padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
                   ),
                   child: Text(
                     buttonText,
