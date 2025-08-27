@@ -17,7 +17,7 @@ class HomePoducteur extends StatefulWidget {
 class _HomeProducteurState extends State<HomePoducteur> {
   int _selectedIndex = 0;
 
-  final List<Widget> pages = [
+  final List<Widget>   pages = [
     const OffreDeVentePage(),
     const Center(child: Text("Messages")),
     const Center(child: Text("Transactions")),

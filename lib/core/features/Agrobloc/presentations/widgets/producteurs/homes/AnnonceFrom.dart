@@ -243,6 +243,8 @@ class _AnnonceFormState extends State<AnnonceForm> {
       final selectedTypeCulture = typeCultures.firstWhere((c) => c.libelle == selectedCulture);
       final typeCultureId = selectedTypeCulture.id;
 
+      print("TypeCulture sélectionné: $selectedCulture, id: $typeCultureId");
+
       final selectedParcelleObj = parcellesList.firstWhere((p) => p.libelle == selectedParcelle);
       final parcelleId = selectedParcelleObj.id;
 

@@ -17,6 +17,10 @@ class TypeCultureService {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
+         // 👉 Si tu veux afficher ligne par ligne
+        for (var item in data) {
+          print("Item: $item");
+        }
         return data.map((json) => TypeCulture.fromJson(json)).toList();
       } else {
         throw Exception('Erreur ${response.statusCode}: ${response.body}');
