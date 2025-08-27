@@ -35,6 +35,13 @@ class UserService {
 
   /// Sauvegarde l'utilisateur et le token
   Future<void> setCurrentUser(AuthentificationModel user, String token) async {
+    // Vérifier que le profilId n'est pas vide
+    if (user.profilId.isEmpty) {
+      print('⚠️ UserService: Attention - profilId est vide pour l\'utilisateur ${user.nom}');
+      // Vous pouvez choisir de lancer une exception ou simplement logger l'erreur
+      // throw Exception("Profil ID est vide. Veuillez vérifier les données utilisateur.");
+    }
+    
     _currentUser = user;
     _userId = user.id;
     _token = token;

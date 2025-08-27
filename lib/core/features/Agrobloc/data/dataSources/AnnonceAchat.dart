@@ -55,7 +55,29 @@ class AnnonceAchatService {
 
       if (response.statusCode == 200) {
         final List<dynamic> body = json.decode(response.body);
-        return body.map((item) => AnnonceAchat.fromJson(item)).toList();
+        
+        // Récupérer les cultures pour obtenir les libellés
+        final cultures = await fetchCultures();
+        
+        // Mapper les annonces avec les libellés de culture
+        return body.map((item) {
+          final annonce = AnnonceAchat.fromJson(item);
+          final typeCultureId = annonce.typeCultureId;
+          
+          // Trouver le libellé correspondant dans la liste des cultures
+          if (typeCultureId.isNotEmpty) {
+            final culture = cultures.firstWhere(
+              (c) => c['id'] == typeCultureId,
+              orElse: () => {'libelle': ''},
+            );
+            
+            if (culture['libelle'] != null && culture['libelle'].isNotEmpty) {
+              return annonce.copyWith(typeCultureLibelle: culture['libelle']);
+            }
+          }
+          
+          return annonce;
+        }).toList();
       } else if (response.statusCode == 401) {
         throw Exception('Utilisateur non authentifié');
       } else {
@@ -85,7 +107,31 @@ class AnnonceAchatService {
 
       if (response.statusCode == 200) {
         final List<dynamic> body = json.decode(response.body);
-        return body.map((item) => AnnonceAchat.fromJson(item)).toList();
+        // Log pour debugger la structure des données
+        print('🔍 Réponse API fetchAnnoncesByUser: ${response.body}');
+        
+        // Récupérer les cultures pour obtenir les libellés
+        final cultures = await fetchCultures();
+        
+        // Mapper les annonces avec les libellés de culture
+        return body.map((item) {
+          final annonce = AnnonceAchat.fromJson(item);
+          final typeCultureId = annonce.typeCultureId;
+          
+          // Trouver le libellé correspondant dans la liste des cultures
+          if (typeCultureId.isNotEmpty) {
+            final culture = cultures.firstWhere(
+              (c) => c['id'] == typeCultureId,
+              orElse: () => {'libelle': ''},
+            );
+            
+            if (culture['libelle'] != null && culture['libelle'].isNotEmpty) {
+              return annonce.copyWith(typeCultureLibelle: culture['libelle']);
+            }
+          }
+          
+          return annonce;
+        }).toList();
       } else if (response.statusCode == 401) {
         throw Exception('Utilisateur non authentifié');
       } else {

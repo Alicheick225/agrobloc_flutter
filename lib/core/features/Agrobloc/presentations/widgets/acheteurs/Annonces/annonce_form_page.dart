@@ -1,6 +1,7 @@
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/AnnonceAchat.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceAchatModel.dart';
+import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -110,7 +111,7 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur chargement cultures: $e'),
-          backgroundColor: errorColor,
+          backgroundColor: Colors.red,
         ),
       );
     } finally {
@@ -164,7 +165,7 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Annonce mise à jour avec succès'),
-            backgroundColor: primaryColor,
+            backgroundColor: AppColors.primaryGreen,
           ),
         );
       } else {
@@ -178,7 +179,7 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Annonce créée avec succès'),
-            backgroundColor: primaryColor,
+            backgroundColor: AppColors.primaryGreen,
           ),
         );
       }
@@ -188,7 +189,7 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur: ${e.toString()}'),
-          backgroundColor: errorColor,
+          backgroundColor: Colors.red,
         ),
       );
     } finally {
@@ -524,7 +525,7 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
       backgroundColor: backgroundColor,
       appBar: AppBar(
         title: Text(
-          _isEditMode ? 'Modifier l\'annonce' : 'Faire une offre',
+          _isEditMode ? 'Modifier l\'offre' : 'Faire une offre',
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: primaryColor,
@@ -581,9 +582,9 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
                                   strokeWidth: 2,
                                 ),
                               )
-                            : const Text(
-                                'Proposer une offre d\'achat',
-                                style: TextStyle(
+                            : Text(
+                                _isEditMode ? 'Modifier une offre' : 'Proposer une offre d\'achat',
+                                style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                 ),

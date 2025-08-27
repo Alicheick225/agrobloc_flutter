@@ -127,6 +127,20 @@ class _ProfilPageState extends State<ProfilPage> {
     );
   }
 
+  // Method to get the profile type based on profilId
+  String? _getProfileType(String? profilId) {
+    switch (profilId) {
+      case 'acheteur':
+        return 'Acheteur';
+      case 'producteur':
+        return 'Producteur';
+      case 'cooperative':
+        return 'Coopérative';
+      default:
+        return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -198,7 +212,7 @@ class _ProfilPageState extends State<ProfilPage> {
                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  "#${user?.profilId ?? "Agrobloc-1ZKZKE"}",
+                  user?.profilId ?? "Profil non défini",
                   style: const TextStyle(color: Colors.grey),
                 ),
                 const SizedBox(height: 10),
