@@ -1,5 +1,6 @@
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/AnnonceFrom.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/prefinancementForm.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/annoncePage.dart'; 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -107,71 +108,68 @@ class OffreDeVentePage extends StatelessWidget {
       child: Column(
         children: [
           // Header vert
-Container(
-  width: double.infinity,
-  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 40.h),
-  decoration: BoxDecoration(
-    color: const Color(0xFF527E3F),
-    borderRadius: BorderRadius.only(
-      bottomLeft: Radius.circular(40.r),
-      bottomRight: Radius.circular(40.r),
-    ),
-  ),
-  child: SafeArea(
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            CircleAvatar(
-              backgroundColor: Colors.white.withOpacity(0.2),
-              radius: 24.r,
-              child: Icon(Icons.eco, color: Colors.white, size: 28.sp),
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 40.h),
+            decoration: BoxDecoration(
+              color: const Color(0xFF527E3F),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(40.r),
+                bottomRight: Radius.circular(40.r),
+              ),
             ),
-            SizedBox(width: 12.w),
-            RichText(
-              text: TextSpan(
-                text: 'Bonjour, ',
-                style: TextStyle(color: Colors.white, fontSize: 16.sp),
+            child: SafeArea(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TextSpan(
-                    text: 'Mr Kouassi Bernard',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 18.sp),
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: Colors.white.withOpacity(0.2),
+                        radius: 24.r,
+                        child: Icon(Icons.eco, color: Colors.white, size: 28.sp),
+                      ),
+                      SizedBox(width: 12.w),
+                      RichText(
+                        text: TextSpan(
+                          text: 'Bonjour, ',
+                          style: TextStyle(color: Colors.white, fontSize: 16.sp),
+                          children: [
+                            TextSpan(
+                              text: 'Mr Kouassi Bernard',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 18.sp),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 20.h),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF9DB98B).withOpacity(0.4),
+                      borderRadius: BorderRadius.circular(30.r),
+                    ),
+                    child: TextField(
+                      decoration: InputDecoration(
+                        hintText: "Faire une recherche",
+                        prefixIcon: const Icon(Icons.search, color: Colors.white70),
+                        suffixIcon: const Icon(Icons.mic, color: Colors.white70),
+                        border: InputBorder.none,
+                        hintStyle: TextStyle(color: Colors.white70),
+                        contentPadding: EdgeInsets.symmetric(vertical: 12.h),
+                      ),
+                      style: const TextStyle(color: Colors.white),
+                      cursorColor: Colors.white,
+                    ),
                   ),
                 ],
               ),
             ),
-          ],
-        ),
-        SizedBox(height: 20.h),
-        Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFF9DB98B).withOpacity(0.4),
-            borderRadius: BorderRadius.circular(30.r),
           ),
-          child: TextField(
-            decoration: InputDecoration(
-              hintText: "Faire une recherche",
-              prefixIcon: const Icon(Icons.search, color: Colors.white70),
-              suffixIcon: const Icon(Icons.mic, color: Colors.white70),
-              border: InputBorder.none,
-              hintStyle: TextStyle(color: Colors.white70),
-              contentPadding: EdgeInsets.symmetric(vertical: 12.h),
-            ),
-            style: const TextStyle(color: Colors.white),
-            cursorColor: Colors.white,
-          ),
-        ),
-      ],
-    ),
-  ),
-),
-
-
 
           SizedBox(height: 16.h),
-
           SizedBox(height: 30.h),
 
           // Cartes blanches avec ombrage
@@ -217,7 +215,14 @@ Container(
                       "Répondez à une demande pour vos produits et soyez récompensé pour votre contribution précieuse",
                   buttonText: "Consulter les annonces",
                   icon: Icons.campaign_outlined,
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AnnonceAchatPage(), // Navigate to AnnonceAchatPage
+                      ),
+                    );
+                  },
                 ),
               ],
             ),

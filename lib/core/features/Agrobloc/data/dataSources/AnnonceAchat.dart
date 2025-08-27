@@ -55,29 +55,14 @@ class AnnonceAchatService {
 
       if (response.statusCode == 200) {
         final List<dynamic> body = json.decode(response.body);
+        print('🔍 fetchAnnonces: ${body.length} annonces reçues');
         
-        // Récupérer les cultures pour obtenir les libellés
-        final cultures = await fetchCultures();
+        if (body.isNotEmpty) {
+          print('🔍 Structure de la première annonce: ${body[0]}');
+        }
         
-        // Mapper les annonces avec les libellés de culture
-        return body.map((item) {
-          final annonce = AnnonceAchat.fromJson(item);
-          final typeCultureId = annonce.typeCultureId;
-          
-          // Trouver le libellé correspondant dans la liste des cultures
-          if (typeCultureId.isNotEmpty) {
-            final culture = cultures.firstWhere(
-              (c) => c['id'] == typeCultureId,
-              orElse: () => {'libelle': ''},
-            );
-            
-            if (culture['libelle'] != null && culture['libelle'].isNotEmpty) {
-              return annonce.copyWith(typeCultureLibelle: culture['libelle']);
-            }
-          }
-          
-          return annonce;
-        }).toList();
+        // Utiliser directement la méthode fromJson qui extrait déjà le libellé depuis l'objet type_culture
+        return body.map((item) => AnnonceAchat.fromJson(item)).toList();
       } else if (response.statusCode == 401) {
         throw Exception('Utilisateur non authentifié');
       } else {
@@ -107,31 +92,14 @@ class AnnonceAchatService {
 
       if (response.statusCode == 200) {
         final List<dynamic> body = json.decode(response.body);
-        // Log pour debugger la structure des données
-        print('🔍 Réponse API fetchAnnoncesByUser: ${response.body}');
+        print('🔍 fetchAnnonces: ${body.length} annonces reçues');
         
-        // Récupérer les cultures pour obtenir les libellés
-        final cultures = await fetchCultures();
+        if (body.isNotEmpty) {
+          print('🔍 Structure de la première annonce: ${body[0]}');
+        }
         
-        // Mapper les annonces avec les libellés de culture
-        return body.map((item) {
-          final annonce = AnnonceAchat.fromJson(item);
-          final typeCultureId = annonce.typeCultureId;
-          
-          // Trouver le libellé correspondant dans la liste des cultures
-          if (typeCultureId.isNotEmpty) {
-            final culture = cultures.firstWhere(
-              (c) => c['id'] == typeCultureId,
-              orElse: () => {'libelle': ''},
-            );
-            
-            if (culture['libelle'] != null && culture['libelle'].isNotEmpty) {
-              return annonce.copyWith(typeCultureLibelle: culture['libelle']);
-            }
-          }
-          
-          return annonce;
-        }).toList();
+        // Utiliser directement la méthode fromJson qui extrait déjà le libellé depuis l'objet type_culture
+        return body.map((item) => AnnonceAchat.fromJson(item)).toList();
       } else if (response.statusCode == 401) {
         throw Exception('Utilisateur non authentifié');
       } else {
@@ -164,12 +132,22 @@ class AnnonceAchatService {
   Future<List<Map<String, dynamic>>> fetchCultures() async {
     try {
       final headers = await _getHeaders();
+      print('🔍 Tentative de récupération des cultures depuis: $_culturesUrl');
+      
       final response = await http
           .get(Uri.parse(_culturesUrl), headers: headers)
           .timeout(const Duration(seconds: 10));
 
+      print('🔍 Réponse cultures - Status: ${response.statusCode}');
+      
       if (response.statusCode == 200) {
         final List<dynamic> body = json.decode(response.body);
+        print('🔍 fetchAnnonces: ${body.length} annonces reçues');
+        
+        if (body.isNotEmpty) {
+          print('🔍 Structure de la première annonce: ${body[0]}');
+        }
+        print('🔍 Cultures API: ${body.length} cultures reçues');
         return body
             .map<Map<String, dynamic>>((item) => {
                   'id': item['id'].toString(),
@@ -177,11 +155,15 @@ class AnnonceAchatService {
                 })
             .toList();
       } else if (response.statusCode == 401) {
+        print('❌ Erreur 401: Utilisateur non authentifié pour cultures');
         throw Exception('Utilisateur non authentifié');
       } else {
+        print('⚠️ Cultures API erreur ${response.statusCode}, utilisation des cultures par défaut');
         return _defaultCultures;
       }
-    } catch (_) {
+    } catch (e) {
+      print('❌ Erreur lors de la récupération des cultures: $e');
+      print('⚠️ Utilisation des cultures par défaut');
       return _defaultCultures;
     }
   }

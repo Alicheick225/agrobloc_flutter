@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/Annonces/annonce_form_page.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/AnnonceAchat.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceAchatModel.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:agrobloc/core/themes/app_text_styles.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/recherche_bar.dart';
 
 class AnnonceAchatPage extends StatefulWidget {
   const AnnonceAchatPage({super.key});
@@ -22,30 +24,18 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
   final List<AnnonceAchat> _filteredAnnonces = [];
 
   bool _isLoading = true;
-  String _userName = ''; // Variable to hold the user's name
 
   @override
   void initState() {
     super.initState();
     _loadAnnonces();
-    _loadUserName(); // Load the user's name
   }
 
-  /// Load the user's name
-  Future<void> _loadUserName() async {
-    final user = _userService.currentUser;
-    if (user != null) {
-      setState(() {
-        _userName = user.nom; // Assuming 'nom' is the field for the user's name
-      });
-    }
-  }
-
-  /// Charge toutes les annonces d'achat
+  /// Charge uniquement les annonces de l'utilisateur connecté
   Future<void> _loadAnnonces() async {
     try {
       setState(() => _isLoading = true);
-      final annonces = await _service.fetchAnnonces();
+      final annonces = await _service.fetchAnnoncesByUser();
 
       if (!mounted) return;
       setState(() {
@@ -69,56 +59,90 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
     }
   }
 
-  /// Get background color for avatar - using the primary green color of the site
-  Color _getAvatarBackgroundColor(String firstLetter) {
-    return const Color(0xFF4CAF50); // Primary green color used in the app
+  /// Navigation vers le formulaire de création
+  Future<void> _navigateToForm() async {
+    final isAuthenticated = await _userService.isUserAuthenticated();
+    if (!isAuthenticated) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Vous devez être connecté pour créer une offre.'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AnnonceFormPage()),
+    ).then((_) => _loadAnnonces());
   }
 
-  // Méthode pour formater la date avec format relatif
-  String _formatDate(String dateString) {
-    if (dateString.isEmpty) return '';
-    
+  /// Navigation vers le formulaire pour modifier une annonce
+  void _navigateToEditForm(AnnonceAchat annonce) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AnnonceFormPage(annonceToEdit: annonce),
+      ),
+    ).then((_) => _loadAnnonces());
+  }
+
+  /// Supprime une annonce
+  Future<void> _deleteAnnonce(AnnonceAchat annonce) async {
     try {
-      final parts = dateString.split(' ');
-      if (parts.isEmpty) return dateString;
-      
-      final dateParts = parts[0].split('-');
-      if (dateParts.length != 3) return dateString;
-      
-      final year = int.tryParse(dateParts[0]) ?? 0;
-      final month = int.tryParse(dateParts[1]) ?? 0;
-      final day = int.tryParse(dateParts[2]) ?? 0;
-      
-      if (year == 0 || month == 0 || day == 0) return dateString;
-      
-      final date = DateTime(year, month, day);
-      final now = DateTime.now();
-      final today = DateTime(now.year, now.month, now.day);
-      final yesterday = DateTime(now.year, now.month, now.day - 1);
-      final dateOnly = DateTime(date.year, date.month, date.day);
-      
-      final difference = today.difference(dateOnly).inDays;
-      
-      if (dateOnly == today) {
-        return 'Aujourd\'hui';
-      } else if (dateOnly == yesterday) {
-        return 'Hier';
-      } else if (difference < 7) {
-        return 'Il y a $difference ${difference == 1 ? 'jour' : 'jours'}';
-      } else if (difference < 28) {
-        final weeks = (difference / 7).floor();
-        return 'Il y a $weeks ${weeks == 1 ? 'semaine' : 'semaines'}';
-      } else {
-        // Format complet: "11 Août 2025"
-        final monthNames = [
-          'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-          'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
-        ];
-        return '$day ${monthNames[month - 1]} $year';
-      }
+      await _service.deleteAnnonceAchat(annonce.id);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Annonce supprimée avec succès'),
+          backgroundColor: AppColors.primaryGreen,
+        ),
+      );
+      _loadAnnonces();
     } catch (e) {
-      return dateString;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur lors de la suppression: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
+  }
+
+  /// Confirme la suppression
+  Future<void> _confirmDeleteAnnonce(AnnonceAchat annonce) async {
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirmer la suppression'),
+          content: const Text('Voulez-vous vraiment supprimer cette annonce ?'),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Non'),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.grey[700],
+              ),
+              onPressed: () => Navigator.of(context).pop(false),
+            ),
+            TextButton(
+              child: const Text('Oui'),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primaryGreen,
+              ),
+              onPressed: () => Navigator.of(context).pop(true),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) await _deleteAnnonce(annonce);
   }
 
   @override
@@ -127,7 +151,7 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
-          'Toutes les Offres d\'Achat',
+          'Mes Offres d\'Achat',
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         backgroundColor: AppColors.primaryGreen,
@@ -226,7 +250,7 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                   child: _filteredAnnonces.isEmpty
                       ? Center(
                           child: Text(
-                            'Aucune annonce disponible',
+                            'Aucune annonce créée par vous',
                             style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                           ),
                         )
@@ -246,50 +270,20 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // Avatar avec couleur basée sur le nom
-                                    CircleAvatar(
-                                      radius: 20,
-                                      backgroundColor: _getAvatarBackgroundColor(annonce.userNom.isNotEmpty ? annonce.userNom[0] : '?'),
-                                      child: Text(
-                                        annonce.userNom.isNotEmpty ? annonce.userNom[0].toUpperCase() : '?',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ),
                                     const SizedBox(width: 12),
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          // Display the buyer's name
                                           Text(
-                                            annonce.userNom.isNotEmpty 
-                                              ? annonce.userNom
-                                              : 'Nom de l\'utilisateur',
+                                            annonce.typeCultureLibelle.isNotEmpty 
+                                              ? annonce.typeCultureLibelle
+                                              : 'Type de culture non spécifié',
                                             style: AppTextStyles.heading.copyWith(
                                               fontSize: 16,
-                                              color: AppColors.primaryGreen,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text.rich(
-                                            TextSpan(
-                                              children: [
-                                                TextSpan(
-                                                  text: 'Culture: ',
-                                                  style: TextStyle(color: Colors.grey[700]),
-                                                ),
-                                                TextSpan(
-                                                  text: '${annonce.typeCultureLibelle}',
-                                                  style: const TextStyle(
-                                                    color: Color.fromARGB(255, 55, 55, 55),
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ],
+                                              color: annonce.typeCultureLibelle.isNotEmpty
+                                                ? AppColors.primaryGreen
+                                                : Colors.grey,
                                             ),
                                           ),
                                           const SizedBox(height: 8),
@@ -301,7 +295,7 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                                                   style: TextStyle(color: Colors.grey[700]),
                                                 ),
                                                 TextSpan(
-                                                  text: annonce.formattedQuantity,
+                                                  text: '${annonce.quantite} kg',
                                                   style: const TextStyle(
                                                     color: Color.fromARGB(255, 55, 55, 55),
                                                     fontWeight: FontWeight.bold,
@@ -315,11 +309,11 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                                             TextSpan(
                                               children: [
                                                 TextSpan(
-                                                  text: 'Prix / kg: ',
+                                                  text: 'Prix unitaire: ',
                                                   style: TextStyle(color: Colors.grey[700]),
                                                 ),
                                                 TextSpan(
-                                                  text: annonce.formattedPrice,
+                                                  text: '${annonce.prix} FCFA',
                                                   style: const TextStyle(
                                                     color: Color.fromARGB(255, 55, 55, 55),
                                                     fontWeight: FontWeight.bold,
@@ -329,60 +323,41 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                                             ),
                                           ),
                                           const SizedBox(height: 4),
-                                          // Statut et Date sur la même ligne
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text.rich(
+                                          Text.rich(
+                                            TextSpan(
+                                              children: [
                                                 TextSpan(
-                                                  children: [
-                                                    TextSpan(
-                                                      text: 'Statut: ',
-                                                      style: TextStyle(color: Colors.grey[700]),
-                                                    ),
-                                                    TextSpan(
-                                                      text: annonce.statut,
-                                                      style: TextStyle(
-                                                        color: isValidated
-                                                            ? Colors.green
-                                                            : const Color.fromARGB(255, 99, 169, 248),
-                                                        fontWeight: FontWeight.w500,
-                                                      ),
-                                                    ),
-                                                  ],
+                                                  text: 'Statut: ',
+                                                  style: TextStyle(color: Colors.grey[700]),
                                                 ),
-                                              ),
-                                              // Date alignée à droite
-                                              Text(
-                                                _formatDate(annonce.createdAt),
-                                                style: TextStyle(
-                                                  color: Colors.grey[600],
-                                                  fontSize: 12,
+                                                TextSpan(
+                                                  text: annonce.statut,
+                                                  style: TextStyle(
+                                                    color: isValidated
+                                                        ? Colors.green
+                                                        : const Color.fromARGB(255, 99, 169, 248),
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
                                                 ),
-                                              ),
-                                            ],
+                                              ],
+                                            ),
                                           ),
                                         ],
                                       ),
                                     ),
-                                    // "Voir Plus" icon button avec date en dessous
-                                    Column(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
                                         IconButton(
-                                          onPressed: () {
-                                            // Navigate to the detailed view of the announcement
-                                            // Implement the navigation logic here
-                                          },
-                                          icon: Icon(
-                                            Icons.visibility,
-                                            color: AppColors.primaryGreen, // Always green
-                                            size: 24,
-                                          ),
-                                          tooltip: "Voir plus de détails",
+                                          icon: const Icon(Icons.edit_outlined),
+                                          color: AppColors.primaryGreen,
+                                          onPressed: () => _navigateToEditForm(annonce),
                                         ),
-                                        // Espace vide pour aligner avec la date
-                                        const SizedBox(height: 20),
+                                        IconButton(
+                                          icon: const Icon(Icons.delete_outline),
+                                          color: AppColors.primaryGreen,
+                                          onPressed: () => _confirmDeleteAnnonce(annonce),
+                                        ),
                                       ],
                                     ),
                                   ],
@@ -394,6 +369,11 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                 ),
               ],
             ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _navigateToForm,
+        backgroundColor: AppColors.primaryGreen,
+        child: const Icon(Icons.add, color: Colors.white),
+       ),
     );
   }
 }

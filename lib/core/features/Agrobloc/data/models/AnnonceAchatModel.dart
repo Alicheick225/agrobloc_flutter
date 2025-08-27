@@ -2,12 +2,14 @@ class AnnonceAchat {
   final String id;
   final String statut;
   final String description;
-  final double quantite;
-  final double prix;
-  final String userId; // ID de l'utilisateur qui a créé l'annonce
+  final double quantite; // toujours en kg après conversion
+  final double prix;     // en FCFA
+  final String userId; // peut rester vide si l'API ne l'envoie pas
   final String userNom;
   final String typeCultureLibelle;
-  final String typeCultureId;
+  final String typeCultureId; // peut rester vide si l'API ne l'envoie pas
+  final String? unite; // unité originale de l'API (kg ou T)
+  final String createdAt; // date de création
 
   AnnonceAchat({
     required this.id,
@@ -19,27 +21,32 @@ class AnnonceAchat {
     required this.userNom,
     required this.typeCultureLibelle,
     required this.typeCultureId,
+    this.unite,
+    required this.createdAt,
   });
 
   factory AnnonceAchat.fromJson(Map<String, dynamic> json) {
-    // Extraire le libellé depuis l'objet type_culture s'il existe
-    final typeCulture = json['type_culture'] as Map<String, dynamic>?;
-    final typeCultureLibelle = typeCulture?['libelle']?.toString() ?? '';
+    // Gestion de la conversion d'unités
+    double quantiteValue = (json['quantite'] as num?)?.toDouble() ?? 0.0;
+    final String unite = json['unite']?.toString()?.toUpperCase() ?? 'KG';
     
-    // Extraire le nom utilisateur depuis l'objet users s'il existe
-    final users = json['users'] as Map<String, dynamic>?;
-    final userNom = users?['nom']?.toString() ?? json['nom']?.toString() ?? '';
-    
+    // Conversion des tonnes en kg si nécessaire
+    if (unite == 'T') {
+      quantiteValue *= 1000;
+    }
+
     return AnnonceAchat(
       id: json['id']?.toString() ?? '',
-      statut: json['statut'] ?? '',
-      description: json['description'] ?? '',
-      quantite: (json['quantite'] as num?)?.toDouble() ?? 0.0,
+      statut: json['statut']?.toString() ?? '',
+      description: json['description']?.toString() ?? '',
+      quantite: quantiteValue,
       prix: (json['prix_kg'] as num?)?.toDouble() ?? 0.0,
-      userId: json['user_id']?.toString() ?? '',
-      userNom: userNom,
-      typeCultureLibelle: typeCultureLibelle,
-      typeCultureId: json['type_culture_id']?.toString() ?? '',
+      userId: json['user_id']?.toString() ?? '',            // reste vide si absent
+      userNom: json['nom']?.toString() ?? '',               // directement depuis JSON
+      typeCultureLibelle: json['libelle']?.toString() ?? '', // directement depuis JSON
+      typeCultureId: json['type_culture_id']?.toString() ?? '', // reste vide si absent
+      unite: unite,
+      createdAt: json['created_at']?.toString() ?? '',      // date de création
     );
   }
 
@@ -53,8 +60,9 @@ class AnnonceAchat {
       'user_id': userId,
       'nom': userNom,
       'type_culture_id': typeCultureId,
-      // Note: type_culture est un objet séparé dans la réponse API,
-      // donc nous ne l'incluons pas ici dans la requête
+      'libelle': typeCultureLibelle,
+      'unite': unite ?? 'KG',
+      'created_at': createdAt,
     };
   }
 
@@ -68,6 +76,8 @@ class AnnonceAchat {
     String? userNom,
     String? typeCultureLibelle,
     String? typeCultureId,
+    String? unite,
+    String? createdAt,
   }) {
     return AnnonceAchat(
       id: id ?? this.id,
@@ -79,6 +89,8 @@ class AnnonceAchat {
       userNom: userNom ?? this.userNom,
       typeCultureLibelle: typeCultureLibelle ?? this.typeCultureLibelle,
       typeCultureId: typeCultureId ?? this.typeCultureId,
+      unite: unite ?? this.unite,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 
@@ -94,7 +106,9 @@ class AnnonceAchat {
           userId == other.userId &&
           userNom == other.userNom &&
           typeCultureLibelle == other.typeCultureLibelle &&
-          typeCultureId == other.typeCultureId;
+          typeCultureId == other.typeCultureId &&
+          unite == other.unite && // Include unite in equality check
+          createdAt == other.createdAt; // Include createdAt in equality check
 
   @override
   int get hashCode =>
@@ -105,5 +119,20 @@ class AnnonceAchat {
       userId.hashCode ^
       userNom.hashCode ^
       typeCultureLibelle.hashCode ^
-      typeCultureId.hashCode;
+      typeCultureId.hashCode ^
+      (unite?.hashCode ?? 0) ^ // Include unite in hashCode
+      createdAt.hashCode; // Include createdAt in hashCode
+
+  // Méthode utilitaire pour formater la quantité avec l'unité appropriée
+  String get formattedQuantity {
+    if (quantite >= 1000) {
+      return '${(quantite / 1000).toStringAsFixed(1)} T';
+    }
+    return '${quantite.toStringAsFixed(0)} kg';
+  }
+
+  // Méthode utilitaire pour formater le prix avec devise
+  String get formattedPrice {
+    return '$prix FCFA';
+  }
 }
