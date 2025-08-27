@@ -11,7 +11,7 @@ dependencies:
   flutter: 
     sdk: flutter
   # 📍 Localisation GPS + Adresse
-  geolocator: ^12.0.0
+  geolocator: ^14.0.1
   geocoding: ^3.0.0
 
   # 🔑 Auth
