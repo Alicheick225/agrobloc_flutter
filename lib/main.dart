@@ -13,7 +13,6 @@ import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/connexion/
 // ignore: unused_import
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/parametre.dart';
 
-// 🆕 MODIFIÉ : Fonction main avec initialisation des notifications et UserService
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -93,7 +92,7 @@ class _MyAppState extends State<MyApp> {
       home: widget.isFirstLaunch ? const SelectProfilePage() : const LoginPage(profile: 'acheteur'), // Ensure correct access
       routes: {
         '/homePage': (context) => const HomePage(acheteurId: 'acheteur'),
-        '/homeProducteur': (context) => const HomePoducteur(),
+        '/homeProducteur': (context) => const HomeProducteur(),
         '/login': (context) => const LoginPage(profile: 'acheteur'),
       },
     );

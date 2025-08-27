@@ -5,6 +5,9 @@ import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/authentificationModel.dart';
 
+// Import de la vraie page AvisPage que vous avez développée
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/profils/avisPage.dart';
+
 
 class ProfilPage extends StatefulWidget {
   const ProfilPage({super.key});
@@ -42,10 +45,11 @@ class _ProfilPageState extends State<ProfilPage> {
         );
         break;
       case "avis":
+        // Correction : Naviguer vers la classe AvisPage complète
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const AvisPage(), // Correction du nom de la classe
+            builder: (context) => const AvisPage(),
           ),
         );
         break;
@@ -259,7 +263,7 @@ class _ProfilPageState extends State<ProfilPage> {
   }
 }
 
-// Pages de destination - Remplacez par vos vraies pages
+// Pages de destination simplifiées. Vous devez les supprimer et les remplacer par vos vraies pages.
 
 class MesInformationsPage extends StatelessWidget {
   const MesInformationsPage({super.key});
@@ -292,25 +296,6 @@ class MesFavorisPage extends StatelessWidget {
       ),
       body: const Center(
         child: Text('Page Mes Favoris'),
-      ),
-    );
-  }
-}
-
-// CORRECTION : Nom de classe corrigé (AvisPage avec majuscule)
-class AvisPage extends StatelessWidget {
-  const AvisPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Les avis en attente'),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
-      ),
-      body: const Center(
-        child: Text('Page des avis en attente'),
       ),
     );
   }

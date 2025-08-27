@@ -8,6 +8,13 @@
     <string>remote-notification</string>
 </array>
 <key>NSLocationWhenInUseUsageDescription</key>
+<string>Nous utilisons votre localisation pour afficher votre adresse.</string>
+<key>NSPhotoLibraryUsageDescription</key>
+<string>Nous utilisons vos photos pour votre profil.</string>
+<key>NSCameraUsageDescription</key>
+<string>Nous utilisons votre caméra pour prendre une photo de profil.</string>
+
+<key>NSLocationWhenInUseUsageDescription</key>
 <string>Cette app utilise la localisation pour les notifications contextuelles</string>
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>

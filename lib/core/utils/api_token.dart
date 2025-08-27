@@ -10,13 +10,23 @@ class ApiClient {
 
   /// Récupère les headers (avec ou sans token)
   Future<Map<String, String>> _getHeaders({bool withAuth = true}) async {
-    final headers = {"Content-Type": "application/json"};
+    final headers = {
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+    };
+
     if (withAuth) {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
       if (token == null) {
         throw Exception("Token non trouvé. Veuillez vous connecter.");
       }
+
+      // Vérifie si le token est expiré
+      if (Jwt.isExpired(token)) {
+        throw Exception("Session expirée. Veuillez vous reconnecter.");
+      }
+
       headers["Authorization"] = "Bearer $token";
     }
     return headers;
@@ -34,6 +44,20 @@ class ApiClient {
     final headers = await _getHeaders(withAuth: withAuth);
     final url = Uri.parse('$baseUrl$endpoint');
     return http.post(url, headers: headers, body: jsonEncode(body));
+  }
+
+  /// Requête PUT
+  Future<http.Response> put(String endpoint, Map<String, dynamic> body, {bool withAuth = true}) async {
+    final headers = await _getHeaders(withAuth: withAuth);
+    final url = Uri.parse('$baseUrl$endpoint');
+    return http.put(url, headers: headers, body: jsonEncode(body));
+  }
+
+  /// Requête DELETE
+  Future<http.Response> delete(String endpoint, {bool withAuth = true}) async {
+    final headers = await _getHeaders(withAuth: withAuth);
+    final url = Uri.parse('$baseUrl$endpoint');
+    return http.delete(url, headers: headers);
   }
 
   /// 🔑 Récupérer le userId depuis le token JWT
