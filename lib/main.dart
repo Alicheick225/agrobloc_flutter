@@ -17,7 +17,7 @@ import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/par
 Future<void> main() async {
   // 🆕 NOUVEAU : Assurer l'initialisation des widgets
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Récupération des préférences existantes
   final prefs = await SharedPreferences.getInstance();
   bool modeSombreInitial = prefs.getBool('modeSombre') ?? false;
@@ -34,17 +34,20 @@ Future<void> main() async {
   try {
     final userService = UserService();
     final hasStoredData = await userService.hasStoredUserData();
-    
+
     if (hasStoredData) {
       final loaded = await userService.loadUser();
       if (loaded) {
-        debugPrint('✅ UserService initialisé avec succès - Utilisateur connecté');
+        debugPrint(
+            '✅ UserService initialisé avec succès - Utilisateur connecté');
       } else {
-        debugPrint('ℹ️ UserService: données utilisateur invalides ou problème de connexion');
+        debugPrint(
+            'ℹ️ UserService: données utilisateur invalides ou problème de connexion');
         debugPrint('ℹ️ Redirection vers l\'écran de connexion nécessaire');
       }
     } else {
-      debugPrint('ℹ️ UserService: aucune donnée utilisateur trouvée - première utilisation');
+      debugPrint(
+          'ℹ️ UserService: aucune donnée utilisateur trouvée - première utilisation');
       debugPrint('ℹ️ Redirection vers l\'écran de sélection de profil');
     }
   } catch (e) {
@@ -85,20 +88,22 @@ class _MyAppState extends State<MyApp> {
       // Vous pouvez récupérer l'ID utilisateur depuis SharedPreferences ou votre système d'auth
       final prefs = await SharedPreferences.getInstance();
       String? currentUserId = prefs.getString('currentUserId');
-      
+
       if (currentUserId != null) {
         // Enregistrer le token de l'utilisateur
-        final registered = await _notificationService.registerDeviceToken(currentUserId);
-        
+        final registered =
+            await _notificationService.registerDeviceToken(currentUserId);
+
         if (registered) {
           // Démarrer l'écoute des notifications
           await _notificationService.startListening(userId: currentUserId);
-          
+
           setState(() {
             _isNotificationInitialized = true;
           });
-          
-          debugPrint('✅ Notifications push activées pour l\'utilisateur: $currentUserId');
+
+          debugPrint(
+              '✅ Notifications push activées pour l\'utilisateur: $currentUserId');
         }
       } else {
         debugPrint('⚠️ Aucun utilisateur connecté, notifications en attente');
@@ -112,18 +117,18 @@ class _MyAppState extends State<MyApp> {
   Future<void> initializeNotificationsForUser(String userId) async {
     try {
       final registered = await _notificationService.registerDeviceToken(userId);
-      
+
       if (registered) {
         await _notificationService.startListening(userId: userId);
-        
+
         setState(() {
           _isNotificationInitialized = true;
         });
-        
+
         // Sauvegarder l'ID utilisateur pour la prochaine ouverture
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('currentUserId', userId);
-        
+
         debugPrint('✅ Notifications activées pour l\'utilisateur: $userId');
       }
     } catch (e) {
@@ -147,7 +152,7 @@ class _MyAppState extends State<MyApp> {
     super.dispose();
   }
 
- @override
+  @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -178,7 +183,6 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-
 // 🆕 NOUVEAU : Extension pour accéder au service de notifications depuis n'importe où
 extension NotificationExtension on BuildContext {
   Future<void> initializeUserNotifications(String userId) async {
@@ -188,4 +192,3 @@ extension NotificationExtension on BuildContext {
     }
   }
 }
-

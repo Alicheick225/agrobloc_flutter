@@ -14,7 +14,7 @@ class CommandeService {
     required String annoncesVenteId,
     required double quantite,
     required String unite,
-    required String modePaiementId,
+    String? modePaiementId,
   }) async {
     final response = await api.post(
       '/commandes-ventes',
@@ -36,7 +36,8 @@ class CommandeService {
       }
       return CommandeModel.fromJson(data['commande']);
     } else {
-      throw Exception(jsonDecode(response.body)['message'] ?? 'Erreur inconnue');
+      throw Exception(
+          jsonDecode(response.body)['message'] ?? 'Erreur inconnue');
     }
   }
 
@@ -46,7 +47,8 @@ class CommandeService {
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = jsonDecode(response.body);
       if (!data.containsKey('commandes')) {
-        throw Exception("Réponse serveur invalide : clé 'commandes' manquante.");
+        throw Exception(
+            "Réponse serveur invalide : clé 'commandes' manquante.");
       }
       return (data['commandes'] as List)
           .map((json) => CommandeModel.fromJson(json))

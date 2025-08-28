@@ -21,7 +21,8 @@ import 'package:agrobloc/core/features/Agrobloc/presentations/pagesAcheteurs/pro
 
 class HomePage extends StatefulWidget {
   final String acheteurId;
-  const HomePage({super.key, required this.acheteurId});
+  const HomePage(
+      {super.key, required this.acheteurId, String profile = 'acheteur'});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -105,8 +106,7 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 20),
           ElevatedButton.icon(
-            onPressed: () => Navigator.push(
-                context,
+            onPressed: () => Navigator.push(context,
                 MaterialPageRoute(builder: (_) => const StatutCommandePage())),
             icon: const Icon(Icons.local_shipping),
             label: const Text("Voir Statut de Commande"),
@@ -114,8 +114,7 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 20),
           ElevatedButton.icon(
-            onPressed: () => Navigator.push(
-                context,
+            onPressed: () => Navigator.push(context,
                 MaterialPageRoute(builder: (_) => const AnnonceAchatPage())),
             icon: const Icon(Icons.add_shopping_cart),
             label: const Text("Créer / Modifier une Offre d'Achat"),
@@ -205,8 +204,7 @@ class _HomePageState extends State<HomePage> {
                     ),
             ),
             const SizedBox(height: 45),
-            Text("Recommandé",
-                style: Theme.of(context).textTheme.titleLarge),
+            Text("Recommandé", style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 5),
             Column(
               children: annonces

@@ -1,3 +1,4 @@
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/order%20tracking/payement/selectpayemode.dart';
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/commandeModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/order%20tracking/actioncard.dart';
@@ -24,6 +25,7 @@ class OrderTrackingWidget extends StatelessWidget {
         children: [
           const SizedBox(height: 24),
           _buildStatusTimeline(context),
+
           ChatWidget(
             userName: _getPlanteurName(),
             userInitial: _getPlanteurInitial(),
@@ -37,6 +39,17 @@ class OrderTrackingWidget extends StatelessWidget {
               );
             },
           ),
+          TypePayementWidget(
+            onConfirm: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Paiement lancé')),
+              );
+            },
+            cardHolderController: TextEditingController(),
+            cardNumberController: TextEditingController(),
+            expDateController: TextEditingController(),
+            cvvController: TextEditingController(),
+          ),
           const SizedBox(height: 24),
           ProductInfoWidget(
             commande: commande,
@@ -47,6 +60,8 @@ class OrderTrackingWidget extends StatelessWidget {
           ProducerInfoWidget(commande: commande),
           const SizedBox(height: 24),
           _buildCurrentActions(),
+          const SizedBox(height: 20),
+          //  Widget de formulaire (carte ou mobile money)
         ],
       ),
     );
@@ -191,10 +206,6 @@ class OrderTrackingWidget extends StatelessWidget {
                     ),
                   ),
                 ],
-
-
-
-                
               ),
             ),
           ],
