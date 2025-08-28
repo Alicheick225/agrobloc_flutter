@@ -81,63 +81,72 @@ class _TypePayementWidgetState extends State<TypePayementWidget> {
      2. FORMULAIRE CARTE
   -------------------------------------------------------- */
   List<Widget> _buildCardForm() => [
-        const Text(
-          'Payer via une nouvelle carte',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: widget.cardHolderController,
-          decoration: InputDecoration(
-            hintText: 'Nom du titulaire',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        const Center(
+          child: Text(
+            'Payer via une nouvelle carte',
+            style: TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
-            borderRadius: BorderRadius.circular(12),
+        const SizedBox(height: 16),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: TextField(
+            controller: widget.cardHolderController,
+            decoration: InputDecoration(
+              hintText: 'Nom du titulaire',
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            ),
           ),
-          child: Column(
-            children: [
-              TextField(
-                controller: widget.cardNumberController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  hintText: 'Numéro de carte',
-                  prefixIcon: Icon(Icons.credit_card),
-                  border: InputBorder.none,
+        ),
+        const SizedBox(height: 16),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                TextField(
+                  controller: widget.cardNumberController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    hintText: 'Numéro de carte',
+                    prefixIcon: Icon(Icons.credit_card),
+                    border: InputBorder.none,
+                  ),
                 ),
-              ),
-              const Divider(),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: widget.expDateController,
-                      keyboardType: TextInputType.datetime,
-                      decoration: const InputDecoration(
-                          hintText: 'MM/AA', border: InputBorder.none),
+                const Divider(),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: widget.expDateController,
+                        keyboardType: TextInputType.datetime,
+                        decoration: const InputDecoration(
+                            hintText: 'MM/AA', border: InputBorder.none),
+                      ),
                     ),
-                  ),
-                  Expanded(
-                    child: TextField(
-                      controller: widget.cvvController,
-                      keyboardType: TextInputType.number,
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                          hintText: 'CVC', border: InputBorder.none),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        controller: widget.cvvController,
+                        keyboardType: TextInputType.number,
+                        obscureText: true,
+                        decoration: const InputDecoration(
+                            hintText: 'CVC', border: InputBorder.none),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ];
-
   /* --------------------------------------------------------
      3. INFO MOBILE MONEY
   -------------------------------------------------------- */
@@ -173,28 +182,36 @@ class _TypePayementWidgetState extends State<TypePayementWidget> {
           const SizedBox(height: 20),
 
           // Bouton « Confirmer » + « Changer de mode »
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: widget.onConfirm,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.green,
-                    side: const BorderSide(color: Colors.green),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+                horizontal: 24), // même marge que les TextField
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: widget.onConfirm,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: const Color(0xFF2E7D32),
+                      side: const BorderSide(color: Color(0xFF2E7D32)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: const Text(
+                      'Confirmer le paiement',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
-                  child: const Text('Confirmer le paiement'),
                 ),
-              ),
-              const SizedBox(width: 12),
-              TextButton.icon(
-                icon: const Icon(Icons.arrow_back, size: 18),
-                label: const Text('Changer'),
-                onPressed: () => setState(() => _selected = null),
-              ),
-            ],
+                const SizedBox(width: 12),
+                TextButton(
+                  onPressed: () => setState(() => _selected = null),
+                  child: const Text('Changer'),
+                ),
+              ],
+            ),
           ),
         ],
       ],
