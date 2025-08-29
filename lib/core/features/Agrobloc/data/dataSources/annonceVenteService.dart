@@ -169,6 +169,8 @@ class AnnonceService {
       return Exception('La requête a expiré');
     } else if (e is FormatException) {
       return Exception('Erreur de format des données');
+    } else if (e.toString().contains('Token non trouvé')) {
+      return Exception('Token non trouvé. Veuillez vous connecter.');
     }
     return Exception('Erreur inattendue: ${e.toString()}');
   }

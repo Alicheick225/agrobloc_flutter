@@ -1,3 +1,6 @@
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/AnnonceAchat.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceAchatModel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/navBarProducteur.dart';
@@ -5,8 +8,20 @@ import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteur
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/prefinancementForm.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/annoncePage.dart';
 
+
+
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/detailOffreVente.dart';
+
 void main() {
-  runApp(const MaterialApp(home: HomeProducteur()));
+  runApp(MaterialApp(
+    home: const HomeProducteur(),
+    routes: {
+      '/detailOffreVente': (context) {
+        final args = ModalRoute.of(context)!.settings.arguments as AnnonceAchat;
+        return DetailOffreVente(annonce: args);
+      },
+    },
+  ));
 }
 
 class HomeProducteur extends StatefulWidget {
@@ -18,6 +33,57 @@ class HomeProducteur extends StatefulWidget {
 
 class _HomeProducteurState extends State<HomeProducteur> {
   int _selectedIndex = 0;
+  List<AnnonceAchat> annonces = [];
+  bool isLoading = true;
+  final UserService _userService = UserService();
+  final AnnonceAchatService _annonceAchatService = AnnonceAchatService();
+
+  /// Format date string to relative date like "Il y a 4 jours"
+  String _formatDate(String dateString) {
+    if (dateString.isEmpty) return '';
+    
+    try {
+      final parts = dateString.split(' ');
+      if (parts.isEmpty) return dateString;
+      
+      final dateParts = parts[0].split('-');
+      if (dateParts.length != 3) return dateString;
+      
+      final year = int.tryParse(dateParts[0]) ?? 0;
+      final month = int.tryParse(dateParts[1]) ?? 0;
+      final day = int.tryParse(dateParts[2]) ?? 0;
+      
+      if (year == 0 || month == 0 || day == 0) return dateString;
+      
+      final date = DateTime(year, month, day);
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final yesterday = DateTime(now.year, now.month, now.day - 1);
+      final dateOnly = DateTime(date.year, date.month, date.day);
+      
+      final difference = today.difference(dateOnly).inDays;
+      
+      if (dateOnly == today) {
+        return 'Aujourd\'hui';
+      } else if (dateOnly == yesterday) {
+        return 'Hier';
+      } else if (difference < 7) {
+        return 'Il y a $difference ${difference == 1 ? 'jour' : 'jours'}';
+      } else if (difference < 28) {
+        final weeks = (difference / 7).floor();
+        return 'Il y a $weeks ${weeks == 1 ? 'semaine' : 'semaines'}';
+      } else {
+        // Format complet: "11 Août 2025"
+        final monthNames = [
+          'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+          'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+        ];
+        return '$day ${monthNames[month - 1]} $year';
+      }
+    } catch (e) {
+      return dateString;
+    }
+  }
 
   /// Liste des pages reliées à la navbar
   final List<Widget> pages = [
@@ -38,23 +104,76 @@ class _HomeProducteurState extends State<HomeProducteur> {
       }
     });
   }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAnnonces();
+  }
+
+  Future<void> _loadAnnonces() async {
+    try {
+      // Vérifier d'abord si l'utilisateur est authentifié
+      final isAuthenticated = await _userService.isUserAuthenticated();
+      
+      if (!isAuthenticated) {
+        debugPrint("⚠️ Utilisateur non authentifié - redirection vers la connexion");
+        setState(() => isLoading = false);
+        
+        // Rediriger vers la page de connexion après un court délai
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) {
+            Navigator.pushReplacementNamed(context, '/login');
+          }
+        });
+        return;
+      }
+
+      // Charger l'utilisateur depuis le service
+      final userLoaded = await _userService.loadUser();
+      if (userLoaded) {
+        final user = _userService.currentUser;
+        debugPrint("✅ Utilisateur chargé: ${user?.nom}");
+      } else {
+        debugPrint("⚠️ Échec du chargement de l'utilisateur");
+        setState(() => isLoading = false);
+        return;
+      }
+      
+      // Récupérer les annonces seulement si l'utilisateur est authentifié
+      final data = await _annonceAchatService.fetchAnnonces();
+      setState(() {
+        annonces = data.take(3).toList(); // On limite à 3 annonces
+        isLoading = false;
+      });
+    } catch (e) {
+      debugPrint("❌ Erreur lors du chargement des annonces : $e");
+      setState(() => isLoading = false);
+      
+      // Afficher un message d'erreur à l'utilisateur
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur de chargement: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Initialisation de ScreenUtil (nécessaire si pas déjà fait)
     ScreenUtil.init(
       context,
-      designSize: const Size(375, 812), // Adapter à ta maquette
+      designSize: const Size(375, 812),
       minTextAdapt: true,
     );
 
     return Scaffold(
-
-      // --- HEADER FIXE ---
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(70.h),
         child: AppBar(
           automaticallyImplyLeading: false,
-          backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+          backgroundColor: Colors.white,
           elevation: 0,
           flexibleSpace: SafeArea(
             child: Padding(
@@ -68,7 +187,7 @@ class _HomeProducteurState extends State<HomeProducteur> {
                       CircleAvatar(
                         backgroundColor: const Color(0xFF527E3F),
                         radius: 24.r,
-                        child: Icon(Icons.eco, color: const Color.fromARGB(255, 255, 255, 255), size: 28.sp),
+                        child: Icon(Icons.eco, color: Colors.white, size: 28.sp),
                       ),
                       SizedBox(width: 8.w),
                       RichText(
@@ -78,31 +197,23 @@ class _HomeProducteurState extends State<HomeProducteur> {
                           children: [
                             TextSpan(
                               text: 'Kouassi Bernard',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16.sp,
-                              ),
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp),
                             ),
                           ],
                         ),
                       ),
                     ],
                   ),
-
-                  // Partie droite : icônes
+                  // Partie droite
                   Row(
                     children: [
                       IconButton(
                         icon: Icon(Icons.search, color: const Color(0xFF527E3F), size: 28.sp),
-                        onPressed: () {
-                          // Action recherche
-                        },
+                        onPressed: () {},
                       ),
                       IconButton(
                         icon: Icon(Icons.notifications_none, color: const Color(0xFF527E3F), size: 28.sp),
-                        onPressed: () {
-                          // Action notifications
-                        },
+                        onPressed: () {},
                       ),
                     ],
                   ),
@@ -113,204 +224,229 @@ class _HomeProducteurState extends State<HomeProducteur> {
         ),
       ),
 
-      // --- CONTENU DÉFILANT ---
+      bottomNavigationBar: BottomBarProducteur(
+        selectedIndex: _selectedIndex,
+        onTap: _onNavBarTap,
+      ),
+
       body: SingleChildScrollView(
         child: Column(
           children: [
             SizedBox(height: 16.h),
 
-            // Exemple de carte solde
+            // --- Carte solde ---
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.w),
               child: Container(
                 decoration: BoxDecoration(
-                  color:  Color(0xFF527E3F), // Fond blanc
+                  color: const Color(0xFF527E3F),
                   borderRadius: BorderRadius.circular(12.r),
                 ),
                 padding: EdgeInsets.all(16.w),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Solde total', style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255), fontSize: 14.sp)),
-                        Icon(Icons.remove_red_eye, color: const Color.fromARGB(255, 255, 255, 255), size: 20.sp),
-                      ],
-                    ),
+                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                      Text('Solde total', style: TextStyle(color: Colors.white, fontSize: 14.sp)),
+                      Icon(Icons.remove_red_eye, color: Colors.white, size: 20.sp),
+                    ]),
                     SizedBox(height: 8.h),
-                    Text('CFA --',
-                        style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255), fontSize: 24.sp, fontWeight: FontWeight.bold)),
+                    Text('CFA 1 000 000', style: TextStyle(color: Colors.white, fontSize: 24.sp, fontWeight: FontWeight.bold)),
                     SizedBox(height: 16.h),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Solde Disponible', style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255), fontSize: 12.sp)),
-                              Text('CFA 0.00',
-                                  style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255), fontSize: 14.sp, fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                        ),
-                        Container(width: 1.w, color: const Color.fromARGB(255, 255, 255, 255).withOpacity(0.3), height: 30.h),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Valeur du portefeuille', style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255), fontSize: 12.sp)),
-                              Text('CFA 0.00',
-                                  style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255), fontSize: 14.sp, fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                        ),
-                      ],
-                    )
+                    Row(children: [
+                      Expanded(
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text('Solde Disponible', style: TextStyle(color: Colors.white, fontSize: 12.sp)),
+                          Text('CFA 200 000', style: TextStyle(color: Colors.white, fontSize: 14.sp, fontWeight: FontWeight.bold)),
+                        ]),
+                      ),
+                      Container(width: 1.w, color: Colors.white.withOpacity(0.3), height: 30.h),
+                      Expanded(
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text('Valeur du portefeuille', style: TextStyle(color: Colors.white, fontSize: 12.sp)),
+                          Text('CFA 50 000', style: TextStyle(color: Colors.white, fontSize: 14.sp, fontWeight: FontWeight.bold)),
+                        ]),
+                      ),
+                    ])
                   ],
                 ),
               ),
             ),
 
+            SizedBox(height: 24.h),
+
+            // --- Boutons rapides ---
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const AnnonceForm()));
+                      },
+                      label: Text("Mes offres de vente", style: TextStyle(color: const Color(0xFF527E3F), fontSize: 14.sp)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.r),
+                          side: const BorderSide(color: Color(0xFF527E3F), width: 1),
+                        ),
+                        padding: EdgeInsets.symmetric(vertical: 12.h),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const PrefinancementForm()));
+                      },
+                      icon: Icon(Icons.add, color: Colors.white, size: 20.sp),
+                      label: Text("Préfinancement", style: TextStyle(color: Colors.white, fontSize: 14.sp)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF527E3F),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+                        padding: EdgeInsets.symmetric(vertical: 12.h),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
             SizedBox(height: 24.h),
 
+            // --- Dernières annonces ---
             Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20.w),
-            child: Column(
-              children: [
-                _buildCard(
-                  title: "Offre de vente",
-                  description:
-                      "Saisissez les détails de votre récolte pour mieux la valoriser",
-                  buttonText: "Entamez une offre de vente",
-                  icon: Icons.house_outlined,
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AnnonceForm(),
-                      ),
-                    );
-                  },
-                ),
-                SizedBox(height: 20.h),
-                _buildCard(
-                  title: "Demande de préfinancement",
-                  description:
-                      "Demandez un soutien pour vos cultures et bénéficiez d'un appui financier",
-                  buttonText: "Faire une demande de préfinancement",
-                  icon: Icons.phone_android_outlined,
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const PrefinancementForm(),
-                      ),
-                    );
-                  },
-                ),
-                SizedBox(height: 20.h),
-                _buildCard(
-                  title: "Voir annonces",
-                  description:
-                      "Consultez les annonces disponibles et trouvez des opportunités",
-                  buttonText: "Consulter les annonces",
-                  icon: Icons.campaign_outlined,
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AnnonceAchatPage(),
-                      ),
-                    );
-                  },
-                ),
-              ],
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("Dernières annonces", style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: const Color(0xFF527E3F))),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const AnnonceAchatPage()));
+                    },
+                    child: Text("Voir tout", style: TextStyle(color: const Color(0xFF527E3F))),
+                  ),
+                ],
+              ),
             ),
-          ),
 
-          SizedBox(height: 30.h),
-        ],
+            if (isLoading)
+              const CircularProgressIndicator()
+            else
+              ...annonces.map((annonce) => _buildAnnonceCard(annonce)).toList(),
+
+            SizedBox(height: 30.h),
+          ],
+        ),
       ),
-    ),
     );
   }
 
-  /// Méthode de création de carte réutilisable
-  Widget _buildCard({
-    required String title,
-    required String description,
-    required String buttonText,
-    required IconData icon,
-    required VoidCallback onPressed,
-  }) {
-    return Container(
-      padding: EdgeInsets.all(20.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 10.r,
-            offset: Offset(0, 4.h),
+  /// --- Carte annonce réutilisée ---
+  Widget _buildAnnonceCard(AnnonceAchat annonce) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      child: InkWell(
+        onTap: () {
+          Navigator.pushNamed(context, '/detailOffreVente', arguments: annonce);
+        },
+        child: Container(
+          padding: EdgeInsets.all(16.w),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10.r),
+            boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6.r, offset: Offset(0, 3.h))],
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 3,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: const Color(0xFF527E3F),
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.bold,
-                  ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                radius: 20.r,
+                backgroundColor: const Color(0xFF527E3F),
+                child: Text(
+                  annonce.userNom.isNotEmpty ? annonce.userNom[0].toUpperCase() : '?',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
                 ),
-                SizedBox(height: 8.h),
-                Text(
-                  description,
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    color: Colors.grey[700],
-                  ),
-                ),
-                SizedBox(height: 16.h),
-                ElevatedButton(
-                  onPressed: onPressed,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF527E3F),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15.r),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      annonce.userNom.isNotEmpty ? annonce.userNom : 'Nom de l\'utilisateur',
+                      style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: const Color(0xFF527E3F)),
                     ),
-                    padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
-                  ),
-                  child: Text(
-                    buttonText,
-                    style: TextStyle(fontSize: 14.sp, color: Colors.white),
-                    textAlign: TextAlign.center,
-                  ),
+                    SizedBox(height: 4.h),
+                    RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(text: 'Culture: ', style: TextStyle(color: Colors.grey[700])),
+                          TextSpan(text: annonce.typeCultureLibelle, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF373737))),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(text: 'Quantité: ', style: TextStyle(color: Colors.grey[700])),
+                          TextSpan(text: annonce.formattedQuantity, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF373737))),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 4.h),
+                    RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(text: 'Prix / kg: ', style: TextStyle(color: Colors.grey[700])),
+                          TextSpan(text: annonce.formattedPrice, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF373737))),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 4.h),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(text: 'Statut: ', style: TextStyle(color: Colors.grey[700])),
+                              TextSpan(
+                                text: annonce.statut,
+                                style: TextStyle(
+                                  color: annonce.statut.toLowerCase() == 'active' ? Colors.blue : Colors.grey,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Text(
+                          _formatDate(annonce.createdAt),
+                          style: TextStyle(color: Colors.grey[600], fontSize: 12.sp),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              IconButton(
+                icon: Icon(Icons.visibility, color: const Color(0xFF527E3F)),
+                onPressed: () {
+                  Navigator.pushNamed(context, '/detailOffreVente', arguments: annonce);
+                },
+                tooltip: 'Voir plus de détails',
+              ),
+            ],
           ),
-          Expanded(
-            flex: 1,
-            child: Icon(
-              icon,
-              size: 50.sp,
-              color: const Color(0xFF527E3F),
-            ),
-          )
-        ],
+        ),
       ),
     );
   }
-            
 }

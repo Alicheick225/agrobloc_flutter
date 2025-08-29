@@ -36,11 +36,22 @@ Future<void> main() async {
   try {
     final userService = UserService();
     final hasStoredData = await userService.hasStoredUserData();
+    debugPrint('🔍 main() - UserService hasStoredData: $hasStoredData');
+    
     if (hasStoredData) {
-      await userService.loadUser();
+      debugPrint('🔍 main() - Attempting to load user from storage...');
+      final success = await userService.loadUser();
+      if (success) {
+        debugPrint('✅ main() - User loaded successfully from storage');
+      } else {
+        debugPrint('❌ main() - Failed to load user from storage');
+      }
+    } else {
+      debugPrint('ℹ️ main() - No stored user data found');
     }
-  } catch (e) {
-    debugPrint('⚠️ Erreur UserService: $e');
+  } catch (e, stackTrace) {
+    debugPrint('❌ main() - Erreur UserService: $e');
+    debugPrint('❌ main() - Stack trace: $stackTrace');
   }
 
   runApp(MyApp(
@@ -89,12 +100,12 @@ class _MyAppState extends State<MyApp> {
         primaryColor: const Color(0xFF5d9643),
         scaffoldBackgroundColor: Colors.white,
       ),
-      // 🔹 Si c’est le premier lancement, on affiche SelectProfilePage
-      home: widget.isFirstLaunch ? const SelectProfilePage() : const LoginPage(profile: 'acheteur'), // Ensure correct access
+      // 🔹 Si c'est le premier lancement, on affiche SelectProfilePage
+      home: widget.isFirstLaunch ? const SelectProfilePage() : const LoginPage(profile: 'producteur'), // Ensure correct access
       routes: {
         '/homePage': (context) => const HomePage(acheteurId: 'acheteur'),
         '/homeProducteur': (context) => const HomeProducteur(),
-        '/login': (context) => const LoginPage(profile: 'acheteur'),
+        '/login': (context) => const LoginPage(profile: 'producteur'),
       },
     );
   }

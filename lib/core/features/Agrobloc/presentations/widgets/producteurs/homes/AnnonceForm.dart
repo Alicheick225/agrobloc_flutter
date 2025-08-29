@@ -43,10 +43,7 @@ class _AnnonceFormState extends State<AnnonceForm> {
     try {
       typeCultures = await typeCultureService.getAllTypes();
       setState(() {});
-      print("Cultures récupérées: $typeCultures");
-    } catch (e, stackTrace) {
-      print("Erreur _fetchCultures: $e");
-      print(stackTrace);
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Erreur lors du chargement des cultures: $e")),
       );
@@ -57,13 +54,19 @@ class _AnnonceFormState extends State<AnnonceForm> {
     try {
       parcellesList = await parcelleService.getAllParcelles();
       setState(() {});
-      print("Parcelles récupérées: $parcellesList");
-    } catch (e, stackTrace) {
-      print("Erreur _fetchParcelles: $e");
-      print(stackTrace);
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Erreur lors du chargement des parcelles: $e")),
       );
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      setState(() {
+        photo = picked;
+      });
     }
   }
 
@@ -80,50 +83,58 @@ class _AnnonceFormState extends State<AnnonceForm> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            _buildDropdownField(
+            _buildDropdownStyled(
               label: "Choix de la culture",
-              hint: "Sélectionner une culture",
               value: selectedCulture,
               items: typeCultures.map((c) => c.libelle).toList(),
               onChanged: (val) => setState(() => selectedCulture = val),
             ),
             const SizedBox(height: 16),
-            _buildDropdownField(
+            _buildDropdownStyled(
               label: "Choix de la parcelle",
-              hint: "Sélectionner une parcelle",
               value: selectedParcelle,
               items: parcellesList.map((p) => p.libelle).toList(),
               onChanged: (val) => setState(() => selectedParcelle = val),
             ),
             const SizedBox(height: 16),
-            _buildQuantityField(),
+            _buildQuantityStyled(),
             const SizedBox(height: 16),
-            _buildPrixKgField(),
+            _buildPrixKgStyled(),         
             const SizedBox(height: 16),
-            _buildAvailabilityField(),
+            _buildImageUpload(),
             const SizedBox(height: 16),
-            _buildImagePicker(),
-            const SizedBox(height: 16),
-            _buildDescriptionField(),
+            _buildDescriptionStyled(),
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
                 onPressed: isSubmitting ? null : _submitAnnonce,
                 child: isSubmitting
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text("Faire une offre de vente"),
+                    : const Text("Faire une offre de vente",
+                        style: TextStyle(color: Colors.white)),
               ),
-            ),
+            )
           ],
         ),
       ),
     );
   }
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Text(title,
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+    );
+  }
 
-  Widget _buildDropdownField({
+  Widget _buildDropdownStyled({
     required String label,
-    required String hint,
     String? value,
     required List<String> items,
     required Function(String?) onChanged,
@@ -131,103 +142,111 @@ class _AnnonceFormState extends State<AnnonceForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-        const SizedBox(height: 4),
+        _buildSectionTitle(label),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             border: Border.all(color: Colors.grey.shade300),
             borderRadius: BorderRadius.circular(12),
           ),
           child: DropdownButton<String>(
             value: value,
-            hint: Text(hint, style: const TextStyle(color: Colors.grey)),
+            hint: const Text("Sélectionner", style: TextStyle(color: Colors.grey)),
             isExpanded: true,
             underline: const SizedBox(),
             onChanged: onChanged,
-            items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+            items: items
+                .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                .toList(),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildQuantityField() => TextField(
-        keyboardType: TextInputType.number,
-        decoration: const InputDecoration(
-          labelText: "Quantité",
-          border: OutlineInputBorder(),
-        ),
-        onChanged: (val) => quantity = double.tryParse(val) ?? 10,
-      );
-
-  Widget _buildPrixKgField() => TextField(
-        keyboardType: TextInputType.number,
-        decoration: const InputDecoration(
-          labelText: "Prix par Kg",
-          border: OutlineInputBorder(),
-        ),
-        onChanged: (val) => prixKg = double.tryParse(val) ?? 0,
-      );
-
-  Widget _buildAvailabilityField() {
+  Widget _buildQuantityStyled() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("Disponibilité culture", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-        Row(
-          children: [
-            Expanded(
-              child: RadioListTile<String>(
-                title: const Text("Disponible"),
-                value: "Disponible",
-                groupValue: availability,
-                onChanged: (val) => setState(() => availability = val!),
-              ),
-            ),
-            Expanded(
-              child: RadioListTile<String>(
-                title: const Text("Prévisionnel"),
-                value: "Prévisionnel",
-                groupValue: availability,
-                onChanged: (val) => setState(() => availability = val!),
-              ),
-            ),
-          ],
+        _buildSectionTitle("Quantité"),
+        TextField(
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            hintText: "0",
+          ),
+          onChanged: (val) => quantity = double.tryParse(val) ?? 0,
         ),
       ],
     );
   }
 
-  Widget _buildImagePicker() => GestureDetector(
-        onTap: _pickImage,
-        child: Container(
-          height: 80,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
-            borderRadius: BorderRadius.circular(12),
+  Widget _buildPrixKgStyled() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle("Prix par Kg"),
+        TextField(
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            hintText: "0",
           ),
-          child: Center(
-            child: photo == null
-                ? const Icon(Icons.add, color: Colors.green)
-                : Image.file(File(photo!.path), fit: BoxFit.cover),
-          ),
+          onChanged: (val) => prixKg = double.tryParse(val) ?? 0,
         ),
-      );
-
-  Future<void> _pickImage() async {
-    final picked = await picker.pickImage(source: ImageSource.gallery);
-    if (picked != null) setState(() => photo = picked);
+      ],
+    );
   }
 
-  Widget _buildDescriptionField() => TextField(
-        maxLines: 3,
-        decoration: const InputDecoration(
-          labelText: "Description",
-          border: OutlineInputBorder(),
+  
+
+  Widget _buildImageUpload() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle("Image"),
+        GestureDetector(
+          onTap: _pickImage,
+          child: Container(
+            height: 120,
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Center(
+              child: photo == null
+                  ? Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.add_a_photo, color: Colors.green),
+                        SizedBox(height: 4),
+                        Text("Ajouter une image"),
+                      ],
+                    )
+                  : Image.file(File(photo!.path), fit: BoxFit.cover),
+            ),
+          ),
         ),
-        onChanged: (val) => description = val,
-      );
+      ],
+    );
+  }
+
+  Widget _buildDescriptionStyled() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle("Description"),
+        TextField(
+          maxLines: 3,
+          decoration: const InputDecoration(
+            hintText: "Decrivez votre produit en quelques mots",
+            border: OutlineInputBorder(),
+          ),
+          onChanged: (val) => description = val,
+        ),
+      ],
+    );
+  }
 
   Future<void> _submitAnnonce() async {
     if (selectedCulture == null || selectedParcelle == null || description.isEmpty) {
@@ -241,19 +260,17 @@ class _AnnonceFormState extends State<AnnonceForm> {
 
     try {
       final selectedTypeCulture = typeCultures.firstWhere((c) => c.libelle == selectedCulture);
-      final typeCultureId = selectedTypeCulture.id;
-
       final selectedParcelleObj = parcellesList.firstWhere((p) => p.libelle == selectedParcelle);
-      final parcelleId = selectedParcelleObj.id;
 
-      final annonce = await service.createAnnonce(
-        typeCultureId: typeCultureId,
-        parcelleId: parcelleId,
+      await service.createAnnonce(
+        typeCultureId: selectedTypeCulture.id,
+        parcelleId: selectedParcelleObj.id,
         statut: availability,
         description: description,
         quantite: quantity,
         prixKg: prixKg,
-        photo: photo, userId: '',
+        photo: photo,
+        userId: '',
       );
 
       ScaffoldMessenger.of(context).showSnackBar(

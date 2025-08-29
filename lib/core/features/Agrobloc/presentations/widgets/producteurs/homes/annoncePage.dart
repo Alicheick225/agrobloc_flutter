@@ -45,6 +45,24 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
   Future<void> _loadAnnonces() async {
     try {
       setState(() => _isLoading = true);
+      
+      // Vérifier d'abord si l'utilisateur est authentifié
+      final isAuthenticated = await _userService.isUserAuthenticated();
+      
+      if (!isAuthenticated) {
+        debugPrint("⚠️ Utilisateur non authentifié - redirection vers la connexion");
+        if (!mounted) return;
+        setState(() => _isLoading = false);
+        
+        // Rediriger vers la page de connexion après un court délai
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) {
+            Navigator.pushReplacementNamed(context, '/login');
+          }
+        });
+        return;
+      }
+
       final annonces = await _service.fetchAnnonces();
 
       if (!mounted) return;
@@ -60,10 +78,24 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
+      
+      // Distinguer les différents types d'erreurs
+      String errorMessage = 'Erreur lors du chargement des annonces';
+      Color backgroundColor = AppColors.primaryGreen;
+      
+      if (e.toString().contains('Utilisateur non authentifié') || 
+          e.toString().contains('401')) {
+        errorMessage = 'Session expirée. Veuillez vous reconnecter';
+        backgroundColor = Colors.orange;
+      } else if (e.toString().contains('Pas de connexion Internet')) {
+        errorMessage = 'Pas de connexion Internet';
+        backgroundColor = Colors.red;
+      }
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erreur: ${e.toString()}'),
-          backgroundColor: AppColors.primaryGreen,
+          content: Text(errorMessage),
+          backgroundColor: backgroundColor,
         ),
       );
     }
@@ -139,89 +171,9 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
           : Column(
               children: [
                 // Adding specific buttons
-                Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                          child: ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                _selectedButtonIndex = 0; // Set selected button index
-                              });
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: _selectedButtonIndex == 0 ? AppColors.primaryGreen : Colors.white,
-                              foregroundColor: _selectedButtonIndex == 0 ? Colors.white : AppColors.primaryGreen,
-                              textStyle: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            child: const Text("proposition d'achat"),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                          child: ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                _selectedButtonIndex = 1; // Set selected button index
-                              });
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: _selectedButtonIndex == 1 ? AppColors.primaryGreen : Colors.white,
-                              foregroundColor: _selectedButtonIndex == 1 ? Colors.white : AppColors.primaryGreen,
-                              textStyle: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
-                            child: const Text("Mes Offres Vente"),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                          child: ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                _selectedButtonIndex = 2; // Set selected button index
-                              });
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: _selectedButtonIndex == 2 ? AppColors.primaryGreen : Colors.white,
-                              foregroundColor: _selectedButtonIndex == 2 ? Colors.white : AppColors.primaryGreen,
-                              textStyle: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            child: const Text("Financement"),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+               
+                     
+                     
                 Expanded(
                   child: _filteredAnnonces.isEmpty
                       ? Center(

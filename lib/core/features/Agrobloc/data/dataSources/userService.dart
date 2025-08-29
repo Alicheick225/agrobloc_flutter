@@ -1,6 +1,7 @@
+import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/authentificationModel.dart';
-import '../dataSources/authService.dart';
+import 'authService.dart';
 
 class UserService {
   static final UserService _instance = UserService._internal();
@@ -11,7 +12,6 @@ class UserService {
   bool _isLoading = false;
 
   factory UserService() => _instance;
-
   UserService._internal();
 
   AuthentificationModel? get currentUser => _currentUser;
@@ -20,214 +20,168 @@ class UserService {
   bool get isLoggedIn => _currentUser != null && _token != null && _token!.isNotEmpty;
   bool get isLoading => _isLoading;
 
-  /// Vérifie si des données utilisateur sont stockées dans SharedPreferences
-  Future<bool> hasStoredUserData() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final savedUserId = prefs.getString('userId');
-      final savedToken = prefs.getString('token');
-      
-      return savedUserId != null && savedUserId.isNotEmpty && 
-             savedToken != null && savedToken.isNotEmpty;
-    } catch (e) {
-      print('❌ UserService: erreur lors de la vérification des données stockées: $e');
-      return false;
-    }
-  }
-
-  /// Sauvegarde l'utilisateur ET le token dans la mémoire + SharedPreferences
-  Future<void> setCurrentUser(AuthentificationModel user, String token) async {
-    // Vérifier que le profilId n'est pas vide
-    if (user.profilId.isEmpty) {
-      print('⚠️ UserService: Attention - profilId est vide pour l\'utilisateur ${user.nom}');
-      // Vous pouvez choisir de lancer une exception ou simplement logger l'erreur
-      // throw Exception("Profil ID est vide. Veuillez vérifier les données utilisateur.");
-    }
-    
+  /// Sauvegarde utilisateur + tokens
+  Future<void> setCurrentUser(AuthentificationModel user, String token, String refreshToken) async {
     _currentUser = user;
     _userId = user.id;
     _token = token;
 
     final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user', jsonEncode(user.toJson()));
     await prefs.setString('userId', user.id);
     await prefs.setString('token', token);
-    await prefs.setString('userNom', user.nom); // <-- ajoute ceci
+    await prefs.setString('refresh_token', refreshToken);
 
-
-    print('✅ UserService: utilisateur et token sauvegardés - User ID: ${user.id}, Nom: ${user.nom}');
-    print('✅ UserService: utilisateur et token sauvegardés');
-    print("Token envoyé: '$token'");
-    print("User ID envoyé: '$userId'");
+    print('✅ UserService: utilisateur et tokens sauvegardés');
   }
 
-  /// Récupère le token depuis SharedPreferences
-  Future<String?> getToken() async {
-    if (_token != null && _token!.isNotEmpty) {
-      print('✅ UserService: token disponible en mémoire');
-      return _token;
-    }
+  /// Récupère un token valide (refresh si nécessaire)
+  Future<String?> getValidToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? accessToken = prefs.getString("token");
+    String? refreshToken = prefs.getString("refresh_token");
 
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      _token = prefs.getString('token');
-      
-      if (_token != null && _token!.isNotEmpty) {
-        print('✅ UserService: token récupéré depuis SharedPreferences');
-      } else {
-        print('ℹ️ UserService: aucun token trouvé dans SharedPreferences - utilisateur non connecté');
-      }
-      
-      return _token;
-    } catch (e) {
-      print('❌ UserService: erreur lors de la récupération du token: $e');
+    print('🔍 UserService.getValidToken() - accessToken: ${accessToken != null ? "present" : "null"}, refreshToken: ${refreshToken != null ? "present" : "null"}');
+
+    if (accessToken == null || accessToken.isEmpty) {
+      print('❌ UserService.getValidToken() - No access token found');
       return null;
     }
-  }
 
-  /// Charge l'utilisateur et le token depuis SharedPreferences et API
-  Future<bool> loadUser() async {
-    if (_isLoading) return false;
+    final isExpired = isTokenExpired(accessToken);
+    print('🔍 UserService.getValidToken() - Token expired: $isExpired');
     
-    _isLoading = true;
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final savedUserId = prefs.getString('userId');
-      final savedToken = prefs.getString('token');
-
-      print('🔍 UserService: Chargement utilisateur - UserID: $savedUserId, Token présent: ${savedToken != null && savedToken.isNotEmpty}');
-
-      // Vérifier si des données utilisateur existent
-      final hasUserData = await hasStoredUserData();
-      
-      if (!hasUserData) {
-        print('ℹ️ UserService: aucune donnée utilisateur trouvée - première utilisation ou utilisateur déconnecté');
-        return false;
-      }
-
-      if (savedUserId != null && savedUserId.isNotEmpty && 
-          savedToken != null && savedToken.isNotEmpty) {
-        _userId = savedUserId;
-        _token = savedToken;
-
-        try {
-          final user = await AuthService().getUserById(savedUserId);
-          _currentUser = user;
-          print('✅ UserService: utilisateur chargé avec succès - ID: ${user.id}, Nom: ${user.nom}');
-          return true;
-        } catch (e) {
-          final errorMessage = e.toString();
-          
-          // Distinguer les différents types d'erreurs
-          if (errorMessage.contains('Accès refusé')) {
-            print('🔐 UserService: accès refusé par l\'API - token probablement expiré ou invalide');
-            print('⚠️ UserService: redirection vers la connexion nécessaire (token invalide)');
-          } else if (errorMessage.contains('Erreur API')) {
-            print('❌ UserService: erreur API lors du chargement utilisateur: $e');
-          } else if (errorMessage.contains('format de données')) {
-            print('❌ UserService: format de réponse API invalide: $e');
-          } else {
-            print('❌ UserService: erreur lors du chargement utilisateur depuis API: $e');
-            print('⚠️ UserService: problème de connexion ou utilisateur introuvable');
-          }
-          
-          // Nettoyer les données invalides
+    if (isExpired) {
+      print("🔄 UserService.getValidToken() - Token expiré, tentative de refresh...");
+      try {
+        if (refreshToken == null) {
+          print('❌ UserService.getValidToken() - No refresh token available for refresh');
           await clearCurrentUser();
-          return false;
+          return null;
         }
-      } else {
-        print('⚠️ UserService: informations utilisateur incomplètes dans le stockage');
-        // Nettoyer les données incomplètes
+        
+        final newTokens = await AuthService().refreshToken(refreshToken);
+        await prefs.setString("token", newTokens['accessToken']!);
+        await prefs.setString("refresh_token", newTokens['refreshToken']!);
+        _token = newTokens['accessToken']!;
+        print('✅ UserService.getValidToken() - Token refresh successful');
+        return _token;
+      } catch (e, stackTrace) {
+        print("❌ UserService.getValidToken() - Refresh token échoué: $e");
+        print("❌ Stack trace: $stackTrace");
         await clearCurrentUser();
-        return false;
+        return null;
       }
-    } catch (e) {
-      print('❌ UserService: erreur inattendue lors du chargement: $e');
-      return false;
-    } finally {
-      _isLoading = false;
     }
+
+    print('✅ UserService.getValidToken() - Token is valid');
+    return accessToken;
   }
 
-  /// Vérifie si l'utilisateur est authentifié et valide
-  Future<bool> isUserAuthenticated() async {
+  /// Vérifie si token JWT est expiré
+  bool isTokenExpired(String token) {
     try {
-      // Vérifier d'abord en mémoire
-      if (isLoggedIn) {
-        print('✅ UserService: utilisateur authentifié en mémoire');
-        return true;
-      }
-
-      // Sinon, essayer de charger depuis le stockage
-      final token = await getToken();
-      if (token == null || token.isEmpty) {
-        print('⚠️ UserService: aucun token disponible pour l\'authentification');
-        return false;
-      }
-
-      // Charger l'utilisateur depuis l'API
-      final loaded = await loadUser();
-      if (loaded && isLoggedIn) {
-        print('✅ UserService: utilisateur authentifié après chargement depuis API');
-        return true;
-      }
-
-      print('❌ UserService: échec de l\'authentification - utilisateur non chargé ou invalide');
-      return false;
+      final parts = token.split('.');
+      if (parts.length != 3) return true;
+      final payload = parts[1];
+      final normalized = base64Url.normalize(payload);
+      final decoded = utf8.decode(base64Url.decode(normalized));
+      final payloadMap = json.decode(decoded);
+      final exp = payloadMap['exp'] as int;
+      final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      return exp < now;
     } catch (e) {
-      final errorMessage = e.toString();
-      
-      // Distinguer les différents types d'erreurs d'authentification
-      if (errorMessage.contains('Accès refusé')) {
-        print('🔐 UserService: authentification échouée - accès refusé par l\'API');
-      } else if (errorMessage.contains('token')) {
-        print('🔐 UserService: authentification échouée - problème de token');
-      } else {
-        print('❌ UserService: erreur lors de la vérification d\'authentification: $e');
-      }
-      
-      return false;
+      return true;
     }
   }
 
-  /// Supprime la session utilisateur et token (logout)
+  /// Supprime la session utilisateur
   Future<void> clearCurrentUser() async {
     _currentUser = null;
     _userId = null;
     _token = null;
 
     final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('user');
     await prefs.remove('userId');
     await prefs.remove('token');
+    await prefs.remove('refresh_token');
 
     print('✅ UserService: session utilisateur nettoyée');
   }
 
-  /// Assure que l'utilisateur est chargé (utile avant des appels protégés)
-  Future<bool> ensureUserLoaded() async {
+  /// Charger utilisateur depuis SharedPreferences
+  Future<bool> loadUser() async {
+    if (_isLoading) return false;
+    _isLoading = true;
+
     try {
-      if (isLoggedIn) {
-        print('✅ UserService: utilisateur déjà chargé en mémoire');
-        return true;
+      final prefs = await SharedPreferences.getInstance();
+      final savedUserJson = prefs.getString('user');
+      final savedToken = await getValidToken();
+      
+      print('🔍 UserService.loadUser() - savedUserJson present: ${savedUserJson != null}, savedToken: ${savedToken != null ? "present" : "null"}');
+      
+      if (savedUserJson == null || savedToken == null) {
+        print('❌ UserService.loadUser() - Missing user data or token');
+        _isLoading = false;
+        return false;
       }
 
-      final authenticated = await isUserAuthenticated();
-      if (!authenticated) {
-        print('⚠️ UserService: utilisateur non authentifié, redirection nécessaire');
-        throw Exception('Utilisateur non authentifié. Veuillez vous reconnecter.');
-      }
+      _token = savedToken;
+      _currentUser = AuthentificationModel.fromJson(jsonDecode(savedUserJson));
+      _userId = _currentUser?.id;
       
-      print('✅ UserService: utilisateur chargé avec succès');
+      print('✅ UserService.loadUser() - Successfully loaded user: ${_currentUser!.nom} (ID: ${_currentUser!.id})');
+      _isLoading = false;
       return true;
-    } catch (e) {
-      print('❌ UserService: erreur lors du chargement de l\'utilisateur: $e');
-      throw Exception('Impossible de charger l\'utilisateur. Veuillez vous reconnecter.');
+    } catch (e, stackTrace) {
+      print('❌ UserService.loadUser() - ERROR: $e');
+      print('❌ Stack trace: $stackTrace');
+      await clearCurrentUser();
+      _isLoading = false;
+      return false;
     }
   }
-  Future<void> debugUserSession() async {
-  final prefs = await SharedPreferences.getInstance();
-  print("🔎 Debug session utilisateur :");
-  print(" - userId: ${prefs.getString('userId')}");
-  print(" - token: ${prefs.getString('token')}");
-}
 
+  /// Vérifie si des données utilisateur sont stockées localement
+  Future<bool> hasStoredUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final hasUserId = prefs.containsKey('userId');
+    final hasToken = prefs.containsKey('token');
+    return hasUserId && hasToken;
+  }
+
+  /// Vérifie si l'utilisateur est authentifié
+  Future<bool> isUserAuthenticated() async {
+    // Always check storage first - instance variables might not be loaded
+    final hasData = await hasStoredUserData();
+    if (hasData) {
+      return await loadUser();
+    }
+    
+    // Fallback to instance variables if no stored data
+    return _currentUser != null && _token != null && _token!.isNotEmpty;
+  }
+
+  /// S'assure que l'utilisateur est chargé
+  Future<void> ensureUserLoaded() async {
+    if (_currentUser == null) {
+      // Check if we have stored data first
+      final hasData = await hasStoredUserData();
+      if (hasData) {
+        await loadUser();
+      }
+    }
+  }
+
+  /// Récupère le token actuel
+  Future<String?> getToken() async {
+    if (_token != null && _token!.isNotEmpty) {
+      return _token;
+    }
+    
+    // Try to get valid token from storage
+    return await getValidToken();
+  }
 }

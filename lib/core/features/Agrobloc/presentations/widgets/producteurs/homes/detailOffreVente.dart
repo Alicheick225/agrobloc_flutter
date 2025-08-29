@@ -1,0 +1,60 @@
+import 'package:flutter/material.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceAchatModel.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+class DetailOffreVente extends StatelessWidget {
+  final AnnonceAchat annonce;
+
+  const DetailOffreVente({Key? key, required this.annonce}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    ScreenUtil.init(
+      context,
+      designSize: const Size(375, 812),
+      minTextAdapt: true,
+    );
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Détails de l\'offre'),
+        backgroundColor: const Color(0xFF4CAF50),
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(16.w),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              radius: 30.r,
+              backgroundColor: const Color(0xFF4CAF50),
+              child: Text(
+                annonce.userNom.isNotEmpty ? annonce.userNom[0].toUpperCase() : '?',
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24),
+              ),
+            ),
+            SizedBox(height: 16.h),
+            Text(
+              annonce.userNom.isNotEmpty ? annonce.userNom : 'Nom de l\'utilisateur',
+              style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: const Color(0xFF4CAF50)),
+            ),
+            SizedBox(height: 12.h),
+            Text('Culture: ${annonce.typeCultureLibelle}', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
+            SizedBox(height: 8.h),
+            Text('Quantité: ${annonce.formattedQuantity}', style: TextStyle(fontSize: 16.sp)),
+            SizedBox(height: 8.h),
+            Text('Prix / kg: ${annonce.formattedPrice}', style: TextStyle(fontSize: 16.sp)),
+            SizedBox(height: 8.h),
+            Text('Statut: ${annonce.statut}', style: TextStyle(fontSize: 16.sp, color: annonce.statut.toLowerCase() == 'active' ? Colors.blue : Colors.grey)),
+            SizedBox(height: 8.h),
+            Text('Date: ${annonce.createdAt}', style: TextStyle(fontSize: 14.sp, color: Colors.grey)),
+            SizedBox(height: 16.h),
+            Text('Description:', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
+            SizedBox(height: 4.h),
+            Text(annonce.description.isNotEmpty ? annonce.description : 'Pas de description', style: TextStyle(fontSize: 14.sp)),
+          ],
+        ),
+      ),
+    );
+  }
+}

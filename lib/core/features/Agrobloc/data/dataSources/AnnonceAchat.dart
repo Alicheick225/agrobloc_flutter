@@ -11,9 +11,9 @@ class AnnonceAchatService {
   static const String _baseUrl = 'http://192.168.252.199:8080/annonces_achat';
   static const String _culturesUrl = 'http://192.168.252.199:8000/api/types-cultures';
 
-  /// Récupère le token et construit les headers
+  /// Récupère le token valide et construit les headers
   Future<Map<String, String>> _getHeaders() async {
-    final token = await UserService().getToken();
+    final token = await UserService().getValidToken(); // refresh automatique
     return {
       'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',
@@ -29,17 +29,14 @@ class AnnonceAchatService {
     final uri = Uri.parse(base);
     return clean.isEmpty
         ? uri
-        : uri.replace(queryParameters: {
-            ...uri.queryParameters,
-            ...clean,
-          });
+        : uri.replace(queryParameters: {...uri.queryParameters, ...clean});
   }
 
   // ---------------------------
   // LECTURE
   // ---------------------------
 
-  /// Récupère toutes les annonces (optionnellement filtrées par statut ou typeCulture)
+  /// Récupère toutes les annonces (optionnellement filtrées)
   Future<List<AnnonceAchat>> fetchAnnonces({
     String? statut,
     String? typeCultureId,
@@ -51,17 +48,11 @@ class AnnonceAchatService {
         'type_culture_id': typeCultureId,
       });
 
-      final response = await http.get(uri, headers: headers).timeout(const Duration(seconds: 10));
+      final response =
+          await http.get(uri, headers: headers).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final List<dynamic> body = json.decode(response.body);
-        print('🔍 fetchAnnonces: ${body.length} annonces reçues');
-        
-        if (body.isNotEmpty) {
-          print('🔍 Structure de la première annonce: ${body[0]}');
-        }
-        
-        // Utiliser directement la méthode fromJson qui extrait déjà le libellé depuis l'objet type_culture
         return body.map((item) => AnnonceAchat.fromJson(item)).toList();
       } else if (response.statusCode == 401) {
         throw Exception('Utilisateur non authentifié');
@@ -87,18 +78,11 @@ class AnnonceAchatService {
       }
 
       final headers = await _getHeaders();
-      final url = '$_baseUrl/user/$currentUserId'; // endpoint spécifique pour mes annonces
+      final url = '$_baseUrl/user/$currentUserId';
       final response = await http.get(Uri.parse(url), headers: headers).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final List<dynamic> body = json.decode(response.body);
-        print('🔍 fetchAnnonces: ${body.length} annonces reçues');
-        
-        if (body.isNotEmpty) {
-          print('🔍 Structure de la première annonce: ${body[0]}');
-        }
-        
-        // Utiliser directement la méthode fromJson qui extrait déjà le libellé depuis l'objet type_culture
         return body.map((item) => AnnonceAchat.fromJson(item)).toList();
       } else if (response.statusCode == 401) {
         throw Exception('Utilisateur non authentifié');
@@ -132,38 +116,19 @@ class AnnonceAchatService {
   Future<List<Map<String, dynamic>>> fetchCultures() async {
     try {
       final headers = await _getHeaders();
-      print('🔍 Tentative de récupération des cultures depuis: $_culturesUrl');
-      
-      final response = await http
-          .get(Uri.parse(_culturesUrl), headers: headers)
-          .timeout(const Duration(seconds: 10));
+      final response = await http.get(Uri.parse(_culturesUrl), headers: headers).timeout(const Duration(seconds: 10));
 
-      print('🔍 Réponse cultures - Status: ${response.statusCode}');
-      
       if (response.statusCode == 200) {
         final List<dynamic> body = json.decode(response.body);
-        print('🔍 fetchAnnonces: ${body.length} annonces reçues');
-        
-        if (body.isNotEmpty) {
-          print('🔍 Structure de la première annonce: ${body[0]}');
-        }
-        print('🔍 Cultures API: ${body.length} cultures reçues');
         return body
-            .map<Map<String, dynamic>>((item) => {
-                  'id': item['id'].toString(),
-                  'libelle': item['libelle'] ?? '',
-                })
+            .map<Map<String, dynamic>>((item) => {'id': item['id'].toString(), 'libelle': item['libelle'] ?? ''})
             .toList();
       } else if (response.statusCode == 401) {
-        print('❌ Erreur 401: Utilisateur non authentifié pour cultures');
         throw Exception('Utilisateur non authentifié');
       } else {
-        print('⚠️ Cultures API erreur ${response.statusCode}, utilisation des cultures par défaut');
         return _defaultCultures;
       }
     } catch (e) {
-      print('❌ Erreur lors de la récupération des cultures: $e');
-      print('⚠️ Utilisation des cultures par défaut');
       return _defaultCultures;
     }
   }
@@ -277,6 +242,4 @@ class AnnonceAchatService {
       throw Exception('Erreur inattendue: $e');
     }
   }
-
-  Future getAnnonces() async {}
 }

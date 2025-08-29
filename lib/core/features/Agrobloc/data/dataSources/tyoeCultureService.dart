@@ -22,6 +22,10 @@ class TypeCultureService {
         throw Exception('Erreur ${response.statusCode}: ${response.body}');
       }
     } catch (e) {
+      // Gestion spécifique de l'erreur "Token non trouvé"
+      if (e.toString().contains('Token non trouvé')) {
+        throw Exception('Token non trouvé. Veuillez vous connecter.');
+      }
       throw Exception('Erreur lors de la récupération des types de culture: $e');
     }
   }
