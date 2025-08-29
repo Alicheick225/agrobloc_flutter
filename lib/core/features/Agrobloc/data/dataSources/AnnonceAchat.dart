@@ -9,7 +9,7 @@ import '../dataSources/userService.dart';
 class AnnonceAchatService {
   // Endpoints
   static const String _baseUrl = 'http://192.168.252.199:8080/annonces_achat';
-  static const String _culturesUrl = 'http://192.168.252.249:8080/api/types-cultures';
+  static const String _culturesUrl = 'http://192.168.252.199:8000/api/types-cultures';
 
   /// Récupère le token et construit les headers
   Future<Map<String, String>> _getHeaders() async {
@@ -277,4 +277,6 @@ class AnnonceAchatService {
       throw Exception('Erreur inattendue: $e');
     }
   }
+
+  Future getAnnonces() async {}
 }

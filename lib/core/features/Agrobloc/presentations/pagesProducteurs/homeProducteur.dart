@@ -1,179 +1,181 @@
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/AnnonceFrom.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/prefinancementForm.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/annoncePage.dart'; 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/navBarProducteur.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/AnnonceForm.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/prefinancementForm.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/annoncePage.dart';
 
 void main() {
-  runApp(const MaterialApp(home: HomePoducteur()));
+  runApp(const MaterialApp(home: HomeProducteur()));
 }
 
-class HomePoducteur extends StatefulWidget {
-  const HomePoducteur({super.key});
+class HomeProducteur extends StatefulWidget {
+  const HomeProducteur({super.key});
 
   @override
-  State<HomePoducteur> createState() => _HomeProducteurState();
+  State<HomeProducteur> createState() => _HomeProducteurState();
 }
 
-class _HomeProducteurState extends State<HomePoducteur> {
+class _HomeProducteurState extends State<HomeProducteur> {
   int _selectedIndex = 0;
 
+  /// Liste des pages reliées à la navbar
   final List<Widget> pages = [
-    const OffreDeVentePage(),
+    const AnnonceAchatPage(),
     const Center(child: Text("Messages")),
+    const AnnonceForm(),
     const Center(child: Text("Transactions")),
     const Center(child: Text("Profil")),
   ];
 
+  /// Méthode de changement de page
   void _onNavBarTap(int index) {
     setState(() {
-      _selectedIndex = index;
+      if (index >= 0 && index < pages.length) {
+        _selectedIndex = index;
+      } else {
+        debugPrint("⚠️ Index $index invalide !");
+      }
     });
   }
-
   @override
   Widget build(BuildContext context) {
-    return ScreenUtilInit(
-      designSize: const Size(375, 812),
+    // Initialisation de ScreenUtil (nécessaire si pas déjà fait)
+    ScreenUtil.init(
+      context,
+      designSize: const Size(375, 812), // Adapter à ta maquette
       minTextAdapt: true,
-      splitScreenMode: true,
-      builder: (context, child) {
-        return Scaffold(
-          backgroundColor: Colors.white,
-          body: pages[_selectedIndex],
-          bottomNavigationBar: BottomBarProducteur(
-            selectedIndex: _selectedIndex,
-            onTap: _onNavBarTap,
-          ),
-        );
-      },
     );
-  }
-}
 
-class BottomBarProducteur extends StatelessWidget {
-  final int selectedIndex;
-  final ValueChanged<int> onTap;
+    return Scaffold(
 
-  const BottomBarProducteur({
-    super.key,
-    required this.selectedIndex,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      currentIndex: selectedIndex,
-      type: BottomNavigationBarType.fixed,
-      showUnselectedLabels: true,
-      selectedItemColor: const Color(0xFF527E3F),
-      unselectedItemColor: Colors.grey,
-      onTap: onTap,
-      items: [
-        _buildNavItem(Icons.home_outlined, "Accueil", 0),
-        _buildNavItem(Icons.message_outlined, "Messages", 1),
-        _buildNavItem(Icons.sync_alt_outlined, "Transactions", 2),
-        _buildNavItem(Icons.person_rounded, "Profil", 3),
-      ],
-    );
-  }
-
-  BottomNavigationBarItem _buildNavItem(IconData icon, String label, int index) {
-    final bool isSelected = selectedIndex == index;
-
-    return BottomNavigationBarItem(
-      icon: Container(
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF527E3F) : Colors.transparent,
-          borderRadius: BorderRadius.circular(15.r),
-        ),
-        padding: EdgeInsets.all(6.r),
-        child: Icon(
-          icon,
-          color: isSelected ? Colors.white : Colors.grey,
-        ),
-      ),
-      label: label,
-    );
-  }
-}
-
-class OffreDeVentePage extends StatelessWidget {
-  const OffreDeVentePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          // Header vert
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 40.h),
-            decoration: BoxDecoration(
-              color: const Color(0xFF527E3F),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(40.r),
-                bottomRight: Radius.circular(40.r),
-              ),
-            ),
-            child: SafeArea(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      // --- HEADER FIXE ---
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(70.h),
+        child: AppBar(
+          automaticallyImplyLeading: false,
+          backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+          elevation: 0,
+          flexibleSpace: SafeArea(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  // Partie gauche
                   Row(
                     children: [
                       CircleAvatar(
-                        backgroundColor: Colors.white.withOpacity(0.2),
+                        backgroundColor: const Color(0xFF527E3F),
                         radius: 24.r,
-                        child: Icon(Icons.eco, color: Colors.white, size: 28.sp),
+                        child: Icon(Icons.eco, color: const Color.fromARGB(255, 255, 255, 255), size: 28.sp),
                       ),
-                      SizedBox(width: 12.w),
+                      SizedBox(width: 8.w),
                       RichText(
                         text: TextSpan(
                           text: 'Bonjour, ',
-                          style: TextStyle(color: Colors.white, fontSize: 16.sp),
+                          style: TextStyle(color: const Color(0xFF527E3F), fontSize: 12.sp),
                           children: [
                             TextSpan(
-                              text: 'Mr Kouassi Bernard',
+                              text: 'Kouassi Bernard',
                               style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 18.sp),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16.sp,
+                              ),
                             ),
                           ],
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 20.h),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF9DB98B).withOpacity(0.4),
-                      borderRadius: BorderRadius.circular(30.r),
-                    ),
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: "Faire une recherche",
-                        prefixIcon: const Icon(Icons.search, color: Colors.white70),
-                        suffixIcon: const Icon(Icons.mic, color: Colors.white70),
-                        border: InputBorder.none,
-                        hintStyle: TextStyle(color: Colors.white70),
-                        contentPadding: EdgeInsets.symmetric(vertical: 12.h),
+
+                  // Partie droite : icônes
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.search, color: const Color(0xFF527E3F), size: 28.sp),
+                        onPressed: () {
+                          // Action recherche
+                        },
                       ),
-                      style: const TextStyle(color: Colors.white),
-                      cursorColor: Colors.white,
-                    ),
+                      IconButton(
+                        icon: Icon(Icons.notifications_none, color: const Color(0xFF527E3F), size: 28.sp),
+                        onPressed: () {
+                          // Action notifications
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
           ),
+        ),
+      ),
 
-          SizedBox(height: 16.h),
-          SizedBox(height: 30.h),
+      // --- CONTENU DÉFILANT ---
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            SizedBox(height: 16.h),
 
-          // Cartes blanches avec ombrage
-          Padding(
+            // Exemple de carte solde
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
+              child: Container(
+                decoration: BoxDecoration(
+                  color:  Color(0xFF527E3F), // Fond blanc
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                padding: EdgeInsets.all(16.w),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Solde total', style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255), fontSize: 14.sp)),
+                        Icon(Icons.remove_red_eye, color: const Color.fromARGB(255, 255, 255, 255), size: 20.sp),
+                      ],
+                    ),
+                    SizedBox(height: 8.h),
+                    Text('CFA --',
+                        style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255), fontSize: 24.sp, fontWeight: FontWeight.bold)),
+                    SizedBox(height: 16.h),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Solde Disponible', style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255), fontSize: 12.sp)),
+                              Text('CFA 0.00',
+                                  style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255), fontSize: 14.sp, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
+                        Container(width: 1.w, color: const Color.fromARGB(255, 255, 255, 255).withOpacity(0.3), height: 30.h),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Valeur du portefeuille', style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255), fontSize: 12.sp)),
+                              Text('CFA 0.00',
+                                  style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255), fontSize: 14.sp, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    )
+                  ],
+                ),
+              ),
+            ),
+
+
+            SizedBox(height: 24.h),
+
+            Padding(
             padding: EdgeInsets.symmetric(horizontal: 20.w),
             child: Column(
               children: [
@@ -181,7 +183,7 @@ class OffreDeVentePage extends StatelessWidget {
                   title: "Offre de vente",
                   description:
                       "Saisissez les détails de votre récolte pour mieux la valoriser",
-                  buttonText: "entamez une offre de vente",
+                  buttonText: "Entamez une offre de vente",
                   icon: Icons.house_outlined,
                   onPressed: () {
                     Navigator.push(
@@ -196,8 +198,8 @@ class OffreDeVentePage extends StatelessWidget {
                 _buildCard(
                   title: "Demande de préfinancement",
                   description:
-                      "Répondez à une demande pour vos produits et soyez récompensé pour votre contribution précieuse",
-                  buttonText: "entamez une demande de prefinancement",
+                      "Demandez un soutien pour vos cultures et bénéficiez d'un appui financier",
+                  buttonText: "Faire une demande de préfinancement",
                   icon: Icons.phone_android_outlined,
                   onPressed: () {
                     Navigator.push(
@@ -212,14 +214,14 @@ class OffreDeVentePage extends StatelessWidget {
                 _buildCard(
                   title: "Voir annonces",
                   description:
-                      "Répondez à une demande pour vos produits et soyez récompensé pour votre contribution précieuse",
+                      "Consultez les annonces disponibles et trouvez des opportunités",
                   buttonText: "Consulter les annonces",
                   icon: Icons.campaign_outlined,
                   onPressed: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const AnnonceAchatPage(), // Navigate to AnnonceAchatPage
+                        builder: (context) => const AnnonceAchatPage(),
                       ),
                     );
                   },
@@ -231,9 +233,11 @@ class OffreDeVentePage extends StatelessWidget {
           SizedBox(height: 30.h),
         ],
       ),
+    ),
     );
   }
 
+  /// Méthode de création de carte réutilisable
   Widget _buildCard({
     required String title,
     required String description,
@@ -285,8 +289,7 @@ class OffreDeVentePage extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15.r),
                     ),
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+                    padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
                   ),
                   child: Text(
                     buttonText,
@@ -309,4 +312,5 @@ class OffreDeVentePage extends StatelessWidget {
       ),
     );
   }
+            
 }

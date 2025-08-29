@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 import 'dart:async';
 
 class TypeCultureService {
-  final ApiClient api = ApiClient('http://192.168.252.249:8080/api');
+  final ApiClient api = ApiClient('http://192.168.252.199:8000/api');
   static const Duration timeoutDuration = Duration(seconds: 15);
 
   // ✅ Récupérer toutes les cultures

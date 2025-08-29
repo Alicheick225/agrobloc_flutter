@@ -5,7 +5,7 @@ import 'package:agrobloc/core/utils/api_token.dart';
 import 'dart:async';
 
 class ParcelleService {
-  final ApiClient api = ApiClient('http://192.168.252.249:8080/api');
+  final ApiClient api = ApiClient('http://192.168.252.199:8000/api');
   static const Duration timeoutDuration = Duration(seconds: 15);
 
   // ✅ Récupérer toutes les parcelles
