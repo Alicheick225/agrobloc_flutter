@@ -36,6 +36,20 @@ class ApiClient {
     return http.post(url, headers: headers, body: jsonEncode(body));
   }
 
+  /// Requête PUT
+  Future<http.Response> put(String endpoint, Map<String, dynamic> body, {bool withAuth = true}) async {
+    final headers = await _getHeaders(withAuth: withAuth);
+    final url = Uri.parse('$baseUrl$endpoint');
+    return http.put(url, headers: headers, body: jsonEncode(body));
+  }
+
+  /// Requête DELETE
+  Future<http.Response> delete(String endpoint, {bool withAuth = true}) async {
+    final headers = await _getHeaders(withAuth: withAuth);
+    final url = Uri.parse('$baseUrl$endpoint');
+    return http.delete(url, headers: headers);
+  }
+
   /// 🔑 Récupérer le userId depuis le token JWT
   Future<String> getUserId() async {
     final prefs = await SharedPreferences.getInstance();

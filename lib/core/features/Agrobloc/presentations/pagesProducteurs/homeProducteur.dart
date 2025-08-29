@@ -185,7 +185,7 @@ class _HomeProducteurState extends State<HomeProducteur> {
                   Row(
                     children: [
                       CircleAvatar(
-                        backgroundColor: const Color(0xFF527E3F),
+                        backgroundColor: const Color(0xFF4CAF50),
                         radius: 24.r,
                         child: Icon(Icons.eco, color: Colors.white, size: 28.sp),
                       ),
@@ -193,7 +193,7 @@ class _HomeProducteurState extends State<HomeProducteur> {
                       RichText(
                         text: TextSpan(
                           text: 'Bonjour, ',
-                          style: TextStyle(color: const Color(0xFF527E3F), fontSize: 12.sp),
+                          style: TextStyle(color: const Color(0xFF4CAF50), fontSize: 12.sp),
                           children: [
                             TextSpan(
                               text: 'Kouassi Bernard',
@@ -208,11 +208,11 @@ class _HomeProducteurState extends State<HomeProducteur> {
                   Row(
                     children: [
                       IconButton(
-                        icon: Icon(Icons.search, color: const Color(0xFF527E3F), size: 28.sp),
+                        icon: Icon(Icons.search, color: const Color(0xFF4CAF50), size: 28.sp),
                         onPressed: () {},
                       ),
                       IconButton(
-                        icon: Icon(Icons.notifications_none, color: const Color(0xFF527E3F), size: 28.sp),
+                        icon: Icon(Icons.notifications_none, color: const Color(0xFF4CAF50), size: 28.sp),
                         onPressed: () {},
                       ),
                     ],
@@ -239,7 +239,7 @@ class _HomeProducteurState extends State<HomeProducteur> {
               padding: EdgeInsets.symmetric(horizontal: 16.w),
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFF527E3F),
+                  color: const Color(0xFF4CAF50),
                   borderRadius: BorderRadius.circular(12.r),
                 ),
                 padding: EdgeInsets.all(16.w),
@@ -286,12 +286,12 @@ class _HomeProducteurState extends State<HomeProducteur> {
                       onPressed: () {
                         Navigator.push(context, MaterialPageRoute(builder: (context) => const AnnonceForm()));
                       },
-                      label: Text("Mes offres de vente", style: TextStyle(color: const Color(0xFF527E3F), fontSize: 14.sp)),
+                      label: Text("Mes offres de vente", style: TextStyle(color: const Color(0xFF4CAF50), fontSize: 14.sp)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10.r),
-                          side: const BorderSide(color: Color(0xFF527E3F), width: 1),
+                          side: const BorderSide(color: Color(0xFF4CAF50), width: 1),
                         ),
                         padding: EdgeInsets.symmetric(vertical: 12.h),
                       ),
@@ -306,7 +306,7 @@ class _HomeProducteurState extends State<HomeProducteur> {
                       icon: Icon(Icons.add, color: Colors.white, size: 20.sp),
                       label: Text("Préfinancement", style: TextStyle(color: Colors.white, fontSize: 14.sp)),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF527E3F),
+                        backgroundColor: const Color(0xFF4CAF50),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
                         padding: EdgeInsets.symmetric(vertical: 12.h),
                       ),
@@ -324,12 +324,12 @@ class _HomeProducteurState extends State<HomeProducteur> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("Dernières annonces", style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: const Color(0xFF527E3F))),
+                  Text("Dernières annonces", style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: const Color(0xFF4CAF50))),
                   TextButton(
                     onPressed: () {
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const AnnonceAchatPage()));
                     },
-                    child: Text("Voir tout", style: TextStyle(color: const Color(0xFF527E3F))),
+                    child: Text("Voir tout", style: TextStyle(color: const Color(0xFF4CAF50))),
                   ),
                 ],
               ),
@@ -367,7 +367,7 @@ class _HomeProducteurState extends State<HomeProducteur> {
             children: [
               CircleAvatar(
                 radius: 20.r,
-                backgroundColor: const Color(0xFF527E3F),
+                backgroundColor: const Color(0xFF4CAF50),
                 child: Text(
                   annonce.userNom.isNotEmpty ? annonce.userNom[0].toUpperCase() : '?',
                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
@@ -380,7 +380,7 @@ class _HomeProducteurState extends State<HomeProducteur> {
                   children: [
                     Text(
                       annonce.userNom.isNotEmpty ? annonce.userNom : 'Nom de l\'utilisateur',
-                      style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: const Color(0xFF527E3F)),
+                      style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: const Color(0xFF4CAF50)),
                     ),
                     SizedBox(height: 4.h),
                     RichText(
@@ -437,7 +437,7 @@ class _HomeProducteurState extends State<HomeProducteur> {
                 ),
               ),
               IconButton(
-                icon: Icon(Icons.visibility, color: const Color(0xFF527E3F)),
+                icon: Icon(Icons.visibility, color: const Color(0xFF4CAF50)),
                 onPressed: () {
                   Navigator.pushNamed(context, '/detailOffreVente', arguments: annonce);
                 },

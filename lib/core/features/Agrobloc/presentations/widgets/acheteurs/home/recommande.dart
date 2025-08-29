@@ -25,9 +25,9 @@ class RecommendationCard extends StatelessWidget {
 
     /// ✅ Texte pour la date de publication
     String getTimeText() {
-      if (recommendation.datePublication == null) return "Aujourd'hui";
+      if (recommendation.createdAt == null) return "Aujourd'hui";
       try {
-        final date = DateTime.parse(recommendation.datePublication!);
+        final date = DateTime.parse(recommendation.createdAt!);
         final daysAgo = DateTime.now().difference(date).inDays;
         return daysAgo == 0 ? "Aujourd'hui" : "il y a $daysAgo jours";
       } catch (_) {

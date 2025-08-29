@@ -4,13 +4,14 @@ class AnnonceVente {
   final String statut;
   final String description;
   final double prixKg;
+  final String prixUnite;
   final double quantite;
+  final String quantiteUnite;
   final String userNom;
   final String typeCultureLibelle;
   final String parcelleAdresse;
-  final String? datePublication; 
-  final double? note; 
-
+  final String? createdAt;
+  final double? note;
 
   AnnonceVente({
     required this.id,
@@ -18,31 +19,33 @@ class AnnonceVente {
     required this.statut,
     required this.description,
     required this.prixKg,
+    required this.prixUnite,
     required this.quantite,
+    required this.quantiteUnite,
     required this.userNom,
     required this.typeCultureLibelle,
     required this.parcelleAdresse,
-    this.datePublication,
+    this.createdAt,
     this.note,
   });
 
   factory AnnonceVente.fromJson(Map<String, dynamic> json) {
     return AnnonceVente(
-      id: json['id'].toString(),
+      id: json['id']?.toString() ?? '',
       photo: json['photo'],
-      statut: json['statut'] ?? 'Indisponible'?? 'previsionnel', 
+      statut: json['statut'] ?? 'Indisponible',
       description: json['description'] ?? '',
       prixKg: (json['prix_kg'] as num?)?.toDouble() ?? 0,
+      prixUnite: json['prix_unite'] ?? 'FCFA',
       quantite: (json['quantite'] as num?)?.toDouble() ?? 0,
-      userNom: json['nom'] ?? '', 
-      typeCultureLibelle: json['libelle'] ?? '', 
-      parcelleAdresse: json['adresse'] ?? '', 
-      datePublication: json['date_publication'], 
-      note: (json['note'] as num?)?.toDouble(), 
+      quantiteUnite: json['quantite_unite'] ?? 'kg',
+      userNom: json['user_nom'] ?? '',
+      typeCultureLibelle: json['type_culture_libelle'] ?? '',
+      parcelleAdresse: json['parcelle_adresse'] ?? '',
+      createdAt: json['created_at']?.toString(),
+      note: (json['note'] as num?)?.toDouble(),
     );
   }
-
-  get parcelleId => null;
 
   Map<String, dynamic> toJson() {
     return {
@@ -51,11 +54,13 @@ class AnnonceVente {
       'statut': statut,
       'description': description,
       'prix_kg': prixKg,
+      'prix_unite': prixUnite,
       'quantite': quantite,
-      'nom': userNom,
-      'libelle': typeCultureLibelle,
-      'adresse': parcelleAdresse,
-      'date_publication': datePublication,
+      'quantite_unite': quantiteUnite,
+      'user_nom': userNom,
+      'type_culture_libelle': typeCultureLibelle,
+      'parcelle_adresse': parcelleAdresse,
+      'created_at': createdAt,
       'note': note,
     };
   }

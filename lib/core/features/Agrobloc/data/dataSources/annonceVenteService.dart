@@ -135,6 +135,115 @@ class AnnonceService {
     }
   }
 
+  /// Récupérer une annonce par ID
+  Future<AnnonceVente> getAnnonceByID(String id) async {
+    try {
+      final response = await api.get('/annonces_vente/$id');
+      if (response.statusCode == 200) {
+        return AnnonceVente.fromJson(jsonDecode(response.body));
+      } else {
+        throw _handleError(response);
+      }
+    } catch (e) {
+      throw _handleException(e);
+    }
+  }
+
+  /// Récupérer les annonces d'un utilisateur spécifique
+  Future<List<AnnonceVente>> getAnnoncesByUserID(String userId) async {
+    try {
+      final response = await api.get('/annonces_vente/user/$userId');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((json) => AnnonceVente.fromJson(json)).toList();
+      } else {
+        throw _handleError(response);
+      }
+    } catch (e) {
+      throw _handleException(e);
+    }
+  }
+
+  /// Mettre à jour une annonce
+  Future<AnnonceVente> updateAnnonce({
+    required String id,
+    required String statut,
+    required String description,
+    required String typeCultureId,
+    required String parcelleId,
+    required double quantite,
+    required double prixKg,
+    XFile? photo,
+  }) async {
+    try {
+      if (photo == null) {
+        // Mise à jour sans photo
+        final body = {
+          'statut': statut,
+          'description': description,
+          'type_culture_id': typeCultureId,
+          'parcelle_id': parcelleId,
+          'quantite': quantite,
+          'prix_kg': prixKg,
+        };
+        final response = await api.put('/annonces_vente/$id', body);
+
+        if (response.statusCode == 200) {
+          return AnnonceVente.fromJson(jsonDecode(response.body));
+        } else {
+          throw _handleError(response);
+        }
+      } else {
+        // Mise à jour avec photo
+        var request = http.MultipartRequest(
+          'PUT',
+          Uri.parse('${api.baseUrl}/annonces_vente/$id'),
+        );
+
+        request.headers.addAll(await _getHeaders(isMultipart: true));
+
+        request.fields.addAll({
+          'statut': statut,
+          'description': description,
+          'type_culture_id': typeCultureId,
+          'parcelle_id': parcelleId,
+          'quantite': quantite.toString(),
+          'prix_kg': prixKg.toString(),
+        });
+
+        final fileExtension = photo.path.split('.').last;
+        request.files.add(await http.MultipartFile.fromPath(
+          'photo',
+          photo.path,
+          contentType: MediaType('image', fileExtension),
+        ));
+
+        final response = await request.send().timeout(timeoutDuration);
+        final responseBody = await response.stream.bytesToString();
+
+        if (response.statusCode == 200) {
+          return AnnonceVente.fromJson(jsonDecode(responseBody));
+        } else {
+          throw _handleError(http.Response(responseBody, response.statusCode));
+        }
+      }
+    } catch (e) {
+      throw _handleException(e);
+    }
+  }
+
+  /// Supprimer une annonce
+  Future<void> deleteAnnonce(String id) async {
+    try {
+      final response = await api.delete('/annonces_vente/$id');
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        throw _handleError(response);
+      }
+    } catch (e) {
+      throw _handleException(e);
+    }
+  }
+
   /// Gestion des erreurs HTTP
   Exception _handleError(http.Response response) {
     String errorMessage = "Erreur inconnue";

@@ -69,7 +69,6 @@ void _envoyerDemande() async {
     }
 
     final userId = userService.userId!;
-    final token = userService.token!;
 
     // Quantité
     double quantite = double.tryParse(productionController.text) ?? 0;
@@ -85,7 +84,6 @@ void _envoyerDemande() async {
 
     // Création du préfinancement
     final annonce = await service.createPrefinancement(
-      token: token,
       typeCultureId: culture!.id,
       parcelleId: parcelle!.id,
       quantite: quantite,
@@ -93,6 +91,7 @@ void _envoyerDemande() async {
       description: description,
 
     );
+
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Demande envoyée avec succès ✅")),

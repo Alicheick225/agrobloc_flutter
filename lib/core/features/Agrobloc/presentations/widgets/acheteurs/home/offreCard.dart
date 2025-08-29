@@ -33,9 +33,9 @@ class OffreCard extends StatelessWidget {
 
     /// ✅ Date de publication en texte lisible
     String getTimeText() {
-      if (data.datePublication == null) return "Aujourd'hui";
+      if (data.createdAt == null) return "Aujourd'hui";
       try {
-        final date = DateTime.parse(data.datePublication!);
+        final date = DateTime.parse(data.createdAt!);
         final daysAgo = DateTime.now().difference(date).inDays;
         return daysAgo == 0 ? "Aujourd'hui" : "Il y a $daysAgo jours";
       } catch (_) {
