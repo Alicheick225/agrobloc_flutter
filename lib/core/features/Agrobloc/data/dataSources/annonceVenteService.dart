@@ -164,6 +164,16 @@ class AnnonceService {
     }
   }
 
+  /// Récupérer uniquement les annonces de l'utilisateur connecté
+  Future<List<AnnonceVente>> fetchAnnoncesByUser() async {
+    try {
+      final userId = await _getUserId();
+      return await getAnnoncesByUserID(userId);
+    } catch (e) {
+      throw _handleException(e);
+    }
+  }
+
   /// Mettre à jour une annonce
   Future<AnnonceVente> updateAnnonce({
     required String id,

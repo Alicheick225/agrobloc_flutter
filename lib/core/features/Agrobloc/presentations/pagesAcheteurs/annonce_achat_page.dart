@@ -207,8 +207,8 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                const Padding(
-                  padding: EdgeInsets.all(16.0),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
                   child: SearchBarWidget(),
                 ),
                 Expanded(

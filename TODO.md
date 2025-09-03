@@ -1,44 +1,13 @@
-# TODO: Token Authentication Fix Implementation
+# TODO: Intégrer AnnonceVenteModel et AnnonceService dans offreVentePage
 
-## Current Status
-- [x] Analyzed the codebase and identified the root cause
-- [x] Created comprehensive plan for fixes
-- [x] Got user approval to proceed
-
-## Tasks to Complete
-
-### 1. Enhance UserService Token Management
-- [x] Add enhanced SharedPreferences diagnostics in getValidToken() to check all stored keys and values
-- [x] Implement token persistence verification after login
-- [x] Add fallback token retrieval from instance variables when SharedPreferences fails
-- [x] Add token recovery mechanism to restore tokens from backup storage
-
-### 2. Improve AuthService Debugging
-- [x] Add token persistence verification after login/registration
-- [ ] Verify token format and content before saving
-
-### 3. Enhance ApiClient Error Handling
-- [x] Add retry mechanism in _getHeaders()
-- [x] Implement better error handling for token retrieval failures
-- [x] Add fallback authentication methods
-
-### 4. Test and Verify
-- [ ] Test login flow to ensure tokens are saved properly
-- [ ] Verify SharedPreferences persistence across app restarts
-- [ ] Test token refresh functionality
-- [ ] Monitor for any remaining null token issues
-
-## Files to Modify
-- lib/core/features/Agrobloc/data/dataSources/userService.dart
-- lib/core/features/Agrobloc/data/dataSources/authService.dart
-- lib/core/utils/api_token.dart
-
-## Expected Outcome
-- Tokens should be properly saved and retrieved from SharedPreferences
-- No more "Token non trouvé ou invalide" exceptions
-- Better error handling and debugging information
-- Robust token management system
-
-## Additional Fixes
-- [x] Fixed missing import for OffreVentePage in homeProducteur.dart
-- [x] Resolved build error preventing app from running
+## Étapes à suivre :
+- [x] Ajouter la méthode fetchAnnoncesByUser() à AnnonceService dans annonceVenteService.dart
+- [x] Modifier offreVentePage.dart pour importer AnnonceService et AnnonceVenteModel
+- [x] Remplacer l'instance de service de AnnonceAchatService à AnnonceService
+- [x] Changer le modèle de AnnonceAchat à AnnonceVente
+- [x] Mettre à jour la méthode _loadAnnonces pour utiliser le nouveau service
+- [x] Ajuster l'interface utilisateur pour afficher les données d'annonces de vente (prixKg, etc.)
+- [x] Changer le titre de l'appBar en "Mes Offres de Vente"
+- [x] Mettre à jour la méthode de suppression pour utiliser deleteAnnonce d'AnnonceService
+- [x] Mettre à jour la navigation d'édition pour passer AnnonceVente
+- [x] Tester les modifications et vérifier l'authentification

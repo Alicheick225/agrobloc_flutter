@@ -135,7 +135,7 @@ class _HomePageState extends State<HomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SearchBarWidget(),
+                  SearchBarWidget(),
                   const SizedBox(height: 16),
                   FilterButtons(
                     onFilterSelected: (index) {
