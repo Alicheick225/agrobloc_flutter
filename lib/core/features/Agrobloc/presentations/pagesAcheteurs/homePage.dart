@@ -82,7 +82,7 @@ class _HomePageState extends State<HomePage> {
   List<Widget> get pages => [
         _buildHomeContent(),
         const AnnonceAchatPage(),
-        const TransactionPage(),
+        const TransactionPage(child: Text("Transactions")),
         const ProfilPage(),
       ];
 

@@ -7,8 +7,8 @@ class PrefinancementService {
   static const String _baseUrl = 'http://192.168.252.199:8080';
 
   /// Récupère le token valide et construit les headers
-  Future<Map<String, String>> _getHeaders() async {
-    final token = await UserService().getValidToken(); // refresh automatique
+  Future<Map<String, String>> _getHeaders({bool forceRefresh = false, bool allowTempRefresh = false}) async {
+    final token = await UserService().getValidToken(forceRefresh: forceRefresh, allowTempRefresh: allowTempRefresh); // refresh automatique
     if (token == null || token.isEmpty) {
       throw Exception("⚠️ Token manquant, reconnectez-vous.");
     }
@@ -30,6 +30,21 @@ class PrefinancementService {
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         return data.map((json) => AnnoncePrefinancement.fromJson(json)).toList();
+      } else if (response.statusCode == 401) {
+        // Try with forced refresh and allow temp refresh
+        print("🚨 Token rejeté lors du chargement des préfinancements - tentative de refresh");
+        final headersRetry = await _getHeaders(forceRefresh: true, allowTempRefresh: true);
+        final retryResponse = await http.get(
+          Uri.parse('$_baseUrl/annonces_pref'),
+          headers: headersRetry,
+        );
+
+        if (retryResponse.statusCode == 200) {
+          final List<dynamic> data = jsonDecode(retryResponse.body);
+          return data.map((json) => AnnoncePrefinancement.fromJson(json)).toList();
+        } else {
+          throw Exception('Erreur lors du chargement des préfinancements après retry : ${retryResponse.body}');
+        }
       } else {
         throw Exception('Erreur lors du chargement des préfinancements : ${response.body}');
       }
@@ -74,6 +89,7 @@ class PrefinancementService {
         "parcelle_id": parcelleId,
         "quantite": quantite,
         "prix": prix,
+        "montant_pref": quantite * prix,
       };
 
       print("📤 Body envoyé : ${jsonEncode(body)}");
@@ -93,7 +109,38 @@ class PrefinancementService {
       } else {
         // Handle authentication errors specifically
         if (response.statusCode == 401) {
-          throw Exception("Erreur d'authentification: Token invalide ou expiré. Veuillez vous reconnecter.");
+          print("🚨 Token rejeté par le serveur - tentative de refresh forcé");
+
+          // Force token refresh even if local check says it's valid
+          final userService = UserService();
+          final refreshedToken = await userService.getValidToken(forceRefresh: true, allowTempRefresh: true);
+
+          if (refreshedToken != null) {
+            print("✅ Token rafraîchi avec succès - nouvelle tentative");
+
+            // Retry with refreshed token using _getHeaders with forceRefresh and allowTempRefresh
+            final newHeaders = await _getHeaders(forceRefresh: true, allowTempRefresh: true);
+
+            final retryResponse = await http.post(
+              Uri.parse('$_baseUrl/annonces_pref'),
+              headers: newHeaders,
+              body: jsonEncode(body),
+            );
+
+            print("📥 Retry status code: ${retryResponse.statusCode}");
+            print("📥 Retry body reçu: ${retryResponse.body}");
+
+            if (retryResponse.statusCode == 200 || retryResponse.statusCode == 201) {
+              final jsonItem = json.decode(retryResponse.body);
+              return AnnoncePrefinancement.fromJson(jsonItem);
+            } else if (retryResponse.statusCode == 401) {
+              throw Exception("Erreur d'authentification: Token toujours invalide après refresh. Veuillez vous reconnecter.");
+            } else {
+              throw Exception('Erreur lors de la création du préfinancement après retry : ${retryResponse.body}');
+            }
+          } else {
+            throw Exception("Erreur d'authentification: Impossible de rafraîchir le token. Veuillez vous reconnecter.");
+          }
         }
         throw Exception('Erreur lors de la création du préfinancement : ${response.body}');
       }

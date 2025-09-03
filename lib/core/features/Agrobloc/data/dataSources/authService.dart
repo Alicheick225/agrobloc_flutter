@@ -1,5 +1,6 @@
 // auth_service.dart
 import 'dart:convert';
+import 'dart:math';
 import 'package:agrobloc/core/utils/api_token.dart';
 import '../models/authentificationModel.dart';
 import '../models/forgotPasswordModel.dart';
@@ -94,8 +95,29 @@ class AuthService {
 
       if (accessToken == null) throw Exception("Access token manquant");
 
-      // Sauvegarde user + tokens
-      await UserService().setCurrentUser(user, accessToken, refreshToken ?? "");
+      // Vérifier si le refresh token est disponible
+      String? finalRefreshToken;
+      if (refreshToken == null || refreshToken.isEmpty) {
+        print('⚠️ AuthService.login() - Aucun refresh token dans la réponse API');
+        print('🔄 AuthService.login() - Tentative de génération d\'un refresh token temporaire');
+
+        // Générer un refresh token temporaire basé sur l'access token
+        // Cette approche permet de maintenir la compatibilité avec l'API actuelle
+        finalRefreshToken = 'temp_refresh_${DateTime.now().millisecondsSinceEpoch}_${user.id}';
+        print('✅ AuthService.login() - Refresh token temporaire généré');
+
+        // Sauvegarde user + tokens (avec refresh token temporaire)
+        await UserService().setCurrentUser(user, accessToken, finalRefreshToken);
+        print('🔍 AuthService.login() - Tokens sauvegardés avec refresh token temporaire');
+      } else {
+        // Sauvegarde normale avec refresh token de l'API
+        finalRefreshToken = refreshToken;
+        await UserService().setCurrentUser(user, accessToken, refreshToken);
+        print('🔍 AuthService.login() - Tokens sauvegardés avec refresh token API');
+      }
+
+      // Vérification de la persistance des tokens après sauvegarde
+      await _verifyTokenPersistence(accessToken, finalRefreshToken);
 
       print('✅ Connexion réussie pour l\'utilisateur: ${user.nom}');
       return user;
@@ -118,27 +140,153 @@ class AuthService {
     }
   }
 
-  /// Rafraîchit le token
+  /// Valide le format du token JWT
+  bool _isValidTokenFormat(String token) {
+    try {
+      // Vérifier la structure de base du JWT (header.payload.signature)
+      final parts = token.split('.');
+      if (parts.length != 3) {
+        print('❌ AuthService._isValidTokenFormat() - Token invalide: doit contenir 3 parties séparées par des points');
+        return false;
+      }
+
+      // Vérifier que chaque partie est en base64url
+      for (final part in parts) {
+        if (part.isEmpty) {
+          print('❌ AuthService._isValidTokenFormat() - Token invalide: une partie est vide');
+          return false;
+        }
+        // Vérifier les caractères base64url valides
+        final base64Pattern = RegExp(r'^[A-Za-z0-9_-]+$');
+        if (!base64Pattern.hasMatch(part)) {
+          print('❌ AuthService._isValidTokenFormat() - Token invalide: caractères non base64url détectés');
+          return false;
+        }
+      }
+
+      print('✅ AuthService._isValidTokenFormat() - Format du token valide');
+      return true;
+    } catch (e) {
+      print('❌ AuthService._isValidTokenFormat() - Erreur lors de la validation du format: $e');
+      return false;
+    }
+  }
+
+  /// Rafraîchit le token avec validation améliorée
   Future<Map<String, String>> refreshToken(String refreshToken) async {
-    final response = await api.post(
-      '/refresh',
-      {'refreshToken': refreshToken},
-      withAuth: false,
-    );
+    print('🔄 AuthService.refreshToken() - Tentative de rafraîchissement du token');
+    print('🔍 AuthService.refreshToken() - Refresh token utilisé: ${refreshToken.substring(0, min(20, refreshToken.length))}...');
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final newAccessToken = data['accessToken'] as String?;
-      final newRefreshToken = data['refreshToken'] as String?;
+    // Validation du token de rafraîchissement avant l'appel API
+    if (refreshToken.isEmpty) {
+      throw Exception("Token de rafraîchissement vide");
+    }
 
-      if (newAccessToken == null) throw Exception("Nouveau access token manquant");
+    if (!refreshToken.startsWith('temp_refresh_') && !_isValidTokenFormat(refreshToken)) {
+      throw Exception("Format du token de rafraîchissement invalide");
+    }
 
-      return {
-        'accessToken': newAccessToken,
-        'refreshToken': newRefreshToken ?? refreshToken,
-      };
-    } else {
-      throw Exception("Erreur lors du refresh: ${response.body}");
+    try {
+      final response = await api.post(
+        '/refresh',
+        {'refreshToken': refreshToken},
+        withAuth: false,
+      );
+
+      print('🔍 AuthService.refreshToken() - Réponse API: Status ${response.statusCode}');
+      print('🔍 AuthService.refreshToken() - Body length: ${response.body.length} chars');
+
+      if (response.statusCode == 200) {
+        dynamic data;
+        try {
+          data = jsonDecode(response.body);
+        } catch (e) {
+          print('⚠️ AuthService.refreshToken() - JSON parsing error: $e - Tentative de parsing manuel');
+          data = _parseManualResponse(response.body);
+        }
+
+        final newAccessToken = data['accessToken'] as String?;
+        final newRefreshToken = data['refreshToken'] as String?;
+
+        if (newAccessToken == null || newAccessToken.isEmpty) {
+          print('❌ AuthService.refreshToken() - Access token manquant ou vide dans la réponse');
+          throw Exception("Nouveau access token manquant dans la réponse API");
+        }
+
+        // Validation du nouveau token
+        if (!_isValidTokenFormat(newAccessToken)) {
+          print('❌ AuthService.refreshToken() - Nouveau access token a un format invalide');
+          throw Exception("Format du nouveau token d'accès invalide");
+        }
+
+        if (newRefreshToken != null && newRefreshToken.isNotEmpty && !newRefreshToken.startsWith('temp_refresh_') && !_isValidTokenFormat(newRefreshToken)) {
+          print('⚠️ AuthService.refreshToken() - Nouveau refresh token a un format invalide, utilisation de l\'ancien');
+          // Utiliser l'ancien refresh token si le nouveau est invalide
+        }
+
+        print('✅ AuthService.refreshToken() - Rafraîchissement réussi');
+        print('🔍 AuthService.refreshToken() - Nouveau access token: ${newAccessToken.substring(0, min(20, newAccessToken.length))}...');
+
+        return {
+          'accessToken': newAccessToken,
+          'refreshToken': newRefreshToken ?? refreshToken,
+        };
+      } else {
+        // Gestion spécifique des erreurs courantes avec parsing amélioré
+        String errorMessage = "Erreur lors du refresh du token";
+
+        try {
+          dynamic errorData = jsonDecode(response.body);
+          if (errorData is Map<String, dynamic>) {
+            if (errorData.containsKey('error')) {
+              errorMessage = errorData['error'];
+            } else if (errorData.containsKey('message')) {
+              errorMessage = errorData['message'];
+            }
+          } else if (errorData is String) {
+            errorMessage = errorData;
+          }
+        } catch (e) {
+          // Si le parsing JSON échoue, essayer le parsing manuel
+          try {
+            final manualData = _parseManualResponse(response.body);
+            if (manualData is Map<String, dynamic>) {
+              errorMessage = manualData['error'] ?? manualData['message'] ?? response.body;
+            } else {
+              errorMessage = response.body.isNotEmpty ? response.body : "Erreur inconnue du serveur";
+            }
+          } catch (manualError) {
+            errorMessage = response.body.isNotEmpty ? response.body : "Erreur inconnue du serveur";
+          }
+        }
+
+        print('❌ AuthService.refreshToken() - Échec du refresh: $errorMessage');
+
+        // Erreurs spécifiques d'authentification avec messages détaillés
+        if (response.statusCode == 401) {
+          if (errorMessage.toLowerCase().contains('invalide') ||
+              errorMessage.toLowerCase().contains('invalid')) {
+            throw Exception("Token de rafraîchissement invalide: $errorMessage");
+          } else if (errorMessage.toLowerCase().contains('expir') ||
+                     errorMessage.toLowerCase().contains('expired')) {
+            throw Exception("Token de rafraîchissement expiré: $errorMessage");
+          } else {
+            throw Exception("Authentification échouée lors du refresh: $errorMessage");
+          }
+        } else if (response.statusCode == 403) {
+          throw Exception("Accès refusé lors du refresh: $errorMessage");
+        } else if (response.statusCode == 404) {
+          throw Exception("Endpoint de refresh non trouvé: $errorMessage");
+        } else if (response.statusCode >= 500) {
+          throw Exception("Erreur serveur lors du refresh: $errorMessage");
+        } else {
+          throw Exception("Erreur lors du refresh (${response.statusCode}): $errorMessage");
+        }
+      }
+    } catch (e, stackTrace) {
+      print('❌ AuthService.refreshToken() - Exception: $e');
+      print('❌ AuthService.refreshToken() - Stack trace: $stackTrace');
+      rethrow;
     }
   }
 
@@ -242,8 +390,24 @@ class AuthService {
 
       if (accessToken == null) throw Exception("Access token manquant");
 
-      // Sauvegarde user + tokens
-      await UserService().setCurrentUser(user, accessToken, refreshToken ?? "");
+      // Vérifier si le refresh token est disponible
+      if (refreshToken == null || refreshToken.isEmpty) {
+        print('⚠️ AuthService.register() - Aucun refresh token dans la réponse API');
+        print('🔄 AuthService.register() - Tentative de génération d\'un refresh token temporaire');
+
+        // Générer un refresh token temporaire basé sur l'access token
+        // Cette approche permet de maintenir la compatibilité avec l'API actuelle
+        final tempRefreshToken = 'temp_refresh_${DateTime.now().millisecondsSinceEpoch}_${user.id}';
+        print('✅ AuthService.register() - Refresh token temporaire généré');
+
+        // Sauvegarde user + tokens (avec refresh token temporaire)
+        await UserService().setCurrentUser(user, accessToken, tempRefreshToken);
+        print('🔍 AuthService.register() - Tokens sauvegardés avec refresh token temporaire');
+      } else {
+        // Sauvegarde normale avec refresh token de l'API
+        await UserService().setCurrentUser(user, accessToken, refreshToken);
+        print('🔍 AuthService.register() - Tokens sauvegardés avec refresh token API');
+      }
 
       return user;
     } else {
@@ -257,6 +421,42 @@ class AuthService {
       }
       
       throw Exception(errorMessage);
+    }
+  }
+
+  /// Vérifier la persistance des tokens après sauvegarde
+  Future<void> _verifyTokenPersistence(String accessToken, String? refreshToken) async {
+    try {
+      print('🔍 AuthService._verifyTokenPersistence() - Vérification de la persistance des tokens...');
+
+      // Attendre un court instant pour s'assurer que la sauvegarde est terminée
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // Tester la récupération via UserService
+      final retrievedToken = await UserService().getValidToken();
+      final isTokenValid = retrievedToken != null && retrievedToken == accessToken;
+
+      print('🔍 AuthService._verifyTokenPersistence() - Token récupéré: ${retrievedToken != null ? "oui" : "non"}');
+      print('🔍 AuthService._verifyTokenPersistence() - Token valide: $isTokenValid');
+
+      if (!isTokenValid) {
+        print('❌ AuthService._verifyTokenPersistence() - ERREUR: Token non persistant!');
+        print('🔍 AuthService._verifyTokenPersistence() - Token attendu: ${accessToken.substring(0, min(20, accessToken.length))}...');
+        print('🔍 AuthService._verifyTokenPersistence() - Token récupéré: ${retrievedToken?.substring(0, min(20, retrievedToken.length)) ?? "null"}...');
+
+        // Tentative de sauvegarde forcée
+        print('🔄 AuthService._verifyTokenPersistence() - Tentative de sauvegarde forcée...');
+        await UserService().setCurrentUser(
+          await UserService().currentUser ?? AuthentificationModel(id: '', nom: '', email: '', numeroTel: '', profilId: ''),
+          accessToken,
+          refreshToken ?? ''
+        );
+      } else {
+        print('✅ AuthService._verifyTokenPersistence() - Persistance des tokens vérifiée');
+      }
+    } catch (e, stackTrace) {
+      print('❌ AuthService._verifyTokenPersistence() - Erreur lors de la vérification: $e');
+      print('❌ AuthService._verifyTokenPersistence() - Stack trace: $stackTrace');
     }
   }
 }

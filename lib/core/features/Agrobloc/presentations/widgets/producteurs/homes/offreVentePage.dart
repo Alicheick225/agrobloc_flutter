@@ -7,14 +7,14 @@ import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:agrobloc/core/themes/app_text_styles.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/recherche_bar.dart';
 
-class AnnonceAchatPage extends StatefulWidget {
-  const AnnonceAchatPage({super.key});
+class OffreVentePage extends StatefulWidget {
+  const OffreVentePage({super.key});
 
   @override
-  State<AnnonceAchatPage> createState() => _AnnonceAchatPageState();
+  State<OffreVentePage> createState() => _OffreVentePageState();
 }
 
-class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
+class _OffreVentePageState extends State<OffreVentePage> {
   int _selectedButtonIndex = -1; // Track which button is selected
 
   final AnnonceAchatService _service = AnnonceAchatService();
@@ -168,31 +168,6 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                          child: ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                _selectedButtonIndex = 0; // Set selected button index
-                              });
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: _selectedButtonIndex == 0 ? AppColors.primaryGreen : Colors.white,
-                              foregroundColor: _selectedButtonIndex == 0 ? Colors.white : AppColors.primaryGreen,
-                              textStyle: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            child: const Text("proposition d'achat"),
-                          ),
-                        ),
-                      ),
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 4.0),

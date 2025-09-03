@@ -1,16 +1,15 @@
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/AnnonceAchat.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceAchatModel.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/pagesAcheteurs/transactionPage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/navBarProducteur.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/AnnonceForm.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/prefinancementForm.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/annoncePage.dart';
-
-
-
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/detailOffreVente.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/offreVentePage.dart';
 
 void main() {
   runApp(MaterialApp(
@@ -87,10 +86,10 @@ class _HomeProducteurState extends State<HomeProducteur> {
 
   /// Liste des pages reliées à la navbar
   final List<Widget> pages = [
-    const AnnonceAchatPage(),
+    const HomeProducteur(),
     const Center(child: Text("Messages")),
     const AnnonceForm(),
-    const Center(child: Text("Transactions")),
+    const TransactionPage(child: Text("Transactions")),
     const Center(child: Text("Profil")),
   ];
 
@@ -284,7 +283,7 @@ class _HomeProducteurState extends State<HomeProducteur> {
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const AnnonceForm()));
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const OffreVentePage()));
                       },
                       label: Text("Mes offres de vente", style: TextStyle(color: const Color(0xFF4CAF50), fontSize: 14.sp)),
                       style: ElevatedButton.styleFrom(

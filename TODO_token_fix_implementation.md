@@ -8,19 +8,20 @@
 ## Tasks to Complete
 
 ### 1. Enhance UserService Token Management
-- [x] Add enhanced SharedPreferences diagnostics in getValidToken() to check all stored keys and values
-- [x] Implement token persistence verification after login
-- [x] Add fallback token retrieval from instance variables when SharedPreferences fails
-- [x] Add token recovery mechanism to restore tokens from backup storage
+- [ ] Add detailed logging to setCurrentUser() to verify token saving
+- [ ] Add debugging to getValidToken() to track token retrieval issues
+- [ ] Implement fallback mechanism for token validation
+- [ ] Add SharedPreferences error handling
 
 ### 2. Improve AuthService Debugging
-- [x] Add token persistence verification after login/registration
+- [ ] Add logging to login() method to confirm token saving
+- [ ] Add logging to register() method to confirm token saving
 - [ ] Verify token format and content before saving
 
 ### 3. Enhance ApiClient Error Handling
-- [x] Add retry mechanism in _getHeaders()
-- [x] Implement better error handling for token retrieval failures
-- [x] Add fallback authentication methods
+- [ ] Add more graceful error handling in _getHeaders()
+- [ ] Implement retry mechanism for token retrieval
+- [ ] Add better error messages for debugging
 
 ### 4. Test and Verify
 - [ ] Test login flow to ensure tokens are saved properly
@@ -38,7 +39,3 @@
 - No more "Token non trouvé ou invalide" exceptions
 - Better error handling and debugging information
 - Robust token management system
-
-## Additional Fixes
-- [x] Fixed missing import for OffreVentePage in homeProducteur.dart
-- [x] Resolved build error preventing app from running

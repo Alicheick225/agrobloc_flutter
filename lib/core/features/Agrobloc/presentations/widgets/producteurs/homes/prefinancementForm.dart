@@ -64,7 +64,9 @@ void _envoyerDemande() async {
 
     final userService = UserService();
 
-    if (!userService.isLoggedIn) {
+    // Vérifier l'authentification en chargeant les données utilisateur si nécessaire
+    final isAuthenticated = await userService.isUserAuthenticated();
+    if (!isAuthenticated) {
       throw Exception("Utilisateur non connecté ou token manquant");
     }
 
@@ -93,16 +95,80 @@ void _envoyerDemande() async {
     );
 
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Demande envoyée avec succès ✅")),
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Demande envoyée avec succès ✅'),
+          content: const Text('Votre demande de préfinancement a été enregistrée.'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Retour'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Fermer le modal
+              },
+            ),
+            TextButton(
+              child: const Text('Voir ma demande'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Fermer le modal
+                // Naviguer vers la page de détail ou liste des demandes
+                Navigator.of(context).pushNamed('/mes-demandes');
+              },
+            ),
+          ],
+        );
+      },
     );
 
     print("Réponse API : ${jsonEncode(annonce.toJson())}");
   } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Erreur : $e")),
-    );
     print("Erreur API : $e");
+
+    // Gestion spécifique des erreurs d'authentification
+    String errorMessage = "Une erreur inattendue s'est produite";
+
+    if (e.toString().contains("Token manquant") ||
+        e.toString().contains("Utilisateur non connecté") ||
+        e.toString().contains("token manquant")) {
+      errorMessage = "Session expirée. Veuillez vous reconnecter.";
+    } else if (e.toString().contains("Identifiant utilisateur invalide") ||
+               e.toString().contains("authentification") ||
+               e.toString().contains("Authentication")) {
+      errorMessage = "Problème d'authentification. Veuillez vous reconnecter.";
+    } else if (e.toString().contains("Impossible de rafraîchir le token")) {
+      errorMessage = "Session expirée. Veuillez vous reconnecter pour continuer.";
+    } else if (e.toString().contains("Erreur lors de la création du préfinancement")) {
+      errorMessage = "Erreur lors de l'envoi de la demande. Veuillez réessayer.";
+    } else if (e.toString().contains("réseau") ||
+               e.toString().contains("network") ||
+               e.toString().contains("connection")) {
+      errorMessage = "Problème de connexion. Vérifiez votre connexion internet.";
+    } else {
+      // Pour les autres erreurs, afficher un message générique mais plus user-friendly
+      errorMessage = "Une erreur s'est produite. Veuillez réessayer.";
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(errorMessage),
+        duration: const Duration(seconds: 4),
+        action: (errorMessage.contains("reconnecter") ||
+                 errorMessage.contains("Session expirée"))
+            ? SnackBarAction(
+                label: "Se connecter",
+                onPressed: () {
+                  // Navigation vers la page de connexion
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                    '/login',
+                    (route) => false,
+                  );
+                },
+              )
+            : null,
+      ),
+    );
   }
 }
 

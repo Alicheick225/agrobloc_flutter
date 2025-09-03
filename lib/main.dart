@@ -36,22 +36,31 @@ Future<void> main() async {
   try {
     final userService = UserService();
     final hasStoredData = await userService.hasStoredUserData();
-    debugPrint('🔍 main() - UserService hasStoredData: $hasStoredData');
-    
+    debugPrint('🔍 main() - Données utilisateur stockées: $hasStoredData');
+
     if (hasStoredData) {
-      debugPrint('🔍 main() - Attempting to load user from storage...');
+      debugPrint('🔍 main() - Tentative de chargement de l\'utilisateur depuis le stockage...');
       final success = await userService.loadUser();
       if (success) {
-        debugPrint('✅ main() - User loaded successfully from storage');
+        debugPrint('✅ main() - Utilisateur chargé avec succès depuis le stockage');
+        debugPrint('🔍 main() - Utilisateur connecté: ${userService.currentUser?.nom} (${userService.currentUser?.profilId})');
       } else {
-        debugPrint('❌ main() - Failed to load user from storage');
+        debugPrint('❌ main() - Échec du chargement de l\'utilisateur depuis le stockage');
+        debugPrint('ℹ️ main() - L\'application démarrera sur la page de connexion');
       }
     } else {
-      debugPrint('ℹ️ main() - No stored user data found');
+      debugPrint('ℹ️ main() - Aucune donnée utilisateur stockée trouvée');
+      debugPrint('ℹ️ main() - L\'application démarrera sur la page de connexion');
     }
   } catch (e, stackTrace) {
-    debugPrint('❌ main() - Erreur UserService: $e');
+    debugPrint('❌ main() - Erreur lors de l\'initialisation UserService: $e');
     debugPrint('❌ main() - Stack trace: $stackTrace');
+    debugPrint('🔄 main() - Nettoyage automatique de toute session invalide');
+    try {
+      await UserService().clearCurrentUser();
+    } catch (clearError) {
+      debugPrint('❌ main() - Erreur lors du nettoyage: $clearError');
+    }
   }
 
   runApp(MyApp(
