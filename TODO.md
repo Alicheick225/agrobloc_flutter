@@ -1,13 +1,18 @@
-# TODO: Intégrer AnnonceVenteModel et AnnonceService dans offreVentePage
+# TODO: Fix Prefinancement Offers Retrieval and Form Navigation
 
-## Étapes à suivre :
-- [x] Ajouter la méthode fetchAnnoncesByUser() à AnnonceService dans annonceVenteService.dart
-- [x] Modifier offreVentePage.dart pour importer AnnonceService et AnnonceVenteModel
-- [x] Remplacer l'instance de service de AnnonceAchatService à AnnonceService
-- [x] Changer le modèle de AnnonceAchat à AnnonceVente
-- [x] Mettre à jour la méthode _loadAnnonces pour utiliser le nouveau service
-- [x] Ajuster l'interface utilisateur pour afficher les données d'annonces de vente (prixKg, etc.)
-- [x] Changer le titre de l'appBar en "Mes Offres de Vente"
-- [x] Mettre à jour la méthode de suppression pour utiliser deleteAnnonce d'AnnonceService
-- [x] Mettre à jour la navigation d'édition pour passer AnnonceVente
-- [x] Tester les modifications et vérifier l'authentification
+## Issues to Address:
+1. Prefinancement offers are not filtered by user - currently fetches all offers
+2. "Voir ma demande" button navigates to wrong route
+3. "Retour" button doesn't reset form fields
+
+## Tasks:
+- [ ] Add `fetchPrefinancementsByUser(String userId)` method to `PrefinancementService`
+- [ ] Update `offreVentePage.dart` to use user-filtered method for prefinancements
+- [ ] Update `prefinancementForm.dart` navigation for "voir ma demande" button
+- [ ] Add form reset functionality to "retour" button in dialog
+- [ ] Test the complete flow
+
+## Files to Modify:
+- lib/core/features/Agrobloc/data/dataSources/AnnoncePrefinancementService.dart
+- lib/core/features/Agrobloc/presentations/widgets/producteurs/homes/offreVentePage.dart
+- lib/core/features/Agrobloc/presentations/widgets/producteurs/homes/prefinancementForm.dart

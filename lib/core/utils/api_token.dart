@@ -1,10 +1,34 @@
 // api_client.dart
+// api_client.dart
 import 'dart:convert';
 import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jwt_decode/jwt_decode.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
+
+/// Classes d'exception spécifiques pour les erreurs d'authentification
+class AuthenticationException implements Exception {
+  final String message;
+  final String type;
+
+  AuthenticationException(this.message, {this.type = 'authentication'});
+
+  @override
+  String toString() => 'AuthenticationException: $message (type: $type)';
+}
+
+class TokenExpiredException extends AuthenticationException {
+  TokenExpiredException(String message) : super(message, type: 'token_expired');
+}
+
+class TokenInvalidException extends AuthenticationException {
+  TokenInvalidException(String message) : super(message, type: 'token_invalid');
+}
+
+class NetworkAuthenticationException extends AuthenticationException {
+  NetworkAuthenticationException(String message) : super(message, type: 'network');
+}
 
 class ApiClient {
   final String baseUrl;
@@ -145,14 +169,14 @@ class ApiClient {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
     if (token == null) {
-      throw Exception("Token non trouvé. Veuillez vous connecter.");
+      throw TokenInvalidException("Token non trouvé. Veuillez vous connecter.");
     }
 
     // Décoder le token
     final payload = Jwt.parseJwt(token);
 
     if (!payload.containsKey("user_id")) {
-      throw Exception("user_id manquant dans le token");
+      throw TokenInvalidException("user_id manquant dans le token");
     }
 
     return payload["user_id"].toString();
@@ -185,10 +209,13 @@ class ApiClient {
       }
 
       print('❌ ApiClient._getFallbackHeaders() - Aucune méthode de secours disponible');
-      throw Exception("Aucune méthode d'authentification de secours disponible");
+      throw TokenInvalidException("Aucune méthode d'authentification de secours disponible");
     } catch (e) {
       print('❌ ApiClient._getFallbackHeaders() - Erreur dans l\'authentification de secours: $e');
-      rethrow;
+      if (e is AuthenticationException) {
+        rethrow;
+      }
+      throw NetworkAuthenticationException("Erreur réseau lors de l'authentification de secours: $e");
     }
   }
 }

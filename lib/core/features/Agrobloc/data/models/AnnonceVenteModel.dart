@@ -9,6 +9,7 @@ class AnnonceVente {
   final String quantiteUnite;
   final String userNom;
   final String typeCultureLibelle;
+  final String typeCultureId; // Added for enrichment
   final String parcelleAdresse;
   final String? createdAt;
   final double? note;
@@ -24,12 +25,16 @@ class AnnonceVente {
     required this.quantiteUnite,
     required this.userNom,
     required this.typeCultureLibelle,
+    required this.typeCultureId,
     required this.parcelleAdresse,
     this.createdAt,
     this.note,
   });
 
   factory AnnonceVente.fromJson(Map<String, dynamic> json) {
+    // Add logging to see the JSON structure
+    print('AnnonceVente.fromJson: $json');
+
     return AnnonceVente(
       id: json['id']?.toString() ?? '',
       photo: json['photo'],
@@ -39,9 +44,10 @@ class AnnonceVente {
       prixUnite: json['prix_unite'] ?? 'FCFA',
       quantite: (json['quantite'] as num?)?.toDouble() ?? 0,
       quantiteUnite: json['quantite_unite'] ?? 'kg',
-      userNom: json['user_nom'] ?? '',
-      typeCultureLibelle: json['type_culture_libelle'] ?? '',
-      parcelleAdresse: json['parcelle_adresse'] ?? '',
+      userNom: json['user']?['nom'] ?? json['user_nom'] ?? '',
+      typeCultureLibelle: json['type_culture']?['libelle'] ?? json['type_culture_libelle'] ?? '',
+      typeCultureId: json['type_culture_id']?.toString() ?? json['type_culture']?['id']?.toString() ?? '',
+      parcelleAdresse: json['parcelle']?['adresse'] ?? json['parcelle_adresse'] ?? '',
       createdAt: json['created_at']?.toString(),
       note: (json['note'] as num?)?.toDouble(),
     );
@@ -59,6 +65,7 @@ class AnnonceVente {
       'quantite_unite': quantiteUnite,
       'user_nom': userNom,
       'type_culture_libelle': typeCultureLibelle,
+      'type_culture_id': typeCultureId,
       'parcelle_adresse': parcelleAdresse,
       'created_at': createdAt,
       'note': note,

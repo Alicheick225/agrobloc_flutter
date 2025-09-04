@@ -7,22 +7,24 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jwt_decode/jwt_decode.dart';
 import '../models/AnnonceVenteModel.dart';
+import 'tyoeCultureService.dart';
+import 'userService.dart';
 
 class AnnonceService {
   final ApiClient api = ApiClient('http://192.168.252.199:8080');
+  final TypeCultureService _typeCultureService = TypeCultureService();
   static const Duration timeoutDuration = Duration(seconds: 15);
 
-  /// Récupérer et valider le token JWT
+  Map<String, String>? _typeCultureCache;
+
+  /// Récupérer et valider le token via UserService
   Future<String> _getValidToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    // Utiliser UserService pour une gestion centralisée des tokens
+    final userService = UserService();
+    final token = await userService.getValidToken();
 
     if (token == null || token.isEmpty) {
-      throw Exception("Token manquant. Veuillez vous reconnecter.");
-    }
-
-    if (Jwt.isExpired(token)) {
-      throw Exception("Token expiré. Veuillez vous reconnecter.");
+      throw Exception("Token non trouvé ou invalide. Veuillez vous connecter.");
     }
 
     return token;
@@ -46,13 +48,45 @@ class AnnonceService {
   return uid;
 }
 
+  /// Cache all typeCultures for quick lookup
+  Future<void> _cacheTypeCultures() async {
+    if (_typeCultureCache != null) return; // already cached
+    final types = await _typeCultureService.getAllTypes();
+    _typeCultureCache = { for (var t in types) t.id : t.libelle };
+  }
+
+  /// Enrich AnnonceVente list with typeCulture libelle from cache
+  Future<List<AnnonceVente>> _enrichAnnoncesWithTypeCulture(List<AnnonceVente> annonces) async {
+    await _cacheTypeCultures();
+    return annonces.map((annonce) {
+      final libelle = _typeCultureCache?[annonce.typeCultureId] ?? '';
+      return AnnonceVente(
+        id: annonce.id,
+        photo: annonce.photo,
+        statut: annonce.statut,
+        description: annonce.description,
+        prixKg: annonce.prixKg,
+        prixUnite: annonce.prixUnite,
+        quantite: annonce.quantite,
+        quantiteUnite: annonce.quantiteUnite,
+        userNom: annonce.userNom,
+        typeCultureLibelle: libelle.isNotEmpty ? libelle : annonce.typeCultureLibelle,
+        typeCultureId: annonce.typeCultureId,
+        parcelleAdresse: annonce.parcelleAdresse,
+        createdAt: annonce.createdAt,
+        note: annonce.note,
+      );
+    }).toList();
+  }
+
   /// Récupérer toutes les annonces
   Future<List<AnnonceVente>> getAllAnnonces() async {
     try {
       final response = await api.get('/annonces_vente');
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
-        return data.map((json) => AnnonceVente.fromJson(json)).toList();
+        final annonces = data.map((json) => AnnonceVente.fromJson(json)).toList();
+        return await _enrichAnnoncesWithTypeCulture(annonces);
       } else {
         throw _handleError(response);
       }
@@ -140,7 +174,9 @@ class AnnonceService {
     try {
       final response = await api.get('/annonces_vente/$id');
       if (response.statusCode == 200) {
-        return AnnonceVente.fromJson(jsonDecode(response.body));
+        final annonce = AnnonceVente.fromJson(jsonDecode(response.body));
+        final enriched = await _enrichAnnoncesWithTypeCulture([annonce]);
+        return enriched.first;
       } else {
         throw _handleError(response);
       }
@@ -155,7 +191,8 @@ class AnnonceService {
       final response = await api.get('/annonces_vente/user/$userId');
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
-        return data.map((json) => AnnonceVente.fromJson(json)).toList();
+        final annonces = data.map((json) => AnnonceVente.fromJson(json)).toList();
+        return await _enrichAnnoncesWithTypeCulture(annonces);
       } else {
         throw _handleError(response);
       }

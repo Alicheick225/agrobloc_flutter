@@ -11,6 +11,8 @@ class UserService {
   String? _userId;
   String? _token;
   bool _isLoading = false;
+  bool? _cachedAuthState;
+  DateTime? _lastAuthCheck;
 
   // Grace period in seconds before considering token expired (to handle clock skew)
   static const int _tokenGracePeriodSeconds = 120;
@@ -19,10 +21,21 @@ class UserService {
   UserService._internal();
 
   AuthentificationModel? get currentUser => _currentUser;
-  String? get userId => _userId;
+  String? get userId {
+    print('🔍 UserService.userId getter - Valeur actuelle: ${_userId ?? "null"}');
+    return _userId;
+  }
   String? get token => _token;
   bool get isLoggedIn => _currentUser != null && _token != null && _token!.isNotEmpty;
   bool get isLoading => _isLoading;
+
+  /// Callback pour gérer la reconnexion forcée
+  Function? _onForceReLogin;
+
+  /// Définit le callback pour la reconnexion forcée
+  void setForceReLoginCallback(Function callback) {
+    _onForceReLogin = callback;
+  }
 
   /// Valide le format du token JWT
   bool _isValidTokenFormat(String token) {
@@ -169,14 +182,21 @@ class UserService {
       prefs = await SharedPreferences.getInstance();
 
       // Vérifier d'abord si SharedPreferences fonctionne
-      final testKey = 'test_key_for_debugging';
-      await prefs.setString(testKey, 'test_value');
-      final testValue = prefs.getString(testKey);
-      await prefs.remove(testKey);
+      try {
+        final testKey = 'test_key_for_debugging_${DateTime.now().millisecondsSinceEpoch}';
+        await prefs.setString(testKey, 'test_value');
+        final testValue = prefs.getString(testKey);
+        await prefs.remove(testKey);
 
-      if (testValue != 'test_value') {
-        print('❌ UserService.getValidToken() - ERREUR: SharedPreferences ne fonctionne pas correctement!');
-        return null;
+        if (testValue != 'test_value') {
+          print('❌ UserService.getValidToken() - ERREUR: SharedPreferences ne fonctionne pas correctement! Valeur attendue: "test_value", valeur obtenue: "$testValue"');
+          return null;
+        }
+        print('✅ UserService.getValidToken() - SharedPreferences fonctionne correctement');
+      } catch (e) {
+        print('❌ UserService.getValidToken() - ERREUR lors du test SharedPreferences: $e');
+        // Continue without returning null - the test failure doesn't necessarily mean SharedPreferences is completely broken
+        print('⚠️ UserService.getValidToken() - Continuation malgré l\'erreur de test SharedPreferences');
       }
 
       accessToken = prefs.getString("token");
@@ -254,32 +274,20 @@ class UserService {
         print("🔄 UserService.getValidToken() - ${forceRefresh ? 'Refresh forcé' : 'Token expiré'}, tentative de rafraîchissement...");
         try {
           if (refreshToken == null || refreshToken.isEmpty) {
-            print('❌ UserService.getValidToken() - Aucun token de rafraîchissement disponible');
-            print('🔄 UserService.getValidToken() - Nettoyage automatique de la session invalide');
+            print('⚠️ UserService.getValidToken() - Aucun token de rafraîchissement disponible');
+            print('🔄 UserService.getValidToken() - Token expiré et pas de refresh possible - déclenchement de la reconnexion forcée');
+
+            // Déclencher le callback de reconnexion forcée si défini
+            if (_onForceReLogin != null) {
+              print('🔄 UserService.getValidToken() - Callback de reconnexion forcée appelé');
+              _onForceReLogin!();
+            } else {
+              print('⚠️ UserService.getValidToken() - Aucun callback de reconnexion défini');
+            }
+
+            // Nettoyer les tokens invalides
             await clearInvalidTokens();
             return null;
-          }
-
-          // Vérifier si c'est un token temporaire (généré localement)
-          if (refreshToken.startsWith('temp_refresh_')) {
-            print('⚠️ UserService.getValidToken() - Token de refresh temporaire détecté');
-
-            if (!allowTempRefresh) {
-              print('🔄 UserService.getValidToken() - Refresh temporaire non autorisé');
-              // Si le token d'accès est encore valide, le retourner au lieu de nettoyer
-              if (!isExpired) {
-                print('✅ UserService.getValidToken() - Token d\'accès encore valide, retour du token actuel');
-                return accessToken;
-              } else {
-                print('🔄 UserService.getValidToken() - Token d\'accès expiré, nettoyage de la session');
-                await clearInvalidTokens();
-                return null;
-              }
-            } else {
-              print('🔄 UserService.getValidToken() - Tentative de refresh malgré token temporaire (mode de secours)');
-              // Essayer quand même le refresh, même si c'est temporaire
-              // Cela peut réussir si l'API accepte les tokens temporaires
-            }
           }
 
           print('🔄 UserService.getValidToken() - Appel de AuthService.refreshToken()...');
@@ -296,17 +304,10 @@ class UserService {
           print("❌ UserService.getValidToken() - Stack trace: $stackTrace");
           print("🔍 UserService.getValidToken() - Refresh token utilisé: ${refreshToken != null ? refreshToken.substring(0, refreshToken.length > 10 ? 10 : refreshToken.length) + '...' : 'null'}");
 
-          // Pour les tokens temporaires, ne pas nettoyer automatiquement la session
-          // Permettre à l'utilisateur de continuer avec le token actuel si possible
-          if (refreshToken != null && refreshToken.startsWith('temp_refresh_')) {
-            print('⚠️ UserService.getValidToken() - Échec du refresh pour token temporaire, conservation du token actuel');
-            print('🔄 UserService.getValidToken() - L\'utilisateur devra se reconnecter manuellement plus tard');
-            return accessToken; // Retourner le token actuel au lieu de null
-          } else {
-            print('🔄 UserService.getValidToken() - Nettoyage automatique de la session suite à l\'échec du refresh');
-            await clearInvalidTokens();
-            return null;
-          }
+          // Nettoyer la session suite à l'échec du refresh
+          print('🔄 UserService.getValidToken() - Nettoyage automatique de la session suite à l\'échec du refresh');
+          await clearInvalidTokens();
+          return null;
         }
       }
 
@@ -360,6 +361,8 @@ class UserService {
     _currentUser = null;
     _userId = null;
     _token = null;
+    _cachedAuthState = null; // Clear cache
+    _lastAuthCheck = null; // Clear cache timestamp
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('user');
@@ -368,6 +371,8 @@ class UserService {
     await prefs.remove('refresh_token');
 
     print('✅ UserService: session utilisateur nettoyée');
+
+    // TODO: Add event or callback to notify UI about logout/session expiration
   }
 
   /// Nettoie les tokens invalides sans supprimer les données utilisateur
@@ -436,21 +441,48 @@ class UserService {
     return hasUserId && hasToken;
   }
 
-  /// Vérifie si l'utilisateur est authentifié
-  Future<bool> isUserAuthenticated() async {
+  /// Vérifie si l'utilisateur est authentifié (avec cache pour éviter les appels répétés)
+  Future<bool> isUserAuthenticated({bool forceRefresh = false}) async {
+    // Vérifier le cache si disponible et pas expiré (30 secondes)
+    if (!forceRefresh && _cachedAuthState != null && _lastAuthCheck != null) {
+      final cacheAge = DateTime.now().difference(_lastAuthCheck!);
+      if (cacheAge.inSeconds < 30) {
+        print('🔍 UserService.isUserAuthenticated() - Utilisation du cache: $_cachedAuthState (âge: ${cacheAge.inSeconds}s)');
+        return _cachedAuthState!;
+      }
+    }
+
     print('🔍 UserService.isUserAuthenticated() - Vérification de l\'authentification...');
-    // Always check storage first - instance variables might not be loaded
+
+    // Vérifier d'abord les variables d'instance pour un contrôle rapide
+    if (_currentUser != null && _token != null && _token!.isNotEmpty) {
+      final isTokenValid = !isTokenExpired(_token!);
+      if (isTokenValid) {
+        print('🔍 UserService.isUserAuthenticated() - Token valide en cache, authentification confirmée');
+        _cachedAuthState = true;
+        _lastAuthCheck = DateTime.now();
+        return true;
+      }
+    }
+
+    // Vérifier le stockage persistant
     final hasData = await hasStoredUserData();
     print('🔍 UserService.isUserAuthenticated() - Données stockées présentes: $hasData');
+
     if (hasData) {
       final result = await loadUser();
       print('🔍 UserService.isUserAuthenticated() - Résultat du chargement: $result');
+      _cachedAuthState = result;
+      _lastAuthCheck = DateTime.now();
       return result;
     }
 
-    // Fallback to instance variables if no stored data
-    final fallbackResult = _currentUser != null && _token != null && _token!.isNotEmpty;
+    // Fallback aux variables d'instance si aucune donnée stockée
+    final fallbackResult = _currentUser != null && _token != null && _token!.isNotEmpty && !isTokenExpired(_token!);
     print('🔍 UserService.isUserAuthenticated() - Fallback aux variables d\'instance: $fallbackResult');
+
+    _cachedAuthState = fallbackResult;
+    _lastAuthCheck = DateTime.now();
     return fallbackResult;
   }
 

@@ -96,22 +96,17 @@ class AuthService {
       if (accessToken == null) throw Exception("Access token manquant");
 
       // Vérifier si le refresh token est disponible
-      String? finalRefreshToken;
+      String? finalRefreshToken = refreshToken;
+
       if (refreshToken == null || refreshToken.isEmpty) {
         print('⚠️ AuthService.login() - Aucun refresh token dans la réponse API');
-        print('🔄 AuthService.login() - Tentative de génération d\'un refresh token temporaire');
+        print('🔄 AuthService.login() - Continuer sans refresh token - refresh manuel requis');
 
-        // Générer un refresh token temporaire basé sur l'access token
-        // Cette approche permet de maintenir la compatibilité avec l'API actuelle
-        finalRefreshToken = 'temp_refresh_${DateTime.now().millisecondsSinceEpoch}_${user.id}';
-        print('✅ AuthService.login() - Refresh token temporaire généré');
-
-        // Sauvegarde user + tokens (avec refresh token temporaire)
-        await UserService().setCurrentUser(user, accessToken, finalRefreshToken);
-        print('🔍 AuthService.login() - Tokens sauvegardés avec refresh token temporaire');
+        // Ne pas générer de token temporaire, sauvegarder sans refresh token
+        await UserService().setCurrentUser(user, accessToken, '');
+        print('🔍 AuthService.login() - Tokens sauvegardés sans refresh token');
       } else {
         // Sauvegarde normale avec refresh token de l'API
-        finalRefreshToken = refreshToken;
         await UserService().setCurrentUser(user, accessToken, refreshToken);
         print('🔍 AuthService.login() - Tokens sauvegardés avec refresh token API');
       }
@@ -393,16 +388,11 @@ class AuthService {
       // Vérifier si le refresh token est disponible
       if (refreshToken == null || refreshToken.isEmpty) {
         print('⚠️ AuthService.register() - Aucun refresh token dans la réponse API');
-        print('🔄 AuthService.register() - Tentative de génération d\'un refresh token temporaire');
+        print('🔄 AuthService.register() - Continuer sans refresh token - refresh manuel requis');
 
-        // Générer un refresh token temporaire basé sur l'access token
-        // Cette approche permet de maintenir la compatibilité avec l'API actuelle
-        final tempRefreshToken = 'temp_refresh_${DateTime.now().millisecondsSinceEpoch}_${user.id}';
-        print('✅ AuthService.register() - Refresh token temporaire généré');
-
-        // Sauvegarde user + tokens (avec refresh token temporaire)
-        await UserService().setCurrentUser(user, accessToken, tempRefreshToken);
-        print('🔍 AuthService.register() - Tokens sauvegardés avec refresh token temporaire');
+        // Ne pas générer de token temporaire, sauvegarder sans refresh token
+        await UserService().setCurrentUser(user, accessToken, '');
+        print('🔍 AuthService.register() - Tokens sauvegardés sans refresh token');
       } else {
         // Sauvegarde normale avec refresh token de l'API
         await UserService().setCurrentUser(user, accessToken, refreshToken);

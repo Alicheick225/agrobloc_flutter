@@ -283,7 +283,7 @@ class _HomeProducteurState extends State<HomeProducteur> {
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const OffreVentePage()));
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const OffreVentePage(initialTabIndex: 1)));
                       },
                       label: Text("Mes offres de vente", style: TextStyle(color: const Color(0xFF4CAF50), fontSize: 14.sp)),
                       style: ElevatedButton.styleFrom(

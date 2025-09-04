@@ -8,6 +8,7 @@ class AnnoncePrefinancement {
   final String quantiteUnite;
   final String nom; // Changed from userNom to nom
   final String libelle; // Changed from typeCultureLibelle to libelle
+  final String typeCultureId; // Added for enrichment
   final String adresse; // Changed from parcelleAdresse to adresse
   final double surface; // Changed from parcelleSuf to surface
   final DateTime createdAt;
@@ -23,6 +24,7 @@ class AnnoncePrefinancement {
     required this.quantiteUnite,
     required this.nom,
     required this.libelle,
+    required this.typeCultureId,
     required this.adresse,
     required this.surface,
     required this.createdAt,
@@ -31,9 +33,9 @@ class AnnoncePrefinancement {
 
   factory AnnoncePrefinancement.fromJson(Map<String, dynamic> json) {
     // Handle quantity unit conversion
-    double quantiteValue = (json['Quantite'] as num?)?.toDouble() ?? 0.0;
+    double quantiteValue = (json['quantite'] as num?)?.toDouble() ?? 0.0;
     String quantiteUnite = 'kg';
-    
+
     // If quantity is large, display in tonnes
     if (quantiteValue >= 1000) {
       quantiteUnite = 'T';
@@ -41,37 +43,39 @@ class AnnoncePrefinancement {
     }
 
     return AnnoncePrefinancement(
-      id: json['ID']?.toString() ?? '',
-      statut: json['Statut']?.toString() ?? '',
-      description: json['Description']?.toString() ?? '',
-      montantPref: (json['MontantPref'] as num?)?.toDouble() ?? 0.0,
-      prixKgPref: (json['PrixKgPref'] as num?)?.toDouble() ?? 0.0,
+      id: json['id']?.toString() ?? '',
+      statut: json['statut']?.toString() ?? '',
+      description: json['description']?.toString() ?? '',
+      montantPref: (json['montantPref'] as num?)?.toDouble() ?? 0.0,
+      prixKgPref: (json['prixKgPref'] as num?)?.toDouble() ?? 0.0,
       quantite: quantiteValue,
       quantiteUnite: quantiteUnite,
-      nom: json['UserNom']?.toString() ?? '', // Map UserNom to nom
-      libelle: json['TypeCultureLibelle']?.toString() ?? '', // Map TypeCultureLibelle to libelle
-      adresse: json['ParcelleAdresse']?.toString() ?? '', // Map ParcelleAdresse to adresse
-      surface: (json['ParcelleSuf'] as num?)?.toDouble() ?? 0.0, // Map ParcelleSuf to surface
-      createdAt: DateTime.parse(json['CreatedAt']?.toString() ?? DateTime.now().toIso8601String()),
-      updatedAt: DateTime.parse(json['UpdatedAt']?.toString() ?? DateTime.now().toIso8601String()),
+      nom: json['userNom']?.toString() ?? '', // Map userNom to nom
+      libelle: json['typeCultureLibelle']?.toString() ?? '', // Map typeCultureLibelle to libelle
+      typeCultureId: json['typeCultureId']?.toString() ?? '', // Added for enrichment
+      adresse: json['parcelleAdresse']?.toString() ?? '', // Map parcelleAdresse to adresse
+      surface: (json['parcelleSuf'] as num?)?.toDouble() ?? 0.0, // Map parcelleSuf to surface
+      createdAt: DateTime.parse(json['createdAt']?.toString() ?? DateTime.now().toIso8601String()),
+      updatedAt: DateTime.parse(json['updatedAt']?.toString() ?? DateTime.now().toIso8601String()),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'ID': id,
-      'Statut': statut,
-      'Description': description,
-      'MontantPref': montantPref,
-      'PrixKgPref': prixKgPref,
-      'Quantite': quantite,
-      'QuantiteUnite': quantiteUnite,
-      'UserNom': nom, // Map nom back to UserNom
-      'TypeCultureLibelle': libelle, // Map libelle back to TypeCultureLibelle
-      'ParcelleAdresse': adresse, // Map adresse back to ParcelleAdresse
-      'ParcelleSuf': surface, // Map surface back to ParcelleSuf
-      'CreatedAt': createdAt.toIso8601String(),
-      'UpdatedAt': updatedAt.toIso8601String(),
+      'id': id,
+      'statut': statut,
+      'description': description,
+      'montantPref': montantPref,
+      'prixKgPref': prixKgPref,
+      'quantite': quantite,
+      'quantiteUnite': quantiteUnite,
+      'userNom': nom, // Map nom back to userNom
+      'typeCultureLibelle': libelle, // Map libelle back to typeCultureLibelle
+      'typeCultureId': typeCultureId, // Added for enrichment
+      'parcelleAdresse': adresse, // Map adresse back to parcelleAdresse
+      'parcelleSuf': surface, // Map surface back to parcelleSuf
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
     };
   }
 

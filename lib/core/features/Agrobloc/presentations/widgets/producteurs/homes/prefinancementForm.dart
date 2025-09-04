@@ -6,6 +6,7 @@ import 'package:agrobloc/core/features/Agrobloc/data/dataSources/parcelleService
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/tyoeCultureService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/parcelleService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/typecultureModel.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/offreVentePage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PrefinancementForm extends StatefulWidget {
@@ -107,14 +108,28 @@ void _envoyerDemande() async {
               child: const Text('Retour'),
               onPressed: () {
                 Navigator.of(context).pop(); // Fermer le modal
+                // Reset form fields
+                setState(() {
+                  culture = null;
+                  parcelle = null;
+                  productionController.clear();
+                  prixVenteController.clear();
+                  montantController.clear();
+                  descriptionController.clear();
+                  unite = "Kg";
+                });
               },
             ),
             TextButton(
               child: const Text('Voir ma demande'),
               onPressed: () {
                 Navigator.of(context).pop(); // Fermer le modal
-                // Naviguer vers la page de détail ou liste des demandes
-                Navigator.of(context).pushNamed('/mes-demandes');
+                // Naviguer vers la page OffreVentePage avec l'onglet Financement sélectionné
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const OffreVentePage(initialTabIndex: 2),
+                  ),
+                );
               },
             ),
           ],
