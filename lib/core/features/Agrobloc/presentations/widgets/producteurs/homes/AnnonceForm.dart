@@ -1,12 +1,16 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/annonceVenteService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/tyoeCultureService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/parcelleService.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/parcelleService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/typecultureModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/offreVentePage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AnnonceForm extends StatefulWidget {
   final AnnonceVente? annonce;
@@ -344,6 +348,16 @@ class _AnnonceFormState extends State<AnnonceForm> {
     setState(() => isSubmitting = true);
 
     try {
+      final userService = UserService();
+
+      // Vérifier l'authentification en chargeant les données utilisateur si nécessaire
+      final isAuthenticated = await userService.isUserAuthenticated();
+      if (!isAuthenticated) {
+        throw Exception("Utilisateur non connecté ou token manquant");
+      }
+
+      final userId = userService.userId!;
+
       final cultureChoisie = typeCultures.firstWhere((c) => c.libelle == selectedCulture);
       final parcelleChoisie = parcelles.firstWhere((p) => p.libelle == selectedParcelle);
 
@@ -355,22 +369,97 @@ class _AnnonceFormState extends State<AnnonceForm> {
         quantite: quantite,
         prixKg: prixKg,
         photo: photo,
-        userId: '', // À remplacer par l'ID utilisateur réel
+        userId: userId,
       );
 
-      _afficherMessage("Annonce créée avec succès");
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('✅'),
+            content: const Text('Votre annonce a été créée avec succès.'),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Retour'),
+                onPressed: () {
+                  Navigator.of(context).pop(); // Fermer le modal
+                  // Reset form fields
+                  setState(() {
+                    selectedCulture = null;
+                    selectedParcelle = null;
+                    quantite = 10;
+                    prixKg = 0;
+                    statut = "Disponible";
+                    photo = null;
+                    description = "";
+                  });
+                },
+              ),
+              TextButton(
+                child: const Text('Voir mes annonces'),
+                onPressed: () {
+                  Navigator.of(context).pop(); // Fermer le modal
+                  // Naviguer vers la page OffreVentePage avec l'onglet Annonces sélectionné
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const OffreVentePage(initialTabIndex: 1),
+                    ),
+                  );
+                },
+              ),
+            ],
+          );
+        },
+      );
 
-      setState(() {
-        selectedCulture = null;
-        selectedParcelle = null;
-        quantite = 10;
-        prixKg = 0;
-        statut = "Disponible";
-        photo = null;
-        description = "";
-      });
+      print("Réponse API : ${jsonEncode("Annonce créée")}"); // Adapté pour annonce
     } catch (e) {
-      _afficherMessage("Erreur : $e");
+      print("Erreur API : $e");
+
+      // Gestion spécifique des erreurs d'authentification
+      String errorMessage = "Une erreur inattendue s'est produite";
+
+      if (e.toString().contains("Token manquant") ||
+          e.toString().contains("Utilisateur non connecté") ||
+          e.toString().contains("token manquant")) {
+        errorMessage = "Session expirée. Veuillez vous reconnecter.";
+      } else if (e.toString().contains("Identifiant utilisateur invalide") ||
+                 e.toString().contains("authentification") ||
+                 e.toString().contains("Authentication")) {
+        errorMessage = "Problème d'authentification. Veuillez vous reconnecter.";
+      } else if (e.toString().contains("Impossible de rafraîchir le token")) {
+        errorMessage = "Session expirée. Veuillez vous reconnecter pour continuer.";
+      } else if (e.toString().contains("Erreur lors de la création de l'annonce")) {
+        errorMessage = "Erreur lors de l'envoi de l'annonce. Veuillez réessayer.";
+      } else if (e.toString().contains("réseau") ||
+                 e.toString().contains("network") ||
+                 e.toString().contains("connection")) {
+        errorMessage = "Problème de connexion. Vérifiez votre connexion internet.";
+      } else {
+        // Pour les autres erreurs, afficher un message générique mais plus user-friendly
+        errorMessage = "Une erreur s'est produite. Veuillez réessayer.";
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          duration: const Duration(seconds: 4),
+          action: (errorMessage.contains("reconnecter") ||
+                   errorMessage.contains("Session expirée"))
+              ? SnackBarAction(
+                  label: "Se connecter",
+                  onPressed: () {
+                    // Navigation vers la page de connexion
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                      '/login',
+                      (route) => false,
+                    );
+                  },
+                )
+              : null,
+        ),
+      );
     } finally {
       setState(() => isSubmitting = false);
     }

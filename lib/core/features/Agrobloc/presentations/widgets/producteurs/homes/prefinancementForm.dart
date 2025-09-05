@@ -6,11 +6,14 @@ import 'package:agrobloc/core/features/Agrobloc/data/dataSources/parcelleService
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/tyoeCultureService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/parcelleService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/typecultureModel.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/annoncePrefinancementModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/offreVentePage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PrefinancementForm extends StatefulWidget {
-  const PrefinancementForm({super.key});
+  final AnnoncePrefinancement? prefinancement; // Pour le mode édition
+
+  const PrefinancementForm({super.key, this.prefinancement});
 
   @override
   State<PrefinancementForm> createState() => _PrefinancementFormState();
@@ -37,6 +40,32 @@ class _PrefinancementFormState extends State<PrefinancementForm> {
   void initState() {
     super.initState();
     _chargerData();
+    if (widget.prefinancement != null) {
+      _populateFieldsForEditing();
+    }
+  }
+
+  void _populateFieldsForEditing() {
+    if (widget.prefinancement == null) return;
+
+    final prefinancement = widget.prefinancement!;
+
+    // Populate quantity
+    productionController.text = prefinancement.quantite.toString();
+
+    // Populate price
+    prixVenteController.text = prefinancement.prixKgPref.toString();
+
+    // Populate description
+    descriptionController.text = prefinancement.description ?? '';
+
+    // Set unit based on quantity (assuming if > 1000, it's in T)
+    if (prefinancement.quantite >= 1000) {
+      unite = "T";
+      productionController.text = (prefinancement.quantite / 1000).toString();
+    } else {
+      unite = "Kg";
+    }
   }
 
   Future<void> _chargerData() async {

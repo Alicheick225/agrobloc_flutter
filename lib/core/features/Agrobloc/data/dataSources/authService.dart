@@ -174,7 +174,7 @@ class AuthService {
     }
   }
 
-  /// Rafraîchit le token avec validation améliorée
+  /// Rafraîchit le token avec validation améliorée et gestion des erreurs réseau
   Future<Map<String, String>> refreshToken(String refreshToken) async {
     print('🔄 AuthService.refreshToken() - Tentative de rafraîchissement du token');
     print('🔍 AuthService.refreshToken() - Refresh token utilisé: ${refreshToken.substring(0, min(20, refreshToken.length))}...');
@@ -188,108 +188,136 @@ class AuthService {
       throw Exception("Format du token de rafraîchissement invalide");
     }
 
-    try {
-      final response = await api.post(
-        '/refresh',
-        {'refreshToken': refreshToken},
-        withAuth: false,
-      );
+    // Retry logic for network errors during refresh
+    const int maxRefreshRetries = 2;
+    int refreshAttempt = 0;
+    while (refreshAttempt < maxRefreshRetries) {
+      refreshAttempt++;
+      try {
+        final response = await api.post(
+          '/refresh',
+          {'refreshToken': refreshToken},
+          withAuth: false,
+        );
 
-      print('🔍 AuthService.refreshToken() - Réponse API: Status ${response.statusCode}');
-      print('🔍 AuthService.refreshToken() - Body length: ${response.body.length} chars');
+        print('🔍 AuthService.refreshToken() - Réponse API: Status ${response.statusCode}');
+        print('🔍 AuthService.refreshToken() - Body length: ${response.body.length} chars');
 
-      if (response.statusCode == 200) {
-        dynamic data;
-        try {
-          data = jsonDecode(response.body);
-        } catch (e) {
-          print('⚠️ AuthService.refreshToken() - JSON parsing error: $e - Tentative de parsing manuel');
-          data = _parseManualResponse(response.body);
-        }
-
-        final newAccessToken = data['accessToken'] as String?;
-        final newRefreshToken = data['refreshToken'] as String?;
-
-        if (newAccessToken == null || newAccessToken.isEmpty) {
-          print('❌ AuthService.refreshToken() - Access token manquant ou vide dans la réponse');
-          throw Exception("Nouveau access token manquant dans la réponse API");
-        }
-
-        // Validation du nouveau token
-        if (!_isValidTokenFormat(newAccessToken)) {
-          print('❌ AuthService.refreshToken() - Nouveau access token a un format invalide');
-          throw Exception("Format du nouveau token d'accès invalide");
-        }
-
-        if (newRefreshToken != null && newRefreshToken.isNotEmpty && !newRefreshToken.startsWith('temp_refresh_') && !_isValidTokenFormat(newRefreshToken)) {
-          print('⚠️ AuthService.refreshToken() - Nouveau refresh token a un format invalide, utilisation de l\'ancien');
-          // Utiliser l'ancien refresh token si le nouveau est invalide
-        }
-
-        print('✅ AuthService.refreshToken() - Rafraîchissement réussi');
-        print('🔍 AuthService.refreshToken() - Nouveau access token: ${newAccessToken.substring(0, min(20, newAccessToken.length))}...');
-
-        return {
-          'accessToken': newAccessToken,
-          'refreshToken': newRefreshToken ?? refreshToken,
-        };
-      } else {
-        // Gestion spécifique des erreurs courantes avec parsing amélioré
-        String errorMessage = "Erreur lors du refresh du token";
-
-        try {
-          dynamic errorData = jsonDecode(response.body);
-          if (errorData is Map<String, dynamic>) {
-            if (errorData.containsKey('error')) {
-              errorMessage = errorData['error'];
-            } else if (errorData.containsKey('message')) {
-              errorMessage = errorData['message'];
-            }
-          } else if (errorData is String) {
-            errorMessage = errorData;
-          }
-        } catch (e) {
-          // Si le parsing JSON échoue, essayer le parsing manuel
+        if (response.statusCode == 200) {
+          dynamic data;
           try {
-            final manualData = _parseManualResponse(response.body);
-            if (manualData is Map<String, dynamic>) {
-              errorMessage = manualData['error'] ?? manualData['message'] ?? response.body;
-            } else {
+            data = jsonDecode(response.body);
+          } catch (e) {
+            print('⚠️ AuthService.refreshToken() - JSON parsing error: $e - Tentative de parsing manuel');
+            data = _parseManualResponse(response.body);
+          }
+
+          final newAccessToken = data['accessToken'] as String?;
+          final newRefreshToken = data['refreshToken'] as String?;
+
+          if (newAccessToken == null || newAccessToken.isEmpty) {
+            print('❌ AuthService.refreshToken() - Access token manquant ou vide dans la réponse');
+            throw Exception("Nouveau access token manquant dans la réponse API");
+          }
+
+          // Validation du nouveau token
+          if (!_isValidTokenFormat(newAccessToken)) {
+            print('❌ AuthService.refreshToken() - Nouveau access token a un format invalide');
+            throw Exception("Format du nouveau token d'accès invalide");
+          }
+
+          if (newRefreshToken != null && newRefreshToken.isNotEmpty && !newRefreshToken.startsWith('temp_refresh_') && !_isValidTokenFormat(newRefreshToken)) {
+            print('⚠️ AuthService.refreshToken() - Nouveau refresh token a un format invalide, utilisation de l\'ancien');
+            // Utiliser l'ancien refresh token si le nouveau est invalide
+          }
+
+          print('✅ AuthService.refreshToken() - Rafraîchissement réussi');
+          print('🔍 AuthService.refreshToken() - Nouveau access token: ${newAccessToken.substring(0, min(20, newAccessToken.length))}...');
+
+          return {
+            'accessToken': newAccessToken,
+            'refreshToken': newRefreshToken ?? refreshToken,
+          };
+        } else {
+          // Gestion spécifique des erreurs courantes avec parsing amélioré
+          String errorMessage = "Erreur lors du refresh du token";
+
+          try {
+            dynamic errorData = jsonDecode(response.body);
+            if (errorData is Map<String, dynamic>) {
+              if (errorData.containsKey('error')) {
+                errorMessage = errorData['error'];
+              } else if (errorData.containsKey('message')) {
+                errorMessage = errorData['message'];
+              }
+            } else if (errorData is String) {
+              errorMessage = errorData;
+            }
+          } catch (e) {
+            // Si le parsing JSON échoue, essayer le parsing manuel
+            try {
+              final manualData = _parseManualResponse(response.body);
+              if (manualData is Map<String, dynamic>) {
+                errorMessage = manualData['error'] ?? manualData['message'] ?? response.body;
+              } else {
+                errorMessage = response.body.isNotEmpty ? response.body : "Erreur inconnue du serveur";
+              }
+            } catch (manualError) {
               errorMessage = response.body.isNotEmpty ? response.body : "Erreur inconnue du serveur";
             }
-          } catch (manualError) {
-            errorMessage = response.body.isNotEmpty ? response.body : "Erreur inconnue du serveur";
+          }
+
+          print('❌ AuthService.refreshToken() - Échec du refresh: $errorMessage');
+
+          // Erreurs spécifiques d'authentification avec messages détaillés
+          if (response.statusCode == 401) {
+            if (errorMessage.toLowerCase().contains('invalide') ||
+                errorMessage.toLowerCase().contains('invalid')) {
+              throw Exception("Token de rafraîchissement invalide: $errorMessage");
+            } else if (errorMessage.toLowerCase().contains('expir') ||
+                       errorMessage.toLowerCase().contains('expired')) {
+              throw Exception("Token de rafraîchissement expiré: $errorMessage");
+            } else {
+              throw Exception("Authentification échouée lors du refresh: $errorMessage");
+            }
+          } else if (response.statusCode == 403) {
+            throw Exception("Accès refusé lors du refresh: $errorMessage");
+          } else if (response.statusCode == 404) {
+            throw Exception("Endpoint de refresh non trouvé: $errorMessage");
+          } else if (response.statusCode >= 500) {
+            // Retry on server errors (5xx) or network errors
+            if (refreshAttempt >= maxRefreshRetries) {
+              throw Exception("Erreur serveur lors du refresh: $errorMessage");
+            } else {
+              print('🔄 AuthService.refreshToken() - Erreur serveur, nouvelle tentative après délai');
+              await Future.delayed(Duration(seconds: 1));
+              continue;
+            }
+          } else {
+            throw Exception("Erreur lors du refresh (${response.statusCode}): $errorMessage");
           }
         }
+      } catch (e, stackTrace) {
+        print('❌ AuthService.refreshToken() - Exception: $e');
+        print('❌ AuthService.refreshToken() - Stack trace: $stackTrace');
 
-        print('❌ AuthService.refreshToken() - Échec du refresh: $errorMessage');
-
-        // Erreurs spécifiques d'authentification avec messages détaillés
-        if (response.statusCode == 401) {
-          if (errorMessage.toLowerCase().contains('invalide') ||
-              errorMessage.toLowerCase().contains('invalid')) {
-            throw Exception("Token de rafraîchissement invalide: $errorMessage");
-          } else if (errorMessage.toLowerCase().contains('expir') ||
-                     errorMessage.toLowerCase().contains('expired')) {
-            throw Exception("Token de rafraîchissement expiré: $errorMessage");
-          } else {
-            throw Exception("Authentification échouée lors du refresh: $errorMessage");
-          }
-        } else if (response.statusCode == 403) {
-          throw Exception("Accès refusé lors du refresh: $errorMessage");
-        } else if (response.statusCode == 404) {
-          throw Exception("Endpoint de refresh non trouvé: $errorMessage");
-        } else if (response.statusCode >= 500) {
-          throw Exception("Erreur serveur lors du refresh: $errorMessage");
+        // Retry on network-related exceptions
+        if (refreshAttempt >= maxRefreshRetries) {
+          rethrow;
+        } else if (e.toString().toLowerCase().contains('network') ||
+                   e.toString().toLowerCase().contains('connection') ||
+                   e.toString().toLowerCase().contains('timeout') ||
+                   e.toString().toLowerCase().contains('socket')) {
+          print('🔄 AuthService.refreshToken() - Erreur réseau, nouvelle tentative après délai');
+          await Future.delayed(Duration(seconds: 1));
+          continue;
         } else {
-          throw Exception("Erreur lors du refresh (${response.statusCode}): $errorMessage");
+          // Non-network errors should not be retried
+          rethrow;
         }
       }
-    } catch (e, stackTrace) {
-      print('❌ AuthService.refreshToken() - Exception: $e');
-      print('❌ AuthService.refreshToken() - Stack trace: $stackTrace');
-      rethrow;
     }
+    throw Exception('Échec après $maxRefreshRetries tentatives de rafraîchissement');
   }
 
   /// Récupération d'un utilisateur par son ID

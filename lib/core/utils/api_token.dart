@@ -267,18 +267,33 @@ class ApiClient {
     return payload["user_id"].toString();
   }
 
-  /// Vérifie la connectivité du serveur
+  /// Vérifie la connectivité du serveur avec retry
   Future<bool> _checkServerReachability() async {
-    try {
-      final url = Uri.parse('$baseUrl/'); // Check server root
-      final response = await http.get(url).timeout(const Duration(seconds: 10));
-      // Consider any HTTP response as reachable (server is responding)
-      // 200-499 means server is up, only network errors mean unreachable
-      return response.statusCode >= 200 && response.statusCode < 500;
-    } catch (e) {
-      print('⚠️ ApiClient._checkServerReachability() - Serveur non accessible: $e');
-      return false;
+    const int maxRetries = 2;
+    for (int attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        final url = Uri.parse('$baseUrl/'); // Check server root
+        final response = await http.get(url).timeout(const Duration(seconds: 5));
+        // Consider any HTTP response as reachable (server is responding)
+        // 200-499 means server is up, only network errors mean unreachable
+        if (response.statusCode >= 200 && response.statusCode < 500) {
+          print('✅ ApiClient._checkServerReachability() - Serveur accessible (tentative $attempt)');
+          return true;
+        } else {
+          print('⚠️ ApiClient._checkServerReachability() - Réponse serveur inattendue: ${response.statusCode} (tentative $attempt)');
+          if (attempt >= maxRetries) return false;
+        }
+      } catch (e) {
+        print('⚠️ ApiClient._checkServerReachability() - Erreur de connectivité (tentative $attempt): $e');
+        if (attempt >= maxRetries) {
+          print('❌ ApiClient._checkServerReachability() - Serveur non accessible après $maxRetries tentatives');
+          return false;
+        }
+        // Wait before retry
+        await Future.delayed(Duration(seconds: 1));
+      }
     }
+    return false;
   }
 
   /// Méthode de secours pour l'authentification en cas d'échec total

@@ -278,69 +278,96 @@ class UserService {
       // Force refresh if requested or if token is expired
       if (forceRefresh || isExpired) {
         print("🔄 UserService.getValidToken() - ${forceRefresh ? 'Refresh forcé' : 'Token expiré'}, tentative de rafraîchissement...");
-        try {
-          // Check if refresh token is null or empty/whitespace
-          final isRefreshTokenInvalid = refreshToken == null ||
-                                        refreshToken.trim().isEmpty ||
-                                        refreshToken == 'null';
 
-          if (isRefreshTokenInvalid) {
-            print('⚠️ UserService.getValidToken() - Token de rafraîchissement invalide (null/vide): "$refreshToken"');
-            print('🔄 UserService.getValidToken() - Tentative d\'utilisation du backup_token comme refresh token...');
+        // Retry logic for refresh attempts on network errors
+        const int maxRefreshRetries = 3;
+        int refreshAttempt = 0;
+        while (refreshAttempt < maxRefreshRetries) {
+          refreshAttempt++;
+          try {
+            // Check if refresh token is null or empty/whitespace
+            final isRefreshTokenInvalid = refreshToken == null ||
+                                          refreshToken.trim().isEmpty ||
+                                          refreshToken == 'null';
 
-            // Try to use backup_token as refresh token
-            final backupToken = await _getTokenFromBackup();
-            if (backupToken != null && backupToken.isNotEmpty) {
-              print('✅ UserService.getValidToken() - Backup token trouvé, tentative de refresh avec backup...');
-              try {
-                final newTokens = await AuthService().refreshToken(backupToken);
-                await prefs.setString("token", newTokens['accessToken']!);
-                await prefs.setString("refresh_token", newTokens['refreshToken']!);
-                _token = newTokens['accessToken']!;
-                print('✅ UserService.getValidToken() - Rafraîchissement réussi avec backup token');
-                print('🔍 UserService.getValidToken() - Nouveau token sauvegardé (${newTokens['accessToken']!.length} chars)');
-                return _token;
-              } catch (backupRefreshError) {
-                print('❌ UserService.getValidToken() - Échec du refresh avec backup token: $backupRefreshError');
-                print('🔄 UserService.getValidToken() - Backup token invalide, déclenchement de la reconnexion forcée');
+            if (isRefreshTokenInvalid) {
+              print('⚠️ UserService.getValidToken() - Token de rafraîchissement invalide (null/vide): "$refreshToken"');
+              print('🔄 UserService.getValidToken() - Tentative d\'utilisation du backup_token comme refresh token...');
+
+              // Try to use backup_token as refresh token
+              final backupToken = await _getTokenFromBackup();
+              if (backupToken != null && backupToken.isNotEmpty) {
+                print('✅ UserService.getValidToken() - Backup token trouvé, tentative de refresh avec backup...');
+                try {
+                  final newTokens = await AuthService().refreshToken(backupToken);
+                  await prefs.setString("token", newTokens['accessToken']!);
+                  await prefs.setString("refresh_token", newTokens['refreshToken']!);
+                  _token = newTokens['accessToken']!;
+                  print('✅ UserService.getValidToken() - Rafraîchissement réussi avec backup token');
+                  print('🔍 UserService.getValidToken() - Nouveau token sauvegardé (${newTokens['accessToken']!.length} chars)');
+                  return _token;
+                } catch (backupRefreshError) {
+                  print('❌ UserService.getValidToken() - Échec du refresh avec backup token: $backupRefreshError');
+                  if (refreshAttempt >= maxRefreshRetries) {
+                    print('🔄 UserService.getValidToken() - Backup token invalide, déclenchement de la reconnexion forcée');
+                    if (_onForceReLogin != null) {
+                      print('🔄 UserService.getValidToken() - Callback de reconnexion forcée appelé');
+                      _onForceReLogin!();
+                    } else {
+                      print('⚠️ UserService.getValidToken() - Aucun callback de reconnexion défini - nettoyage manuel des tokens');
+                      await clearInvalidTokens();
+                    }
+                    return null;
+                  } else {
+                    print('🔄 UserService.getValidToken() - Nouvelle tentative après échec du refresh avec backup token');
+                    await Future.delayed(Duration(seconds: 2));
+                    continue;
+                  }
+                }
+              } else {
+                print('⚠️ UserService.getValidToken() - Aucun backup token disponible');
+                if (refreshAttempt >= maxRefreshRetries) {
+                  print('🔄 UserService.getValidToken() - Token expiré et pas de refresh possible - déclenchement de la reconnexion forcée');
+                  if (_onForceReLogin != null) {
+                    print('🔄 UserService.getValidToken() - Callback de reconnexion forcée appelé');
+                    _onForceReLogin!();
+                  } else {
+                    print('⚠️ UserService.getValidToken() - Aucun callback de reconnexion défini - nettoyage manuel des tokens');
+                    await clearInvalidTokens();
+                  }
+                  return null;
+                } else {
+                  print('🔄 UserService.getValidToken() - Nouvelle tentative après absence de backup token');
+                  await Future.delayed(Duration(seconds: 2));
+                  continue;
+                }
               }
-            } else {
-              print('⚠️ UserService.getValidToken() - Aucun backup token disponible');
             }
 
-            print('🔄 UserService.getValidToken() - Token expiré et pas de refresh possible - déclenchement de la reconnexion forcée');
+            print('🔄 UserService.getValidToken() - Appel de AuthService.refreshToken()...');
+            final newTokens = await AuthService().refreshToken(refreshToken);
+            await prefs.setString("token", newTokens['accessToken']!);
+            await prefs.setString("refresh_token", newTokens['refreshToken']!);
+            _token = newTokens['accessToken']!;
+            print('✅ UserService.getValidToken() - Rafraîchissement du token réussi');
+            print('🔍 UserService.getValidToken() - Nouveau token sauvegardé (${newTokens['accessToken']!.length} chars)');
+            print('🔍 UserService.getValidToken() - Nouveau refresh token sauvegardé (${newTokens['refreshToken']!.length} chars)');
+            return _token;
+          } catch (e, stackTrace) {
+            print("❌ UserService.getValidToken() - Échec du rafraîchissement du token: $e");
+            print("❌ UserService.getValidToken() - Stack trace: $stackTrace");
+            print("🔍 UserService.getValidToken() - Refresh token utilisé: ${refreshToken != null ? refreshToken.substring(0, refreshToken.length > 10 ? 10 : refreshToken.length) + '...' : 'null'}");
 
-            // Déclencher le callback de reconnexion forcée si défini
-            if (_onForceReLogin != null) {
-              print('🔄 UserService.getValidToken() - Callback de reconnexion forcée appelé');
-              _onForceReLogin!();
-            } else {
-              print('⚠️ UserService.getValidToken() - Aucun callback de reconnexion défini - nettoyage manuel des tokens');
-              // Nettoyer les tokens invalides même sans callback
+            if (refreshAttempt >= maxRefreshRetries) {
+              print('🔄 UserService.getValidToken() - Nettoyage automatique de la session suite à l\'échec du refresh');
               await clearInvalidTokens();
+              return null;
+            } else {
+              print('🔄 UserService.getValidToken() - Nouvelle tentative après échec du rafraîchissement');
+              await Future.delayed(Duration(seconds: 2));
+              continue;
             }
-
-            return null;
           }
-
-          print('🔄 UserService.getValidToken() - Appel de AuthService.refreshToken()...');
-          final newTokens = await AuthService().refreshToken(refreshToken);
-          await prefs.setString("token", newTokens['accessToken']!);
-          await prefs.setString("refresh_token", newTokens['refreshToken']!);
-          _token = newTokens['accessToken']!;
-          print('✅ UserService.getValidToken() - Rafraîchissement du token réussi');
-          print('🔍 UserService.getValidToken() - Nouveau token sauvegardé (${newTokens['accessToken']!.length} chars)');
-          print('🔍 UserService.getValidToken() - Nouveau refresh token sauvegardé (${newTokens['refreshToken']!.length} chars)');
-          return _token;
-        } catch (e, stackTrace) {
-          print("❌ UserService.getValidToken() - Échec du rafraîchissement du token: $e");
-          print("❌ UserService.getValidToken() - Stack trace: $stackTrace");
-          print("🔍 UserService.getValidToken() - Refresh token utilisé: ${refreshToken != null ? refreshToken.substring(0, refreshToken.length > 10 ? 10 : refreshToken.length) + '...' : 'null'}");
-
-          // Nettoyer la session suite à l'échec du refresh
-          print('🔄 UserService.getValidToken() - Nettoyage automatique de la session suite à l\'échec du refresh');
-          await clearInvalidTokens();
-          return null;
         }
       }
 

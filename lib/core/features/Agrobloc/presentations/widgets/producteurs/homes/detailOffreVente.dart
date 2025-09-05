@@ -71,6 +71,30 @@ class DetailOffreVente extends StatelessWidget {
           ],
         ),
       ),
+      bottomNavigationBar: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+        color: Colors.white,
+        child: OutlinedButton(
+          onPressed: () {
+            // TODO: Add button action here
+          },
+          style: OutlinedButton.styleFrom(
+            side: const BorderSide(color: Color(0xFF4CAF50)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30),
+            ),
+            padding: EdgeInsets.symmetric(vertical: 14.h),
+          ),
+          child: Text(
+            'Candidatez à l’achat',
+            style: TextStyle(
+              color: const Color(0xFF4CAF50),
+              fontSize: 16.sp,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
