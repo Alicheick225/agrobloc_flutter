@@ -430,108 +430,143 @@ class _OffreVentePageState extends State<OffreVentePage> {
                                         child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
+                                            Row(
+                                              children: [
+                                                Text(
+                                                  (item.typeCultureLibelle != null && item.typeCultureLibelle!.isNotEmpty)
+                                                      ? item.typeCultureLibelle!
+                                                      : 'Type de culture non spécifié',
+                                                  style: AppTextStyles.heading.copyWith(
+                                                    fontSize: 16,
+                                                    color: (item.typeCultureLibelle != null && item.typeCultureLibelle!.isNotEmpty)
+                                                        ? AppColors.primaryGreen
+                                                        : Colors.grey,
+                                                  ),
+                                                ),
+                                                Spacer(),
+                                                Text.rich(
+                                                  TextSpan(
+                                                    children: [
+                                                      TextSpan(
+                                                        text: 'Quantité: ',
+                                                        style: TextStyle(color: Colors.grey[700]),
+                                                      ),
+                                                      TextSpan(
+                                                        text: '${item.quantite} kg',
+                                                        style: const TextStyle(
+                                                          color: Color.fromARGB(255, 55, 55, 55),
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 4),
                                             Text(
-                                              (item.typeCultureLibelle != null && item.typeCultureLibelle!.isNotEmpty)
-                                                  ? item.typeCultureLibelle!
-                                                  : 'Type de culture non spécifié',
-                                              style: AppTextStyles.heading.copyWith(
-                                                fontSize: 16,
-                                                color: (item.typeCultureLibelle != null && item.typeCultureLibelle!.isNotEmpty)
-                                                    ? AppColors.primaryGreen
-                                                    : Colors.grey,
+                                              () {
+                                                if (item.createdAt != null && item.createdAt!.isNotEmpty) {
+                                                  try {
+                                                    DateTime date = DateTime.parse(item.createdAt!);
+                                                    Duration diff = DateTime.now().difference(date);
+                                                    if (diff.inDays > 30) {
+                                                      return 'il y a plus d\'un mois';
+                                                    } else if (diff.inDays >= 7) {
+                                                      int weeks = diff.inDays ~/ 7;
+                                                      return weeks == 1 ? 'il y a 1 semaine' : 'il y a $weeks semaines';
+                                                    } else if (diff.inDays > 0) {
+                                                      return diff.inDays == 1 ? 'il y a 1 jour' : 'il y a ${diff.inDays} jours';
+                                                    } else if (diff.inHours > 0) {
+                                                      return diff.inHours == 1 ? 'il y a 1 heure' : 'il y a ${diff.inHours} heures';
+                                                    } else {
+                                                      return 'il y a quelques minutes';
+                                                    }
+                                                  } catch (e) {
+                                                    return 'Date invalide';
+                                                  }
+                                                } else {
+                                                  return 'Date non disponible';
+                                                }
+                                              }(),
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey,
                                               ),
                                             ),
-                                            const SizedBox(height: 8),
-                                            Text.rich(
-                                              TextSpan(
-                                                children: [
-                                                  TextSpan(
-                                                    text: 'Quantité: ',
-                                                    style: TextStyle(color: Colors.grey[700]),
-                                                  ),
-                                                  TextSpan(
-                                                    text: '${item.quantite} kg',
-                                                    style: const TextStyle(
-                                                      color: Color.fromARGB(255, 55, 55, 55),
-                                                      fontWeight: FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text.rich(
-                                              TextSpan(
-                                                children: [
-                                                  TextSpan(
-                                                    text: 'Prix unitaire: ',
-                                                    style: TextStyle(color: Colors.grey[700]),
-                                                  ),
-                                                  TextSpan(
-                                                    text: '${item.prixKg} FCFA',
-                                                    style: const TextStyle(
-                                                      color: Color.fromARGB(255, 55, 55, 55),
-                                                      fontWeight: FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text.rich(
-                                              TextSpan(
-                                                children: [
-                                                  TextSpan(
-                                                    text: 'Statut: ',
-                                                    style: TextStyle(color: Colors.grey[700]),
-                                                  ),
-                                                  TextSpan(
-                                                    text: (item.statut ?? 'Inconnu'),
-                                                    style: TextStyle(
-                                                      color: isValidated ? Colors.green : const Color.fromARGB(255, 99, 169, 248),
-                                                      fontWeight: FontWeight.w500,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
+                                            // const SizedBox(height: 8),
+                                            // Text.rich(
+                                            //   TextSpan(
+                                            //     children: [
+                                            //       TextSpan(
+                                            //         text: 'Prix unitaire: ',
+                                            //         style: TextStyle(color: Colors.grey[700]),
+                                            //       ),
+                                            //       TextSpan(
+                                            //         text: '${item.prixKg} FCFA',
+                                            //         style: const TextStyle(
+                                            //           color: Color.fromARGB(255, 55, 55, 55),
+                                            //           fontWeight: FontWeight.bold,
+                                            //         ),
+                                            //       ),
+                                            //     ],
+                                            //   ),
+                                            // ),
+                                            // const SizedBox(height: 4),
+                                            // Text.rich(
+                                            //   TextSpan(
+                                            //     children: [
+                                            //       TextSpan(
+                                            //         text: 'Statut: ',
+                                            //         style: TextStyle(color: Colors.grey[700]),
+                                            //       ),
+                                            //       TextSpan(
+                                            //         text: (item.statut ?? 'Inconnu'),
+                                            //         style: TextStyle(
+                                            //           color: isValidated ? Colors.green : const Color.fromARGB(255, 99, 169, 248),
+                                            //           fontWeight: FontWeight.w500,
+                                            //         ),
+                                            //       ),
+                                            //     ],
+                                            //   ),
+                                            // ),
                                           ],
                                         ),
                                       ),
                                       Column(
                                         crossAxisAlignment: CrossAxisAlignment.end,
-                                        children: [                                          
-                                          Text(
-                                            () {
-                                              if (item.createdAt != null && item.createdAt!.isNotEmpty) {
-                                                try {
-                                                  DateTime date = DateTime.parse(item.createdAt!);
-                                                  Duration diff = DateTime.now().difference(date);
-                                                  if (diff.inDays > 30) {
-                                                    return 'il y a plus d\'un mois';
-                                                  } else if (diff.inDays >= 7) {
-                                                    int weeks = diff.inDays ~/ 7;
-                                                    return weeks == 1 ? 'il y a 1 semaine' : 'il y a $weeks semaines';
-                                                  } else if (diff.inDays > 0) {
-                                                    return diff.inDays == 1 ? 'il y a 1 jour' : 'il y a ${diff.inDays} jours';
-                                                  } else if (diff.inHours > 0) {
-                                                    return diff.inHours == 1 ? 'il y a 1 heure' : 'il y a ${diff.inHours} heures';
-                                                  } else {
-                                                    return 'il y a quelques minutes';
-                                                  }
-                                                } catch (e) {
-                                                  return 'Date invalide';
-                                                }
-                                              } else {
-                                                return 'Date non disponible';
-                                              }
-                                            }(),
-                                            style: const TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.grey,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
+                                        children: [
+                                          // Text(
+                                          //   () {
+                                          //     if (item.createdAt != null && item.createdAt!.isNotEmpty) {
+                                          //       try {
+                                          //         DateTime date = DateTime.parse(item.createdAt!);
+                                          //         Duration diff = DateTime.now().difference(date);
+                                          //         if (diff.inDays > 30) {
+                                          //           return 'il y a plus d\'un mois';
+                                          //         } else if (diff.inDays >= 7) {
+                                          //           int weeks = diff.inDays ~/ 7;
+                                          //           return weeks == 1 ? 'il y a 1 semaine' : 'il y a $weeks semaines';
+                                          //         } else if (diff.inDays > 0) {
+                                          //           return diff.inDays == 1 ? 'il y a 1 jour' : 'il y a ${diff.inDays} jours';
+                                          //         } else if (diff.inHours > 0) {
+                                          //           return diff.inHours == 1 ? 'il y a 1 heure' : 'il y a ${diff.inHours} heures';
+                                          //         } else {
+                                          //           return 'il y a quelques minutes';
+                                          //         }
+                                          //       } catch (e) {
+                                          //         return 'Date invalide';
+                                          //       }
+                                          //     } else {
+                                          //       return 'Date non disponible';
+                                          //     }
+                                          //   }(),
+                                          //   style: const TextStyle(
+                                          //     fontSize: 12,
+                                          //     color: Colors.grey,
+                                          //   ),
+                                          // ),
+                                          // const SizedBox(height: 8),
                                           Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
@@ -569,107 +604,135 @@ class _OffreVentePageState extends State<OffreVentePage> {
                                         child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
+                                            Row(
+                                              children: [
+                                                Text(
+                                                  (item.typeCultureLibelle != null && item.typeCultureLibelle!.isNotEmpty)
+                                                      ? item.typeCultureLibelle!
+                                                      : 'Type de culture non spécifié',
+                                                  style: AppTextStyles.heading.copyWith(
+                                                    fontSize: 16,
+                                                    color: (item.typeCultureLibelle != null && item.typeCultureLibelle!.isNotEmpty)
+                                                        ? AppColors.primaryGreen
+                                                        : Colors.grey,
+                                                  ),
+                                                ),
+                                                Spacer(),
+                                                Text.rich(
+                                                  TextSpan(
+                                                    children: [
+                                                      TextSpan(
+                                                        text: 'Quantité: ',
+                                                        style: TextStyle(color: Colors.grey[700]),
+                                                      ),
+                                                      TextSpan(
+                                                        text: '${item.quantite} kg',
+                                                        style: const TextStyle(
+                                                          color: Color.fromARGB(255, 55, 55, 55),
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 4),
                                             Text(
-                                              (item.typeCultureLibelle != null && item.typeCultureLibelle!.isNotEmpty)
-                                                  ? item.typeCultureLibelle!
-                                                  : 'Type de culture non spécifié',
-                                              style: AppTextStyles.heading.copyWith(
-                                                fontSize: 16,
-                                                color: (item.typeCultureLibelle != null && item.typeCultureLibelle!.isNotEmpty)
-                                                    ? AppColors.primaryGreen
-                                                    : Colors.grey,
+                                              () {
+                                                if (item.createdAt != null) {
+                                                  Duration diff = DateTime.now().difference(item.createdAt!);
+                                                  if (diff.inDays > 30) {
+                                                    return 'il y a plus d\'un mois';
+                                                  } else if (diff.inDays >= 7) {
+                                                    int weeks = diff.inDays ~/ 7;
+                                                    return weeks == 1 ? 'il y a 1 semaine' : 'il y a $weeks semaines';
+                                                  } else if (diff.inDays > 0) {
+                                                    return diff.inDays == 1 ? 'il y a 1 jour' : 'il y a ${diff.inDays} jours';
+                                                  } else if (diff.inHours > 0) {
+                                                    return diff.inHours == 1 ? 'il y a 1 heure' : 'il y a ${diff.inHours} heures';
+                                                  } else {
+                                                    return 'il y a quelques minutes';
+                                                  }
+                                                } else {
+                                                  return 'Date non disponible';
+                                                }
+                                              }(),
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey,
                                               ),
                                             ),
-                                            const SizedBox(height: 8),
-                                            Text.rich(
-                                              TextSpan(
-                                                children: [
-                                                  TextSpan(
-                                                    text: 'Quantité: ',
-                                                    style: TextStyle(color: Colors.grey[700]),
-                                                  ),
-                                                  TextSpan(
-                                                    text: '${item.quantite} kg',
-                                                    style: const TextStyle(
-                                                      color: Color.fromARGB(255, 55, 55, 55),
-                                                      fontWeight: FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text.rich(
-                                              TextSpan(
-                                                children: [
-                                                  TextSpan(
-                                                    text: 'Prix unitaire: ',
-                                                    style: TextStyle(color: Colors.grey[700]),
-                                                  ),
-                                                  TextSpan(
-                                                    text: '${item.prixKgPref} FCFA',
-                                                    style: const TextStyle(
-                                                      color: Color.fromARGB(255, 55, 55, 55),
-                                                      fontWeight: FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text.rich(
-                                              TextSpan(
-                                                children: [
-                                                  TextSpan(
-                                                    text: 'Statut: ',
-                                                    style: TextStyle(color: Colors.grey[700]),
-                                                  ),
-                                                  TextSpan(
-                                                    text: item.statut,
-                                                    style: TextStyle(
-                                                      color: isValidated
-                                                          ? Colors.green
-                                                          : const Color.fromARGB(255, 99, 169, 248),
-                                                      fontWeight: FontWeight.w500,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-
-
+                                            // const SizedBox(height: 8),
+                                            // Text.rich(
+                                            //   TextSpan(
+                                            //     children: [
+                                            //       TextSpan(
+                                            //         text: 'Prix unitaire: ',
+                                            //         style: TextStyle(color: Colors.grey[700]),
+                                            //       ),
+                                            //       TextSpan(
+                                            //         text: '${item.prixKgPref} FCFA',
+                                            //         style: const TextStyle(
+                                            //           color: Color.fromARGB(255, 55, 55, 55),
+                                            //           fontWeight: FontWeight.bold,
+                                            //         ),
+                                            //       ),
+                                            //     ],
+                                            //   ),
+                                            // ),
+                                            // const SizedBox(height: 4),
+                                            // Text.rich(
+                                            //   TextSpan(
+                                            //     children: [
+                                            //       TextSpan(
+                                            //         text: 'Statut: ',
+                                            //         style: TextStyle(color: Colors.grey[700]),
+                                            //       ),
+                                            //       TextSpan(
+                                            //         text: item.statut,
+                                            //         style: TextStyle(
+                                            //           color: isValidated
+                                            //               ? Colors.green
+                                            //               : const Color.fromARGB(255, 99, 169, 248),
+                                            //           fontWeight: FontWeight.w500,
+                                            //         ),
+                                            //       ),
+                                            //     ],
+                                            //   ),
+                                            // ),
                                           ],
                                         ),
                                       ),
                                       Column(
                                         crossAxisAlignment: CrossAxisAlignment.end,
-                                        children: [                                         
-                                          Text(
-                                            () {
-                                              if (item.createdAt != null) {
-                                                Duration diff = DateTime.now().difference(item.createdAt!);
-                                                if (diff.inDays > 30) {
-                                                  return 'il y a plus d\'un mois';
-                                                } else if (diff.inDays >= 7) {
-                                                  int weeks = diff.inDays ~/ 7;
-                                                  return weeks == 1 ? 'il y a 1 semaine' : 'il y a $weeks semaines';
-                                                } else if (diff.inDays > 0) {
-                                                  return diff.inDays == 1 ? 'il y a 1 jour' : 'il y a ${diff.inDays} jours';
-                                                } else if (diff.inHours > 0) {
-                                                  return diff.inHours == 1 ? 'il y a 1 heure' : 'il y a ${diff.inHours} heures';
-                                                } else {
-                                                  return 'il y a quelques minutes';
-                                                }
-                                              } else {
-                                                return 'Date non disponible';
-                                              }
-                                            }(),
-                                            style: const TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.grey,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
+                                        children: [
+                                          // Text(
+                                          //   () {
+                                          //     if (item.createdAt != null) {
+                                          //       Duration diff = DateTime.now().difference(item.createdAt!);
+                                          //       if (diff.inDays > 30) {
+                                          //         return 'il y a plus d\'un mois';
+                                          //       } else if (diff.inDays >= 7) {
+                                          //         int weeks = diff.inDays ~/ 7;
+                                          //         return weeks == 1 ? 'il y a 1 semaine' : 'il y a $weeks semaines';
+                                          //       } else if (diff.inDays > 0) {
+                                          //         return diff.inDays == 1 ? 'il y a 1 jour' : 'il y a ${diff.inDays} jours';
+                                          //       } else if (diff.inHours > 0) {
+                                          //         return diff.inHours == 1 ? 'il y a 1 heure' : 'il y a ${diff.inHours} heures';
+                                          //       } else {
+                                          //         return 'il y a quelques minutes';
+                                          //       }
+                                          //     } else {
+                                          //       return 'Date non disponible';
+                                          //     }
+                                          //   }(),
+                                          //   style: const TextStyle(
+                                          //     fontSize: 12,
+                                          //     color: Colors.grey,
+                                          //   ),
+                                          // ),
+                                          // const SizedBox(height: 8),
                                           Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [

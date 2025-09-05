@@ -323,7 +323,7 @@ class _HomeProducteurState extends State<HomeProducteur> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("Dernières annonces", style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: const Color(0xFF4CAF50))),
+                  Text("Dernières annonces d'achat", style: TextStyle(fontSize: 15.sp,  color: const Color.fromARGB(255, 7, 7, 7))),
                   TextButton(
                     onPressed: () {
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const AnnonceAchatPage()));
@@ -364,84 +364,55 @@ class _HomeProducteurState extends State<HomeProducteur> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 20.r,
-                backgroundColor: const Color(0xFF4CAF50),
-                child: Text(
-                  annonce.userNom.isNotEmpty ? annonce.userNom[0].toUpperCase() : '?',
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
-                ),
-              ),
-              SizedBox(width: 12.w),
+
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      annonce.userNom.isNotEmpty ? annonce.userNom : 'Nom de l\'utilisateur',
-                      style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: const Color(0xFF4CAF50)),
-                    ),
-                    SizedBox(height: 4.h),
-                    RichText(
-                      text: TextSpan(
-                        children: [
-                          TextSpan(text: 'Culture: ', style: TextStyle(color: Colors.grey[700])),
-                          TextSpan(text: annonce.typeCultureLibelle, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF373737))),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 8.h),
-                    RichText(
-                      text: TextSpan(
-                        children: [
-                          TextSpan(text: 'Quantité: ', style: TextStyle(color: Colors.grey[700])),
-                          TextSpan(text: annonce.formattedQuantity, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF373737))),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 4.h),
-                    RichText(
-                      text: TextSpan(
-                        children: [
-                          TextSpan(text: 'Prix / kg: ', style: TextStyle(color: Colors.grey[700])),
-                          TextSpan(text: annonce.formattedPrice, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF373737))),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 4.h),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         RichText(
                           text: TextSpan(
                             children: [
-                              TextSpan(text: 'Statut: ', style: TextStyle(color: Colors.grey[700])),
-                              TextSpan(
-                                text: annonce.statut,
-                                style: TextStyle(
-                                  color: annonce.statut.toLowerCase() == 'active' ? Colors.blue : Colors.grey,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
+                              TextSpan(text: annonce.typeCultureLibelle, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: const Color(0xFF4CAF50))),
                             ],
                           ),
                         ),
+                        Spacer(),
+                        RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(text: annonce.formattedQuantity, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: const Color.fromARGB(255, 7, 7, 7))),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    // Date and favorite icon on the same line
+                    Row(
+                      children: [
                         Text(
                           _formatDate(annonce.createdAt),
                           style: TextStyle(color: Colors.grey[600], fontSize: 12.sp),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.favorite_border,
+                            color: Color(0xFF4CAF50),
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            // TODO: Implement favorite functionality
+                          },
                         ),
                       ],
                     ),
                   ],
                 ),
               ),
-              IconButton(
-                icon: Icon(Icons.visibility, color: const Color(0xFF4CAF50)),
-                onPressed: () {
-                  Navigator.pushNamed(context, '/detailOffreVente', arguments: annonce);
-                },
-                tooltip: 'Voir plus de détails',
-              ),
+              
+              
             ],
           ),
         ),

@@ -45,15 +45,15 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
   Future<void> _loadAnnonces() async {
     try {
       setState(() => _isLoading = true);
-      
+
       // Vérifier d'abord si l'utilisateur est authentifié
       final isAuthenticated = await _userService.isUserAuthenticated();
-      
+
       if (!isAuthenticated) {
         debugPrint("⚠️ Utilisateur non authentifié - redirection vers la connexion");
         if (!mounted) return;
         setState(() => _isLoading = false);
-        
+
         // Rediriger vers la page de connexion après un court délai
         Future.delayed(const Duration(milliseconds: 500), () {
           if (mounted) {
@@ -78,12 +78,12 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
-      
+
       // Distinguer les différents types d'erreurs
       String errorMessage = 'Erreur lors du chargement des annonces';
       Color backgroundColor = AppColors.primaryGreen;
-      
-      if (e.toString().contains('Utilisateur non authentifié') || 
+
+      if (e.toString().contains('Utilisateur non authentifié') ||
           e.toString().contains('401')) {
         errorMessage = 'Session expirée. Veuillez vous reconnecter';
         backgroundColor = Colors.orange;
@@ -91,7 +91,7 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
         errorMessage = 'Pas de connexion Internet';
         backgroundColor = Colors.red;
       }
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(errorMessage),
@@ -109,28 +109,28 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
   // Méthode pour formater la date avec format relatif
   String _formatDate(String dateString) {
     if (dateString.isEmpty) return '';
-    
+
     try {
       final parts = dateString.split(' ');
       if (parts.isEmpty) return dateString;
-      
+
       final dateParts = parts[0].split('-');
       if (dateParts.length != 3) return dateString;
-      
+
       final year = int.tryParse(dateParts[0]) ?? 0;
       final month = int.tryParse(dateParts[1]) ?? 0;
       final day = int.tryParse(dateParts[2]) ?? 0;
-      
+
       if (year == 0 || month == 0 || day == 0) return dateString;
-      
+
       final date = DateTime(year, month, day);
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
       final yesterday = DateTime(now.year, now.month, now.day - 1);
       final dateOnly = DateTime(date.year, date.month, date.day);
-      
+
       final difference = today.difference(dateOnly).inDays;
-      
+
       if (dateOnly == today) {
         return 'Aujourd\'hui';
       } else if (dateOnly == yesterday) {
@@ -170,10 +170,6 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                // Adding specific buttons
-               
-                     
-                     
                 Expanded(
                   child: _filteredAnnonces.isEmpty
                       ? Center(
@@ -202,147 +198,97 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                                   child: Row(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                    // Avatar avec couleur basée sur le nom
-                                    CircleAvatar(
-                                      radius: 20,
-                                      backgroundColor: _getAvatarBackgroundColor(annonce.userNom.isNotEmpty ? annonce.userNom[0] : '?'),
-                                      child: Text(
-                                        annonce.userNom.isNotEmpty ? annonce.userNom[0].toUpperCase() : '?',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Text.rich(
+                                                  TextSpan(
+                                                    children: [
+                                                      TextSpan(
+                                                       
+                                                        style: TextStyle(color: Colors.grey[700]),
+                                                      ),
+                                                      TextSpan(
+                                                        text: '${annonce.typeCultureLibelle}',
+                                                        style: const TextStyle(
+                                                          color: Color(0xFF4CAF50),
+                                                          fontSize: 18,
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                Spacer(),
+                                                Text.rich(
+                                                  TextSpan(
+                                                    children: [
+                                                      TextSpan(
+                                                        
+                                                        style: TextStyle(color: Colors.grey[700]),
+                                                      ),
+                                                      TextSpan(
+                                                        text: annonce.formattedQuantity,
+                                                        style: const TextStyle(
+                                                          color: Color.fromARGB(255, 55, 55, 55),
+                                                          fontSize: 18,
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 4),
+                                            // Date and favorite icon on the same line
+                                            Row(
+                                              children: [
+                                                Text(
+                                                  _formatDate(annonce.createdAt),
+                                                  style: TextStyle(
+                                                    color: Colors.grey[600],
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                                const Spacer(),
+                                                IconButton(
+                                                  icon: const Icon(
+                                                    Icons.favorite_border,
+                                                    color: Color(0xFF4CAF50),
+                                                    size: 20,
+                                                  ),
+                                                  onPressed: () {
+                                                    // TODO: Implement favorite functionality
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                      // "Voir Plus" icon button
+                                      Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
-                                          // Display the buyer's name
-                                          Text(
-                                            annonce.userNom.isNotEmpty 
-                                              ? annonce.userNom
-                                              : 'Nom de l\'utilisateur',
-                                            style: AppTextStyles.heading.copyWith(
-                                              fontSize: 16,
-                                              color: AppColors.primaryGreen,
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.arrow_forward_ios,
+                                              color: Color(0xFF4CAF50),
+                                              size: 20,
                                             ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text.rich(
-                                            TextSpan(
-                                              children: [
-                                                TextSpan(
-                                                  text: 'Culture: ',
-                                                  style: TextStyle(color: Colors.grey[700]),
-                                                ),
-                                                TextSpan(
-                                                  text: '${annonce.typeCultureLibelle}',
-                                                  style: const TextStyle(
-                                                    color: Color.fromARGB(255, 55, 55, 55),
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Text.rich(
-                                            TextSpan(
-                                              children: [
-                                                TextSpan(
-                                                  text: 'Quantité: ',
-                                                  style: TextStyle(color: Colors.grey[700]),
-                                                ),
-                                                TextSpan(
-                                                  text: annonce.formattedQuantity,
-                                                  style: const TextStyle(
-                                                    color: Color.fromARGB(255, 55, 55, 55),
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text.rich(
-                                            TextSpan(
-                                              children: [
-                                                TextSpan(
-                                                  text: 'Prix / kg: ',
-                                                  style: TextStyle(color: Colors.grey[700]),
-                                                ),
-                                                TextSpan(
-                                                  text: annonce.formattedPrice,
-                                                  style: const TextStyle(
-                                                    color: Color.fromARGB(255, 55, 55, 55),
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          // Statut et Date sur la même ligne
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text.rich(
-                                                TextSpan(
-                                                  children: [
-                                                    TextSpan(
-                                                      text: 'Statut: ',
-                                                      style: TextStyle(color: Colors.grey[700]),
-                                                    ),
-                                                    TextSpan(
-                                                      text: annonce.statut,
-                                                      style: TextStyle(
-                                                        color: isValidated
-                                                            ? Colors.green
-                                                            : const Color.fromARGB(255, 99, 169, 248),
-                                                        fontWeight: FontWeight.w500,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              // Date alignée à droite
-                                              Text(
-                                                _formatDate(annonce.createdAt),
-                                                style: TextStyle(
-                                                  color: Colors.grey[600],
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                            ],
+                                            onPressed: () {
+                                              Navigator.pushNamed(context, '/detailOffreVente', arguments: annonce);
+                                            },
                                           ),
                                         ],
                                       ),
-                                    ),
-                                    // "Voir Plus" icon button avec date en dessous
-                                    Column(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        IconButton(
-                                          onPressed: () {
-                                            Navigator.pushNamed(context, '/detailOffreVente', arguments: annonce);
-                                          },
-                                          icon: Icon(
-                                            Icons.visibility,
-                                            color: AppColors.primaryGreen, // Always green
-                                            size: 24,
-                                          ),
-                                          tooltip: "Voir plus de détails",
-                                        ),
-                                        // Espace vide pour aligner avec la date
-                                        const SizedBox(height: 20),
-                                      ],
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
                               ),
                             );
                           },
