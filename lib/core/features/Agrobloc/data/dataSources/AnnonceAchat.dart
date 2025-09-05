@@ -5,11 +5,12 @@ import 'package:http/http.dart' as http;
 
 import '../models/AnnonceAchatModel.dart';
 import '../dataSources/userService.dart';
+import 'package:agrobloc/core/utils/api_token.dart';
 
 class AnnonceAchatService {
   // Endpoints
-  static const String _baseUrl = 'http://192.168.252.199:8080/annonces_achat';
-  static const String _culturesUrl = 'http://192.168.252.199:8000/api/types-cultures';
+  static final String _baseUrl = '${ApiConfig.annoncesBaseUrl}/annonces_achat';
+  static final String _culturesUrl = '${ApiConfig.typesCulturesBaseUrl}/api/types-cultures';
 
   /// Récupère le token valide et construit les headers
   Future<Map<String, String>> _getHeaders() async {

@@ -11,7 +11,7 @@ import 'tyoeCultureService.dart';
 import 'userService.dart';
 
 class AnnonceService {
-  final ApiClient api = ApiClient('http://192.168.252.199:8080');
+  final ApiClient api = ApiClient(ApiConfig.annoncesBaseUrl);
   final TypeCultureService _typeCultureService = TypeCultureService();
   static const Duration timeoutDuration = Duration(seconds: 15);
 

@@ -1,18 +1,32 @@
-# TODO: Fix Prefinancement Offers Retrieval and Form Navigation
+# TODO: Fix Prefinancement TypeCulture Libelle Retrieval Issue
 
-## Issues to Address:
-1. Prefinancement offers are not filtered by user - currently fetches all offers
-2. "Voir ma demande" button navigates to wrong route
-3. "Retour" button doesn't reset form fields
+## Problem
+Prefinancement is not retrieving the libelle of typeCulture. The enrichment process should populate the libelle field from TypeCultureService, but it's failing.
 
-## Tasks:
-- [ ] Add `fetchPrefinancementsByUser(String userId)` method to `PrefinancementService`
-- [ ] Update `offreVentePage.dart` to use user-filtered method for prefinancements
-- [ ] Update `prefinancementForm.dart` navigation for "voir ma demande" button
-- [ ] Add form reset functionality to "retour" button in dialog
-- [ ] Test the complete flow
+## Investigation Steps
+- [x] Step 1: Add debug logs to TypeCultureService.getAllTypes() to verify API call and response parsing
+- [x] Step 2: Add debug logs to PrefinancementService._cacheTypeCultures() to verify cache population
+- [x] Step 3: Add debug logs to PrefinancementService._enrichAnnoncesWithTypeCulture() to verify enrichment logic
+- [x] Step 4: Add debug logs to AnnoncePrefinancement.fromJson() to verify JSON parsing
+- [x] Step 5: Test the debug logs by running the app and checking console output
+- [x] Step 6: Identify root cause based on debug output - typeCultureId is empty in JSON
+- [x] Step 7: Fix the JSON parsing to handle different field names for typeCultureId
+- [x] Step 8: Test the fix and verify libelle retrieval works
 
-## Files to Modify:
+## Files to Modify
+- lib/core/features/Agrobloc/data/dataSources/tyoeCultureService.dart
 - lib/core/features/Agrobloc/data/dataSources/AnnoncePrefinancementService.dart
-- lib/core/features/Agrobloc/presentations/widgets/producteurs/homes/offreVentePage.dart
-- lib/core/features/Agrobloc/presentations/widgets/producteurs/homes/prefinancementForm.dart
+- lib/core/features/Agrobloc/data/models/annoncePrefinancementModel.dart
+
+## Expected Outcome
+- Debug logs showing the data flow and where it fails
+- Identification of the root cause (API, parsing, cache, authentication)
+- Fixed enrichment process with proper libelle retrieval
+
+## New Finding
+The authentication token has expired and the refresh token is invalid. This is preventing API calls from working, which would explain why the prefinancement data and typeCulture libelle are not loading.
+
+## Next Steps
+- User needs to log in again to obtain a valid token
+- After re-authentication, test the libelle retrieval fix
+- If issues persist, investigate token refresh mechanism

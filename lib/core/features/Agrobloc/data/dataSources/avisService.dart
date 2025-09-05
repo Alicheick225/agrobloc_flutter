@@ -3,9 +3,10 @@ import 'dart:io';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:agrobloc/core/features/Agrobloc/data/models/avisModel.dart';
+import 'package:agrobloc/core/utils/api_token.dart';
 
 class AvisService {
-  static const String baseUrl = 'http://192.168.252.199:3000/'; // Remplacez par votre URL
+  static String get baseUrl => ApiConfig.apiBaseUrl;
   static const Duration timeout = Duration(seconds: 30);
   
   // Headers par défaut

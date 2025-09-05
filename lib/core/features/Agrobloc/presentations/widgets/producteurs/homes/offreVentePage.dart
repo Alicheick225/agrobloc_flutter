@@ -48,7 +48,7 @@ class _OffreVentePageState extends State<OffreVentePage> {
   Future<void> _checkAuthenticationAndLoadData() async {
     try {
       print('🔄 OffreVentePage: Début de vérification d\'authentification...');
-      _isAuthenticated = await _userService.isUserAuthenticated().timeout(const Duration(seconds: 10));
+      _isAuthenticated = await _userService.isUserAuthenticated().timeout(const Duration(seconds: 20));
       _authChecked = true;
       print('✅ OffreVentePage: Authentification vérifiée: $_isAuthenticated');
 
@@ -66,7 +66,7 @@ class _OffreVentePageState extends State<OffreVentePage> {
         await Future.wait([
           _loadAnnonces(),
           _loadPrefinancements(),
-        ]).timeout(const Duration(seconds: 15));
+        ]).timeout(const Duration(seconds: 25));
         print('✅ OffreVentePage: Données chargées avec succès');
       } else {
         print('⚠️ OffreVentePage: Utilisateur non authentifié');
@@ -118,7 +118,7 @@ class _OffreVentePageState extends State<OffreVentePage> {
       if (currentUserId == null || currentUserId.isEmpty) {
         throw Exception('Utilisateur non connecté. Veuillez vous reconnecter.');
       }
-      final annonces = await _service.getAnnoncesByUserID(currentUserId).timeout(const Duration(seconds: 10));
+      final annonces = await _service.getAnnoncesByUserID(currentUserId).timeout(const Duration(seconds: 20));
 
       // Debug: Print the fetched data
       print('✅ OffreVentePage: ${annonces.length} annonces chargées');
@@ -160,7 +160,7 @@ class _OffreVentePageState extends State<OffreVentePage> {
       }
 
       print('📡 OffreVentePage: Appel de fetchPrefinancementsByUser avec userId: $currentUserId');
-      final prefinancements = await _prefinancementService.fetchPrefinancementsByUser(currentUserId).timeout(const Duration(seconds: 10));
+      final prefinancements = await _prefinancementService.fetchPrefinancementsByUser(currentUserId).timeout(const Duration(seconds: 20));
       print('✅ OffreVentePage: ${prefinancements.length} préfinancements reçus du service');
 
       // Debug: Log details of each prefinancement
@@ -259,8 +259,8 @@ class _OffreVentePageState extends State<OffreVentePage> {
         _showSnackBar('Annonce supprimée avec succès');
         _loadAnnonces();
       } else if (item is AnnoncePrefinancement) {
-        // TODO: Implement delete method in PrefinancementService if needed
-        _showSnackBar('Suppression des prefinancements non implémentée', color: Colors.orange);
+        await _prefinancementService.deletePrefinancement(item.id);
+        _showSnackBar('Préfinancement supprimé avec succès');
         _loadPrefinancements();
       }
     } catch (e) {
@@ -500,8 +500,7 @@ class _OffreVentePageState extends State<OffreVentePage> {
                                       ),
                                       Column(
                                         crossAxisAlignment: CrossAxisAlignment.end,
-                                        children: [
-                                          
+                                        children: [                                          
                                           Text(
                                             () {
                                               if (item.createdAt != null && item.createdAt!.isNotEmpty) {
@@ -571,12 +570,12 @@ class _OffreVentePageState extends State<OffreVentePage> {
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              item.typeCultureLibelle.isNotEmpty
-                                                  ? item.typeCultureLibelle
+                                              (item.typeCultureLibelle != null && item.typeCultureLibelle!.isNotEmpty)
+                                                  ? item.typeCultureLibelle!
                                                   : 'Type de culture non spécifié',
                                               style: AppTextStyles.heading.copyWith(
                                                 fontSize: 16,
-                                                color: item.typeCultureLibelle.isNotEmpty
+                                                color: (item.typeCultureLibelle != null && item.typeCultureLibelle!.isNotEmpty)
                                                     ? AppColors.primaryGreen
                                                     : Colors.grey,
                                               ),
@@ -644,8 +643,7 @@ class _OffreVentePageState extends State<OffreVentePage> {
                                       ),
                                       Column(
                                         crossAxisAlignment: CrossAxisAlignment.end,
-                                        children: [
-                                         
+                                        children: [                                         
                                           Text(
                                             () {
                                               if (item.createdAt != null) {

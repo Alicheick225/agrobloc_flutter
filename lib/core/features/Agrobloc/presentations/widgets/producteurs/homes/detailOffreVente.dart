@@ -45,9 +45,25 @@ class DetailOffreVente extends StatelessWidget {
             SizedBox(height: 8.h),
             Text('Prix / kg: ${annonce.formattedPrice}', style: TextStyle(fontSize: 16.sp)),
             SizedBox(height: 8.h),
-            Text('Statut: ${annonce.statut}', style: TextStyle(fontSize: 16.sp, color: annonce.statut.toLowerCase() == 'active' ? Colors.blue : Colors.grey)),
-            SizedBox(height: 8.h),
-            Text('Date: ${annonce.createdAt}', style: TextStyle(fontSize: 14.sp, color: Colors.grey)),
+            // Text(
+            //   '// Statut: ${annonce.statut}',
+            //   style: TextStyle(
+            //     fontSize: 14.sp,
+            //     color: Colors.grey[600],
+            //     fontStyle: FontStyle.italic,
+            //     fontFamily: 'monospace',
+            //   ),
+            // ),
+            // SizedBox(height: 8.h),
+            // Text(
+            //   '// Date: ${annonce.createdAt}',
+            //   style: TextStyle(
+            //     fontSize: 12.sp,
+            //     color: Colors.grey[500],
+            //     fontStyle: FontStyle.italic,
+            //     fontFamily: 'monospace',
+            //   ),
+            // ),
             SizedBox(height: 16.h),
             Text('Description:', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
             SizedBox(height: 4.h),

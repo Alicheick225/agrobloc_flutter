@@ -7,8 +7,10 @@ import '../models/forgotPasswordModel.dart';
 import '../dataSources/userService.dart';
 
 /// Service gérant l'authentification de l'utilisateur
+import 'package:agrobloc/core/utils/api_token.dart';
+
 class AuthService {
-  final ApiClient api = ApiClient('http://192.168.252.199:3000/authentification');
+  final ApiClient api = ApiClient('${ApiConfig.apiBaseUrl}/authentification');
 
 
   /// Méthode pour parser manuellement les réponses JSON mal formées
@@ -95,14 +97,19 @@ class AuthService {
 
       if (accessToken == null) throw Exception("Access token manquant");
 
-      // Vérifier si le refresh token est disponible
+      // Vérifier si le refresh token est disponible et valide
       String? finalRefreshToken = refreshToken;
 
-      if (refreshToken == null || refreshToken.isEmpty) {
-        print('⚠️ AuthService.login() - Aucun refresh token dans la réponse API');
+      // Check if refresh token is null, empty, or whitespace
+      final isRefreshTokenInvalid = refreshToken == null ||
+                                    refreshToken.trim().isEmpty ||
+                                    refreshToken == 'null';
+
+      if (isRefreshTokenInvalid) {
+        print('⚠️ AuthService.login() - Refresh token invalide (null/vide): "$refreshToken"');
         print('🔄 AuthService.login() - Continuer sans refresh token - refresh manuel requis');
 
-        // Ne pas générer de token temporaire, sauvegarder sans refresh token
+        // Sauvegarder sans refresh token (empty string)
         await UserService().setCurrentUser(user, accessToken, '');
         print('🔍 AuthService.login() - Tokens sauvegardés sans refresh token');
       } else {

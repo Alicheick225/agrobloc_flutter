@@ -4,8 +4,10 @@ import 'package:http/http.dart' as http;
 import '../models/annoncePrefinancementModel.dart';
 import 'tyoeCultureService.dart';
 
+import 'package:agrobloc/core/utils/api_token.dart';
+
 class PrefinancementService {
-  static const String _baseUrl = 'http://192.168.252.199:8080';
+  static final String _baseUrl = ApiConfig.annoncesBaseUrl;
   final TypeCultureService _typeCultureService = TypeCultureService();
   Map<String, String>? _typeCultureCache;
 
@@ -24,16 +26,53 @@ class PrefinancementService {
 
   /// Cache all typeCultures for quick lookup
   Future<void> _cacheTypeCultures() async {
-    if (_typeCultureCache != null) return; // already cached
-    final types = await _typeCultureService.getAllTypes();
-    _typeCultureCache = { for (var t in types) t.id : t.libelle };
+    if (_typeCultureCache != null) {
+      print('✅ PrefinancementService._cacheTypeCultures: Cache déjà chargé avec ${_typeCultureCache!.length} éléments');
+      print('📋 PrefinancementService._cacheTypeCultures: Contenu du cache existant: $_typeCultureCache');
+      return; // already cached
+    }
+    print('🔄 PrefinancementService._cacheTypeCultures: Chargement du cache typeCulture...');
+    try {
+      final types = await _typeCultureService.getAllTypes();
+      _typeCultureCache = { for (var t in types) t.id : t.libelle };
+      print('✅ PrefinancementService._cacheTypeCultures: Cache chargé avec ${_typeCultureCache!.length} éléments');
+      print('📋 PrefinancementService._cacheTypeCultures: Contenu du cache: $_typeCultureCache');
+    } catch (e) {
+      print('❌ PrefinancementService._cacheTypeCultures: Erreur lors du chargement du cache: $e');
+      rethrow;
+    }
   }
 
   /// Enrich AnnoncePrefinancement list with typeCulture libelle from cache
   Future<List<AnnoncePrefinancement>> _enrichAnnoncesWithTypeCulture(List<AnnoncePrefinancement> annonces) async {
-    await _cacheTypeCultures();
+    print('🔄 PrefinancementService._enrichAnnoncesWithTypeCulture: Début enrichissement pour ${annonces.length} annonces');
+    try {
+      await _cacheTypeCultures();
+      print('✅ PrefinancementService._enrichAnnoncesWithTypeCulture: Cache typeCulture chargé avec succès');
+    } catch (e) {
+      print('⚠️ PrefinancementService._enrichAnnoncesWithTypeCulture: Erreur lors du chargement du cache typeCulture: $e');
+      print('🔄 PrefinancementService._enrichAnnoncesWithTypeCulture: Continuation sans enrichissement typeCulture');
+      return annonces; // Return original annonces without enrichment
+    }
+
     return annonces.map((annonce) {
+      print('🔍 PrefinancementService._enrichAnnoncesWithTypeCulture: Traitement annonce ${annonce.id}');
+      print('🔍 PrefinancementService._enrichAnnoncesWithTypeCulture: typeCultureId: "${annonce.typeCultureId}"');
+      print('🔍 PrefinancementService._enrichAnnoncesWithTypeCulture: libelle actuel: "${annonce.libelle}"');
+
       final libelle = _typeCultureCache?[annonce.typeCultureId] ?? '';
+      print('🔍 PrefinancementService._enrichAnnoncesWithTypeCulture: libelle du cache: "$libelle"');
+
+      final enrichedLibelle = libelle.isNotEmpty ? libelle : annonce.libelle;
+      print('🔍 PrefinancementService._enrichAnnoncesWithTypeCulture: libelle enrichi final: "$enrichedLibelle"');
+
+      if (libelle.isNotEmpty) {
+        print('✅ PrefinancementService._enrichAnnoncesWithTypeCulture: Enrichissement réussi pour ${annonce.id} - Libelle: $libelle');
+      } else {
+        print('⚠️ PrefinancementService._enrichAnnoncesWithTypeCulture: Pas de libelle trouvé pour typeCultureId: "${annonce.typeCultureId}"');
+        print('🔄 PrefinancementService._enrichAnnoncesWithTypeCulture: Utilisation du libelle existant: "${annonce.libelle}"');
+      }
+
       return AnnoncePrefinancement(
         id: annonce.id,
         statut: annonce.statut,
@@ -43,7 +82,7 @@ class PrefinancementService {
         quantite: annonce.quantite,
         quantiteUnite: annonce.quantiteUnite,
         nom: annonce.nom,
-        libelle: libelle.isNotEmpty ? libelle : annonce.libelle,
+        libelle: enrichedLibelle,
         typeCultureId: annonce.typeCultureId,
         adresse: annonce.adresse,
         surface: annonce.surface,
@@ -63,6 +102,7 @@ class PrefinancementService {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
+        print('🔍 PrefinancementService.fetchPrefinancements: JSON brut reçu: $data');
         final annonces = data.map((json) => AnnoncePrefinancement.fromJson(json)).toList();
         return await _enrichAnnoncesWithTypeCulture(annonces);
       } else if (response.statusCode == 401) {
@@ -108,6 +148,8 @@ class PrefinancementService {
         print('✅ PrefinancementService: Status 200, parsing des données...');
         final List<dynamic> data = jsonDecode(response.body);
         print('📊 PrefinancementService: ${data.length} éléments JSON reçus');
+        print('🔍 PrefinancementService: JSON brut complet: $data');
+        print('🔍 PrefinancementService: Premier élément JSON: ${data.isNotEmpty ? data[0] : "Aucun élément"}');
 
         final annonces = data.map((json) {
           try {
@@ -188,6 +230,54 @@ class PrefinancementService {
       }
     } catch (e) {
       throw Exception('Erreur lors du chargement du préfinancement : $e');
+    }
+  }
+
+  /// Supprimer une annonce de préfinancement
+  Future<void> deletePrefinancement(String id) async {
+    try {
+      print('🔄 PrefinancementService: Début suppression préfinancement ID: $id');
+      final headers = await _getHeaders();
+      print('📡 PrefinancementService: Headers préparés, appel API DELETE: $_baseUrl/annonces_pref/$id');
+
+      final response = await http.delete(
+        Uri.parse('$_baseUrl/annonces_pref/$id'),
+        headers: headers,
+      );
+
+      print('📥 PrefinancementService: Réponse suppression - Status: ${response.statusCode}');
+      print('📄 PrefinancementService: Body réponse suppression: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        print('✅ PrefinancementService: Préfinancement supprimé avec succès');
+      } else if (response.statusCode == 401) {
+        // Try with forced refresh
+        print("🚨 PrefinancementService: Token rejeté lors de la suppression - tentative de refresh forcé");
+        final headersRetry = await _getHeaders(forceRefresh: true);
+        print('🔄 PrefinancementService: Retry suppression avec headers refreshés');
+
+        final retryResponse = await http.delete(
+          Uri.parse('$_baseUrl/annonces_pref/$id'),
+          headers: headersRetry,
+        );
+
+        print('📥 PrefinancementService: Réponse retry suppression - Status: ${retryResponse.statusCode}');
+        print('📄 PrefinancementService: Body retry suppression: ${retryResponse.body}');
+
+        if (retryResponse.statusCode == 200 || retryResponse.statusCode == 204) {
+          print('✅ PrefinancementService: Préfinancement supprimé avec succès après retry');
+        } else {
+          print('❌ PrefinancementService: Échec de la suppression après retry - Status: ${retryResponse.statusCode}, Body: ${retryResponse.body}');
+          throw Exception('Erreur lors de la suppression du préfinancement après retry : ${retryResponse.body}');
+        }
+      } else {
+        print('❌ PrefinancementService: Erreur lors de la suppression - Status: ${response.statusCode}, Body: ${response.body}');
+        throw Exception('Erreur lors de la suppression du préfinancement : ${response.body}');
+      }
+    } catch (e) {
+      print('❌ PrefinancementService: Exception lors de la suppression: $e');
+      print('🔍 PrefinancementService: Type d\'exception: ${e.runtimeType}');
+      throw Exception('Erreur lors de la suppression du préfinancement : $e');
     }
   }
 

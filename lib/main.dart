@@ -13,6 +13,10 @@ import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/connexion/
 // ignore: unused_import
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/parametre.dart';
 
+// 🆕 AJOUT : Imports pour la route detailOffreVente
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/detailOffreVente.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceAchatModel.dart';
+
 // 🆕 MODIFIÉ : Fonction main avec initialisation des notifications et UserService
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -52,6 +56,23 @@ Future<void> main() async {
       debugPrint('ℹ️ main() - Aucune donnée utilisateur stockée trouvée');
       debugPrint('ℹ️ main() - L\'application démarrera sur la page de connexion');
     }
+
+    // Set up force re-login callback for session expiry handling
+    userService.setForceReLoginCallback(() async {
+      debugPrint('🔄 main() - Callback de reconnexion forcée déclenché');
+      try {
+        // Clear current user session
+        await userService.clearCurrentUser();
+        debugPrint('✅ main() - Session utilisateur nettoyée');
+
+        // The navigation will be handled by the widget tree when tokens become invalid
+        // This callback ensures cleanup happens when refresh fails
+      } catch (e) {
+        debugPrint('❌ main() - Erreur lors du nettoyage de session dans callback: $e');
+      }
+    });
+    debugPrint('✅ main() - Callback de reconnexion forcée configuré');
+
   } catch (e, stackTrace) {
     debugPrint('❌ main() - Erreur lors de l\'initialisation UserService: $e');
     debugPrint('❌ main() - Stack trace: $stackTrace');
@@ -82,12 +103,14 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   late bool _modeSombre;
   final NotificationService _notificationService = NotificationService();
+  bool _forceLogin = false;
 
   @override
   void initState() {
     super.initState();
     _modeSombre = widget.modeSombreInitial;
     _initializeNotifications();
+    _setupAuthStateListener();
   }
 
   Future<void> _initializeNotifications() async {
@@ -100,6 +123,30 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
+  void _setupAuthStateListener() {
+    // Listen for authentication state changes
+    // This will be triggered when tokens become invalid
+    final userService = UserService();
+    userService.setForceReLoginCallback(() async {
+      debugPrint('🔄 MyApp - Callback de reconnexion forcée reçu');
+      if (mounted) {
+        setState(() {
+          _forceLogin = true;
+        });
+      }
+    });
+  }
+
+  // Method to reset authentication state (can be called after successful login)
+  void resetAuthState() {
+    if (mounted) {
+      setState(() {
+        _forceLogin = false;
+      });
+      debugPrint('✅ MyApp - État d\'authentification réinitialisé');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -109,14 +156,68 @@ class _MyAppState extends State<MyApp> {
         primaryColor: const Color(0xFF5d9643),
         scaffoldBackgroundColor: Colors.white,
       ),
-      // 🔹 Si c'est le premier lancement, on affiche SelectProfilePage
-      home: widget.isFirstLaunch ? const SelectProfilePage() : const LoginPage(profile: 'producteur'), // Ensure correct access
+      home: FutureBuilder<bool>(
+        future: _getAuthenticationStatus(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            // Show loading screen while checking authentication
+            return const Scaffold(
+              body: Center(
+                child: CircularProgressIndicator(),
+              ),
+            );
+          }
+
+          // Determine which page to show based on authentication state
+          Widget homePage;
+
+          if (_forceLogin) {
+            // Force navigation to login page when session expires
+            debugPrint('🔄 MyApp - Navigation forcée vers la page de connexion');
+            homePage = const LoginPage(profile: 'producteur');
+          } else if (widget.isFirstLaunch) {
+            // First launch - show profile selection
+            homePage = const SelectProfilePage();
+          } else {
+            // Check authentication result from FutureBuilder
+            final isAuthenticated = snapshot.data ?? false;
+            final userService = UserService();
+
+            if (isAuthenticated && userService.currentUser != null) {
+              // User is authenticated - show appropriate home page
+              final profileId = userService.currentUser!.profilId;
+              if (profileId == 'producteur' || profileId == 'f23423d4-ca9e-409b-b3fb-26126ab66581') {
+                homePage = const HomeProducteur();
+              } else {
+                homePage = const HomePage(acheteurId: 'acheteur');
+              }
+              debugPrint('✅ MyApp - Utilisateur authentifié: ${userService.currentUser!.nom} (${profileId})');
+            } else {
+              // Not authenticated - show login page
+              debugPrint('ℹ️ MyApp - Utilisateur non authentifié - affichage page de connexion');
+              homePage = const LoginPage(profile: 'producteur');
+            }
+          }
+
+          return homePage;
+        },
+      ),
       routes: {
         '/homePage': (context) => const HomePage(acheteurId: 'acheteur'),
         '/homeProducteur': (context) => const HomeProducteur(),
         '/login': (context) => const LoginPage(profile: 'producteur'),
+        '/detailOffreVente': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as AnnonceAchat;
+          return DetailOffreVente(annonce: args);
+        },
       },
     );
+  }
+
+  /// Get authentication status with proper token validation
+  Future<bool> _getAuthenticationStatus() async {
+    final userService = UserService();
+    return await userService.isUserAuthenticated();
   }
 
   @override

@@ -343,7 +343,6 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                                   ],
                                 ),
                               ),
-                              ),
                             );
                           },
                         ),

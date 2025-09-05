@@ -7,6 +7,40 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jwt_decode/jwt_decode.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
 
+// Centralized API configuration
+class ApiConfig {
+  // Base URLs for different environments
+  static const String devApiBaseUrl = 'http://192.168.252.199:3000';
+  static const String prodApiBaseUrl = 'https://api.yourproductiondomain.com';
+
+  static const String devImageBaseUrl = 'http://192.168.252.199:8080';
+  static const String prodImageBaseUrl = 'https://images.yourproductiondomain.com';
+
+  // Service-specific base URLs for dev environment
+  static const String devAnnoncesBaseUrl = 'http://192.168.252.199:8080';
+  static const String devTypesCulturesBaseUrl = 'http://192.168.252.199:8000';
+  static const String devParcellesBaseUrl = 'http://192.168.252.199:8000';
+
+  // Service-specific base URLs for prod environment
+  static const String prodAnnoncesBaseUrl = 'https://api.yourproductiondomain.com';
+  static const String prodTypesCulturesBaseUrl = 'https://api.yourproductiondomain.com';
+  static const String prodParcellesBaseUrl = 'https://api.yourproductiondomain.com';
+
+  // Current environment: change this to switch environments
+  static const bool isProduction = false;
+
+  // Get API base URL depending on environment
+  static String get apiBaseUrl => isProduction ? prodApiBaseUrl : devApiBaseUrl;
+
+  // Get Image base URL depending on environment
+  static String get imageBaseUrl => isProduction ? prodImageBaseUrl : devImageBaseUrl;
+
+  // Get service-specific base URLs
+  static String get annoncesBaseUrl => isProduction ? prodAnnoncesBaseUrl : devAnnoncesBaseUrl;
+  static String get typesCulturesBaseUrl => isProduction ? prodTypesCulturesBaseUrl : devTypesCulturesBaseUrl;
+  static String get parcellesBaseUrl => isProduction ? prodParcellesBaseUrl : devParcellesBaseUrl;
+}
+
 /// Classes d'exception spécifiques pour les erreurs d'authentification
 class AuthenticationException implements Exception {
   final String message;
@@ -90,6 +124,49 @@ class ApiClient {
     return Duration(milliseconds: delayMs.toInt().clamp(500, 10000)); // Max 10 secondes
   }
 
+  /// Exécute une requête HTTP avec retry et exponential backoff
+  Future<http.Response> _executeWithRetry(Future<http.Response> Function() requestFunction) async {
+    // Vérifier la connectivité du serveur avant de commencer
+    final isServerReachable = await _checkServerReachability();
+    if (!isServerReachable) {
+      print('❌ ApiClient._executeWithRetry() - Serveur non accessible, abandon des tentatives');
+      throw Exception('Serveur non accessible. Vérifiez votre connexion réseau.');
+    }
+
+    int attempt = 0;
+    while (attempt < _maxRetries) {
+      attempt++;
+      try {
+        final response = await requestFunction();
+        // Si la réponse est réussie (2xx), retourner immédiatement
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          return response;
+        }
+        // Pour les erreurs serveur (5xx) ou erreurs réseau, retry
+        if (response.statusCode >= 500 || response.statusCode == 408 || response.statusCode == 429) {
+          if (attempt >= _maxRetries) {
+            return response; // Retourner la dernière réponse d'erreur
+          }
+          final delay = _calculateBackoffDelay(attempt);
+          print('🔄 ApiClient._executeWithRetry() - Erreur ${response.statusCode}, retry dans ${delay.inMilliseconds}ms (tentative $attempt/$_maxRetries)');
+          await Future.delayed(delay);
+          continue;
+        }
+        // Pour les autres erreurs (4xx), ne pas retry
+        return response;
+      } catch (e) {
+        // Pour les exceptions (TimeoutException, SocketException, etc.), retry
+        if (attempt >= _maxRetries) {
+          rethrow;
+        }
+        final delay = _calculateBackoffDelay(attempt);
+        print('🔄 ApiClient._executeWithRetry() - Exception: $e, retry dans ${delay.inMilliseconds}ms (tentative $attempt/$_maxRetries)');
+        await Future.delayed(delay);
+      }
+    }
+    throw Exception('Échec après $_maxRetries tentatives');
+  }
+
   /// Récupère les headers (avec ou sans token) avec circuit breaker et retry
   Future<Map<String, String>> _getHeaders({bool withAuth = true}) async {
     final headers = {"Content-Type": "application/json"};
@@ -136,32 +213,40 @@ class ApiClient {
     return headers;
   }
 
-  /// Requête GET
+  /// Requête GET avec retry
   Future<http.Response> get(String endpoint, {bool withAuth = true}) async {
-    final headers = await _getHeaders(withAuth: withAuth);
-    final url = Uri.parse('$baseUrl$endpoint');
-    return http.get(url, headers: headers);
+    return _executeWithRetry(() async {
+      final headers = await _getHeaders(withAuth: withAuth);
+      final url = Uri.parse('$baseUrl$endpoint');
+      return http.get(url, headers: headers);
+    });
   }
 
-  /// Requête POST
+  /// Requête POST avec retry
   Future<http.Response> post(String endpoint, Map<String, dynamic> body, {bool withAuth = true}) async {
-    final headers = await _getHeaders(withAuth: withAuth);
-    final url = Uri.parse('$baseUrl$endpoint');
-    return http.post(url, headers: headers, body: jsonEncode(body));
+    return _executeWithRetry(() async {
+      final headers = await _getHeaders(withAuth: withAuth);
+      final url = Uri.parse('$baseUrl$endpoint');
+      return http.post(url, headers: headers, body: jsonEncode(body));
+    });
   }
 
-  /// Requête PUT
+  /// Requête PUT avec retry
   Future<http.Response> put(String endpoint, Map<String, dynamic> body, {bool withAuth = true}) async {
-    final headers = await _getHeaders(withAuth: withAuth);
-    final url = Uri.parse('$baseUrl$endpoint');
-    return http.put(url, headers: headers, body: jsonEncode(body));
+    return _executeWithRetry(() async {
+      final headers = await _getHeaders(withAuth: withAuth);
+      final url = Uri.parse('$baseUrl$endpoint');
+      return http.put(url, headers: headers, body: jsonEncode(body));
+    });
   }
 
-  /// Requête DELETE
+  /// Requête DELETE avec retry
   Future<http.Response> delete(String endpoint, {bool withAuth = true}) async {
-    final headers = await _getHeaders(withAuth: withAuth);
-    final url = Uri.parse('$baseUrl$endpoint');
-    return http.delete(url, headers: headers);
+    return _executeWithRetry(() async {
+      final headers = await _getHeaders(withAuth: withAuth);
+      final url = Uri.parse('$baseUrl$endpoint');
+      return http.delete(url, headers: headers);
+    });
   }
 
   /// 🔑 Récupérer le userId depuis le token JWT
@@ -180,6 +265,20 @@ class ApiClient {
     }
 
     return payload["user_id"].toString();
+  }
+
+  /// Vérifie la connectivité du serveur
+  Future<bool> _checkServerReachability() async {
+    try {
+      final url = Uri.parse('$baseUrl/'); // Check server root
+      final response = await http.get(url).timeout(const Duration(seconds: 10));
+      // Consider any HTTP response as reachable (server is responding)
+      // 200-499 means server is up, only network errors mean unreachable
+      return response.statusCode >= 200 && response.statusCode < 500;
+    } catch (e) {
+      print('⚠️ ApiClient._checkServerReachability() - Serveur non accessible: $e');
+      return false;
+    }
   }
 
   /// Méthode de secours pour l'authentification en cas d'échec total

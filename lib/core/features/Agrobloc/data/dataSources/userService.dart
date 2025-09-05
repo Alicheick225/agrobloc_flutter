@@ -92,6 +92,10 @@ class UserService {
     _userId = user.id;
     _token = token;
 
+    // Clear authentication cache to force re-evaluation
+    _cachedAuthState = null;
+    _lastAuthCheck = null;
+
     SharedPreferences? prefs;
     try {
       prefs = await SharedPreferences.getInstance();
@@ -233,6 +237,8 @@ class UserService {
       if (accessToken == null || accessToken.isEmpty) {
         print('❌ UserService.getValidToken() - Aucun token d\'accès trouvé dans SharedPreferences');
         print('🔍 UserService.getValidToken() - Clés disponibles: ${allKeys.where((key) => key.contains("token") || key.contains("user")).toList()}');
+        print('🔍 UserService.getValidToken() - DEBUG: accessToken is null: ${accessToken == null}, isEmpty: ${accessToken?.isEmpty ?? "N/A"}');
+        print('🔍 UserService.getValidToken() - DEBUG: Instance token available: ${_token != null && _token!.isNotEmpty}');
 
         // Essayer de récupérer depuis les variables d'instance si disponibles
         if (_token != null && _token!.isNotEmpty) {
@@ -273,8 +279,35 @@ class UserService {
       if (forceRefresh || isExpired) {
         print("🔄 UserService.getValidToken() - ${forceRefresh ? 'Refresh forcé' : 'Token expiré'}, tentative de rafraîchissement...");
         try {
-          if (refreshToken == null || refreshToken.isEmpty) {
-            print('⚠️ UserService.getValidToken() - Aucun token de rafraîchissement disponible');
+          // Check if refresh token is null or empty/whitespace
+          final isRefreshTokenInvalid = refreshToken == null ||
+                                        refreshToken.trim().isEmpty ||
+                                        refreshToken == 'null';
+
+          if (isRefreshTokenInvalid) {
+            print('⚠️ UserService.getValidToken() - Token de rafraîchissement invalide (null/vide): "$refreshToken"');
+            print('🔄 UserService.getValidToken() - Tentative d\'utilisation du backup_token comme refresh token...');
+
+            // Try to use backup_token as refresh token
+            final backupToken = await _getTokenFromBackup();
+            if (backupToken != null && backupToken.isNotEmpty) {
+              print('✅ UserService.getValidToken() - Backup token trouvé, tentative de refresh avec backup...');
+              try {
+                final newTokens = await AuthService().refreshToken(backupToken);
+                await prefs.setString("token", newTokens['accessToken']!);
+                await prefs.setString("refresh_token", newTokens['refreshToken']!);
+                _token = newTokens['accessToken']!;
+                print('✅ UserService.getValidToken() - Rafraîchissement réussi avec backup token');
+                print('🔍 UserService.getValidToken() - Nouveau token sauvegardé (${newTokens['accessToken']!.length} chars)');
+                return _token;
+              } catch (backupRefreshError) {
+                print('❌ UserService.getValidToken() - Échec du refresh avec backup token: $backupRefreshError');
+                print('🔄 UserService.getValidToken() - Backup token invalide, déclenchement de la reconnexion forcée');
+              }
+            } else {
+              print('⚠️ UserService.getValidToken() - Aucun backup token disponible');
+            }
+
             print('🔄 UserService.getValidToken() - Token expiré et pas de refresh possible - déclenchement de la reconnexion forcée');
 
             // Déclencher le callback de reconnexion forcée si défini
@@ -282,11 +315,11 @@ class UserService {
               print('🔄 UserService.getValidToken() - Callback de reconnexion forcée appelé');
               _onForceReLogin!();
             } else {
-              print('⚠️ UserService.getValidToken() - Aucun callback de reconnexion défini');
+              print('⚠️ UserService.getValidToken() - Aucun callback de reconnexion défini - nettoyage manuel des tokens');
+              // Nettoyer les tokens invalides même sans callback
+              await clearInvalidTokens();
             }
 
-            // Nettoyer les tokens invalides
-            await clearInvalidTokens();
             return null;
           }
 
@@ -410,6 +443,20 @@ class UserService {
       if (savedToken == null) {
         print('❌ UserService.loadUser() - Aucun token valide disponible');
         print('⚠️ UserService.loadUser() - Données utilisateur présentes mais token invalide - nettoyage des tokens');
+        print('🔍 UserService.loadUser() - DEBUG: Vérification des clés SharedPreferences...');
+
+        // Debug: Check what's actually in SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        final allKeys = prefs.getKeys();
+        print('🔍 UserService.loadUser() - DEBUG: Toutes les clés: $allKeys');
+
+        for (final key in allKeys) {
+          if (key.contains('token') || key.contains('user')) {
+            final value = prefs.get(key);
+            print('🔍 UserService.loadUser() - DEBUG: $key = ${value ?? "null"}');
+          }
+        }
+
         await clearInvalidTokens();
         _isLoading = false;
         return false;

@@ -101,7 +101,7 @@ void _envoyerDemande() async {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Demande envoyée avec succès ✅'),
+          title: const Text('✅'),
           content: const Text('Votre demande de préfinancement a été enregistrée.'),
           actions: <Widget>[
             TextButton(
@@ -278,12 +278,7 @@ void _envoyerDemande() async {
                   ),
                   const SizedBox(height: 16),
 
-                  if (parcelle != null) ...[
-                    Text("Adresse : ${parcelle!.adresse}", style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    Text("Surface : ${parcelle!.surface} hectares", style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 16),
-                  ],
+                 
 
                   _buildNumberField("Prix de vente", prixVenteController, "FCFA"),
                   const SizedBox(height: 16),

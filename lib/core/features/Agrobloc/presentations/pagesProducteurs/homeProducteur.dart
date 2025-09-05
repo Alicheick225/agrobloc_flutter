@@ -285,7 +285,7 @@ class _HomeProducteurState extends State<HomeProducteur> {
                       onPressed: () {
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const OffreVentePage(initialTabIndex: 1)));
                       },
-                      label: Text("Mes offres de vente", style: TextStyle(color: const Color(0xFF4CAF50), fontSize: 14.sp)),
+                      label: Text("Mes demandes d'offre", style: TextStyle(color: const Color(0xFF4CAF50), fontSize: 14.sp)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
