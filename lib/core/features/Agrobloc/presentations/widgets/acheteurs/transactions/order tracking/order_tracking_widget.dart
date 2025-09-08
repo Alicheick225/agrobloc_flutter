@@ -51,10 +51,11 @@ class OrderTrackingWidget extends StatelessWidget {
             cvvController: TextEditingController(),
           ),
           const SizedBox(height: 24),
+
           ProductInfoWidget(
             commande: commande,
-            isExpanded: false,
-            onToggle: () {},
+            //isExpanded: false,
+            //onToggle: () {},
           ),
           const SizedBox(height: 24),
           ProducerInfoWidget(commande: commande),
@@ -232,13 +233,6 @@ class OrderTrackingWidget extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Actions disponibles',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
             const SizedBox(height: 16),
             ...buttons,
           ],
@@ -251,12 +245,6 @@ class OrderTrackingWidget extends StatelessWidget {
     switch (status) {
       case OrderStatus.waitingPayment:
         return [
-          ActionButtonWidget(
-            text: 'Faire le paiement',
-            type: ActionButtonType.success,
-            onPressed: () => onStatusUpdate?.call(OrderStatus.waitingDelivery),
-          ),
-          const SizedBox(height: 12),
           ActionButtonWidget(
             text: 'Annuler la transaction',
             type: ActionButtonType.danger,

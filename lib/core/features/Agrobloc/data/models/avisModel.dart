@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 class AvisAchat {
   final String id;
   final double note;
@@ -39,11 +37,11 @@ class AvisAchat {
       nomNoteur: json['nom_noteur'] as String?,
       photoAnnonce: json['photo_annonce'] as String?,
       nomProduit: json['nom_produit'] as String?,
-      createdAt: json['created_at'] != null 
-          ? DateTime.parse(json['created_at']) 
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
           : null,
-      updatedAt: json['updated_at'] != null 
-          ? DateTime.parse(json['updated_at']) 
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'])
           : null,
     );
   }
@@ -176,8 +174,8 @@ class CommandeVente {
       prix: json['prix']?.toDouble(),
       quantite: json['quantite'] as int?,
       statut: json['statut'] as String?,
-      dateCommande: json['date_commande'] != null 
-          ? DateTime.parse(json['date_commande']) 
+      dateCommande: json['date_commande'] != null
+          ? DateTime.parse(json['date_commande'])
           : null,
     );
   }

@@ -6,9 +6,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/commandeModel.dart';
 
 class CommandeService {
-  final ApiClient api = ApiClient('http://192.168.252.199:3000/commandes');
+  final ApiClient api = ApiClient('http://192.168.252.199:3001/commandes');
 
-  final String baseUrl = "http:///192.168.252.199:3000";
+  final String baseUrl = "http:///192.168.252.199:3001";
 
   Future<CommandeModel> enregistrerCommande({
     required String annoncesVenteId,

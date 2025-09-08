@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:agrobloc/core/features/Agrobloc/data/models/typecultureModel.dart';
 
 import 'package:agrobloc/core/utils/api_token.dart';
-import 'package:http/http.dart' as http;
 import 'dart:async';
 
 class TypeCultureService {
@@ -13,7 +12,8 @@ class TypeCultureService {
   // ✅ Récupérer toutes les cultures
   Future<List<TypeCulture>> getAllTypes() async {
     try {
-      final response = await api.get('/types-cultures').timeout(timeoutDuration);
+      final response =
+          await api.get('/types-cultures').timeout(timeoutDuration);
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
@@ -22,14 +22,16 @@ class TypeCultureService {
         throw Exception('Erreur ${response.statusCode}: ${response.body}');
       }
     } catch (e) {
-      throw Exception('Erreur lors de la récupération des types de culture: $e');
+      throw Exception(
+          'Erreur lors de la récupération des types de culture: $e');
     }
   }
 
   // ✅ Récupérer une culture par ID
   Future<TypeCulture> getTypeById(String id) async {
     try {
-      final response = await api.get('/types_cultures/$id').timeout(timeoutDuration);
+      final response =
+          await api.get('/types_cultures/$id').timeout(timeoutDuration);
 
       if (response.statusCode == 200) {
         return TypeCulture.fromJson(jsonDecode(response.body));
@@ -44,7 +46,8 @@ class TypeCultureService {
   // ✅ Créer une nouvelle culture
   Future<TypeCulture> createType(TypeCulture type) async {
     try {
-      final response = await api.post('/types_culture', type.toJson())
+      final response = await api
+          .post('/types_culture', type.toJson())
           .timeout(timeoutDuration);
 
       if (response.statusCode == 201) {
@@ -56,6 +59,4 @@ class TypeCultureService {
       throw Exception('Erreur lors de la création du type de culture: $e');
     }
   }
-
-  
 }

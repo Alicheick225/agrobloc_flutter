@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/servicePayement.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/payementModeModel.dart';
 
 class TypePayementWidget extends StatefulWidget {
-  final Function(String mode)? onModeChanged;
+  final Function(String id)? onModeChanged;
   final VoidCallback onConfirm;
-
-  // Controllers partagés
   final TextEditingController cardHolderController;
   final TextEditingController cardNumberController;
   final TextEditingController expDateController;
@@ -25,61 +25,89 @@ class TypePayementWidget extends StatefulWidget {
 }
 
 class _TypePayementWidgetState extends State<TypePayementWidget> {
-  String? _selected; // null = pas encore choisi
+  String? _selectedId;
+  List<PayementModel> _modes = [];
+  String? _error;
 
-  final List<String> _modes = [
-    'Carte Bancaire',
-    'Virement Bancaire',
-    'Orange Money',
-    'MTN Mobile Money',
-    'Wave',
-    'Moov Money',
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadModes();
+  }
 
-  bool get _isCard =>
-      _selected?.toLowerCase() == 'carte bancaire' ||
-      _selected?.toLowerCase() == 'virement bancaire';
+  Future<void> _loadModes() async {
+    try {
+      _modes = await PayementService().fetchModes();
+    } catch (e) {
+      _error = 'Erreur serveur : ${e.toString()}';
+    }
+    setState(() {});
+  }
 
-  bool get _isMobile => {
-        'orange money',
-        'mtn mobile money',
-        'wave',
-        'moov money'
-      }.contains(_selected?.toLowerCase());
+  bool get _isCard => _modes.any(
+      (e) => e.id == _selectedId && e.libelle.toLowerCase().contains('carte'));
 
-  /* --------------------------------------------------------
-     1. LISTE DE SÉLECTION
-  -------------------------------------------------------- */
+  bool get _isMobile => _modes.any(
+      (e) => e.id == _selectedId && !e.libelle.toLowerCase().contains('carte'));
+
+  /* 1. LISTE DE SÉLECTION (sans loading) */
   Widget _buildModeSelector() {
+    if (_modes.isEmpty) {
+      // premier appel asynchrone
+      WidgetsBinding.instance.addPostFrameCallback((_) => _loadModes());
+      return const SizedBox.shrink();
+    }
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, color: Colors.red),
+            const SizedBox(height: 8),
+            Text(_error!, textAlign: TextAlign.center),
+            const SizedBox(height: 8),
+            ElevatedButton(
+              onPressed: _loadModes,
+              child: const Text('Réessayer'),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Padding(
-          padding: EdgeInsets.only(top: 10),
+          padding: EdgeInsets.only(left: 24, right: 24, top: 10),
           child: Text(
             'Sélectionnez le mode de paiement',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
         ),
         const SizedBox(height: 8),
-        ..._modes.map((mode) => ListTile(
-              title: Text(mode),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                setState(() => _selected = mode);
-                widget.onModeChanged?.call(mode);
-              },
-            )),
+        ..._modes.map(
+          (m) => Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+            child: Card(
+              child: ListTile(
+                leading: const Icon(Icons.payment, color: Colors.grey),
+                title: Text(m.libelle),
+                onTap: () => setState(() {
+                  _selectedId = m.id;
+                  widget.onModeChanged?.call(m.id);
+                }),
+                selected: _selectedId == m.id,
+                selectedColor: Colors.green,
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
 
-  /* --------------------------------------------------------
-     2. FORMULAIRE CARTE
-  -------------------------------------------------------- */
+  /* 2. FORMULAIRE CARTE */
   List<Widget> _buildCardForm() => [
         const Center(
           child: Text(
@@ -147,9 +175,8 @@ class _TypePayementWidgetState extends State<TypePayementWidget> {
           ),
         ),
       ];
-  /* --------------------------------------------------------
-     3. INFO MOBILE MONEY
-  -------------------------------------------------------- */
+
+  /* 3. INFO MOBILE MONEY */
   List<Widget> _buildMobileInfo() => [
         Container(
           padding: const EdgeInsets.all(12),
@@ -158,62 +185,57 @@ class _TypePayementWidgetState extends State<TypePayementWidget> {
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text(
-            "Vous serez redirigé vers l'interface de paiement $_selected.",
+            "Vous serez redirigé vers l'interface de paiement ${_modes.firstWhere((e) => e.id == _selectedId).libelle}.",
             style: const TextStyle(fontSize: 14),
           ),
         ),
       ];
 
-  /* --------------------------------------------------------
-     4. BUILD PRINCIPAL
-  -------------------------------------------------------- */
+  /* 4. BUILD PRINCIPAL */
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ÉTAPE 1 : sélection
-        if (_selected == null) _buildModeSelector(),
-
-        // ÉTAPE 2 : formulaire ou info
-        if (_selected != null) ...[
-          if (_isCard) ..._buildCardForm(),
-          if (_isMobile) ..._buildMobileInfo(),
-          const SizedBox(height: 20),
-
-          // Bouton « Confirmer » + « Changer de mode »
-          Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 24), // même marge que les TextField
-            child: Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: widget.onConfirm,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: const Color(0xFF2E7D32),
-                      side: const BorderSide(color: Color(0xFF2E7D32)),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: const Text(
-                      'Confirmer le paiement',
-                      style: TextStyle(color: Colors.white),
+        _selectedId == null
+            ? _buildModeSelector()
+            : Column(
+                children: [
+                  if (_isCard) ..._buildCardForm(),
+                  if (_isMobile) ..._buildMobileInfo(),
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: widget.onConfirm,
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              backgroundColor: const Color(0xFF2E7D32),
+                              side: const BorderSide(color: Color(0xFF2E7D32)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                            ),
+                            child: const Text(
+                              'Confirmer le paiement',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        TextButton(
+                          onPressed: () => setState(() => _selectedId = null),
+                          child: const Text('Changer'),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                TextButton(
-                  onPressed: () => setState(() => _selected = null),
-                  child: const Text('Changer'),
-                ),
-              ],
-            ),
-          ),
-        ],
+                ],
+              ),
       ],
     );
   }

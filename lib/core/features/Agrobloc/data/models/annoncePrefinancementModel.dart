@@ -1,4 +1,3 @@
-
 class AnnoncePrefinancement {
   final String id;
   final String statut;
@@ -39,7 +38,7 @@ class AnnoncePrefinancement {
     );
   }
 
-  Object? toJson() {}
+  Object? toJson() {
+    return null;
+  }
 }
-
-  

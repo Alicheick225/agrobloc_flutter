@@ -6,7 +6,6 @@ import 'package:agrobloc/core/features/Agrobloc/data/dataSources/parcelleService
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/tyoeCultureService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/parcelleService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/typecultureModel.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class PrefinancementForm extends StatefulWidget {
   const PrefinancementForm({super.key});
@@ -52,63 +51,62 @@ class _PrefinancementFormState extends State<PrefinancementForm> {
       );
     }
   }
+
 // Dans PrefinancementForm.dart
-void _envoyerDemande() async {
-  try {
-    if (culture == null || parcelle == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Veuillez sélectionner une culture et une parcelle")),
+  void _envoyerDemande() async {
+    try {
+      if (culture == null || parcelle == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content:
+                  Text("Veuillez sélectionner une culture et une parcelle")),
+        );
+        return;
+      }
+
+      final userService = UserService();
+
+      if (!userService.isLoggedIn) {
+        throw Exception("Utilisateur non connecté ou token manquant");
+      }
+
+      final userId = userService.userId!;
+      final token = userService.token!;
+
+      // Quantité
+      double quantite = double.tryParse(productionController.text) ?? 0;
+      if (unite == "T") quantite *= 1000; // Conversion T -> Kg
+
+      // Prix de vente
+      double prix = double.tryParse(prixVenteController.text) ?? 0;
+
+      // Description par défaut
+      final description = descriptionController.text.trim().isEmpty
+          ? "Pas de description"
+          : descriptionController.text.trim();
+
+      // Création du préfinancement
+      final annonce = await service.createPrefinancement(
+        token: token,
+        typeCultureId: culture!.id,
+        parcelleId: parcelle!.id,
+        quantite: quantite,
+        prix: prix,
+        description: description,
       );
-      return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Demande envoyée avec succès ✅")),
+      );
+
+      print("Réponse API : ${jsonEncode(annonce.toJson())}");
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Erreur : $e")),
+      );
+      print("Erreur API : $e");
     }
-
-    final userService = UserService();
-
-    if (!userService.isLoggedIn) {
-      throw Exception("Utilisateur non connecté ou token manquant");
-    }
-
-    final userId = userService.userId!;
-    final token = userService.token!;
-
-    // Quantité
-    double quantite = double.tryParse(productionController.text) ?? 0;
-    if (unite == "T") quantite *= 1000; // Conversion T -> Kg
-
-    // Prix de vente
-    double prix = double.tryParse(prixVenteController.text) ?? 0;
-
-    // Description par défaut
-    final description = descriptionController.text.trim().isEmpty
-        ? "Pas de description"
-        : descriptionController.text.trim();
-
-    // Création du préfinancement
-    final annonce = await service.createPrefinancement(
-      token: token,
-      typeCultureId: culture!.id,
-      parcelleId: parcelle!.id,
-      quantite: quantite,
-      prix: prix,
-      description: description,
-
-    );
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Demande envoyée avec succès ✅")),
-    );
-
-    print("Réponse API : ${jsonEncode(annonce.toJson())}");
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Erreur : $e")),
-    );
-    print("Erreur API : $e");
   }
-}
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -144,8 +142,8 @@ void _envoyerDemande() async {
                     onChanged: (val) => setState(() => culture = val),
                   ),
                   const SizedBox(height: 16),
-
-                  Text("Production estimée", style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text("Production estimée",
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                   Row(
                     children: [
                       Expanded(
@@ -181,7 +179,6 @@ void _envoyerDemande() async {
                     ],
                   ),
                   const SizedBox(height: 16),
-
                   DropdownButtonFormField<Parcelle>(
                     decoration: const InputDecoration(
                       labelText: "Choix de la parcelle",
@@ -197,21 +194,22 @@ void _envoyerDemande() async {
                     onChanged: (val) => setState(() => parcelle = val),
                   ),
                   const SizedBox(height: 16),
-
                   if (parcelle != null) ...[
-                    Text("Adresse : ${parcelle!.adresse}", style: TextStyle(fontWeight: FontWeight.bold)),
+                    Text("Adresse : ${parcelle!.adresse}",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
-                    Text("Surface : ${parcelle!.surface} hectares", style: TextStyle(fontWeight: FontWeight.bold)),
+                    Text("Surface : ${parcelle!.surface} hectares",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 16),
                   ],
-
-                  _buildNumberField("Prix de vente", prixVenteController, "FCFA"),
+                  _buildNumberField(
+                      "Prix de vente", prixVenteController, "FCFA"),
                   const SizedBox(height: 16),
-
-                  _buildNumberField("Montant à préfinancer", montantController, "FCFA"),
+                  _buildNumberField(
+                      "Montant à préfinancer", montantController, "FCFA"),
                   const SizedBox(height: 16),
-
-                  Text("Description", style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text("Description",
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                   TextField(
                     controller: descriptionController,
                     maxLines: 3,
@@ -221,7 +219,6 @@ void _envoyerDemande() async {
                     ),
                   ),
                   const SizedBox(height: 24),
-
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -245,7 +242,8 @@ void _envoyerDemande() async {
     );
   }
 
-  Widget _buildNumberField(String title, TextEditingController controller, String unit) {
+  Widget _buildNumberField(
+      String title, TextEditingController controller, String unit) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
