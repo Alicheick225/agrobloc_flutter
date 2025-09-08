@@ -122,7 +122,8 @@ class PrefinancementService {
           throw Exception('Erreur lors du chargement des préfinancements après retry : ${retryResponse.body}');
         }
       } else {
-        throw Exception('Erreur lors du chargement des préfinancements : ${response.body}');
+        throw Exception(
+            'Erreur lors du chargement des préfinancements : ${response.body}');
       }
     } catch (e) {
       throw Exception('Erreur lors du chargement des préfinancements : $e');

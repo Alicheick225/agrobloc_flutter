@@ -38,32 +38,31 @@ class _MobileMoneyOrderPageState extends State<MobileMoneyOrderPage> {
 
   @override
   void initState() {
-        super.initState();
+    super.initState();
 
-        // Liste des moyens de paiement Mobile Money supportés
-        final supportedPayments = ["Mobile Money"
-        ];
+    // Liste des moyens de paiement Mobile Money supportés
+    final supportedPayments = ["Mobile Money"];
 
-        // Si le moyen de paiement sélectionné n'est pas Mobile Money → redirection
-        if (!supportedPayments.contains(widget.selectedPayment)) {
-          // Attendre que le widget soit monté avant de rediriger
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => PaymentMethodPage(
-                  selectedPayment: widget.selectedPayment,
-                  totalAmount: widget.totalAmount,
-                  productName: widget.productName,
-                  unitPrice: widget.unitPrice,
-                  quantity: widget.quantity,
-                  unit: widget.unit,
-                ),
-              ),
-            );
-          });
-        }
-      }
+    // Si le moyen de paiement sélectionné n'est pas Mobile Money → redirection
+    if (!supportedPayments.contains(widget.selectedPayment)) {
+      // Attendre que le widget soit monté avant de rediriger
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => PaymentMethodPage(
+              selectedPayment: widget.selectedPayment,
+              totalAmount: widget.totalAmount,
+              productName: widget.productName,
+              unitPrice: widget.unitPrice,
+              quantity: widget.quantity,
+              unit: widget.unit,
+            ),
+          ),
+        );
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -102,7 +101,7 @@ class _MobileMoneyOrderPageState extends State<MobileMoneyOrderPage> {
             unitPrice: widget.unitPrice,
             quantity: widget.quantity,
             unit: widget.unit,
-            totalAmount: widget.totalAmount, 
+            totalAmount: widget.totalAmount,
             productName: widget.productName,
           ),
         ),
@@ -151,13 +150,15 @@ class _MobileMoneyOrderPageState extends State<MobileMoneyOrderPage> {
                           width: 32,
                           height: 32,
                           fit: BoxFit.contain,
-                          errorBuilder: (_, __, ___) => const Icon(Icons.payment, color: Colors.green),
+                          errorBuilder: (_, __, ___) =>
+                              const Icon(Icons.payment, color: Colors.green),
                         )
                       : const Icon(Icons.payment, color: Colors.green),
                   const SizedBox(width: 10),
                   Text(
                     widget.selectedPayment,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ],
               ),
@@ -175,7 +176,8 @@ class _MobileMoneyOrderPageState extends State<MobileMoneyOrderPage> {
               keyboardType: TextInputType.phone,
               decoration: InputDecoration(
                 hintText: "+225 ** *****76",
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
               enabled: !useNewNumber,
             ),
@@ -190,7 +192,8 @@ class _MobileMoneyOrderPageState extends State<MobileMoneyOrderPage> {
               },
               child: const Row(
                 children: [
-                  Text("Payer via un autre numéro", style: TextStyle(color: Colors.blue, fontSize: 14)),
+                  Text("Payer via un autre numéro",
+                      style: TextStyle(color: Colors.blue, fontSize: 14)),
                   Icon(Icons.arrow_forward_ios, size: 16, color: Colors.blue),
                 ],
               ),
@@ -203,7 +206,8 @@ class _MobileMoneyOrderPageState extends State<MobileMoneyOrderPage> {
                 controller: debitNumberController,
                 decoration: InputDecoration(
                   hintText: "Entrez le numéro à débiter",
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
                 keyboardType: TextInputType.phone,
               ),
@@ -220,7 +224,8 @@ class _MobileMoneyOrderPageState extends State<MobileMoneyOrderPage> {
                   foregroundColor: Colors.green,
                   side: const BorderSide(color: Colors.green),
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
                 child: isLoading
                     ? const CircularProgressIndicator(color: Colors.green)

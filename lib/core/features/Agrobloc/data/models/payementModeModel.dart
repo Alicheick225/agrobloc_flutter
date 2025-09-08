@@ -1,19 +1,15 @@
-class PaymentModel {
+// lib/models/payement_model.dart
+class PayementModel {
   final String id;
   final String libelle;
-  final String? logo;
 
-  PaymentModel({
+  PayementModel({
     required this.id,
     required this.libelle,
-    this.logo,
   });
 
-  factory PaymentModel.fromJson(Map<String, dynamic> json) {
-    return PaymentModel(
-      id: json["id"],
-      libelle: json["libelle"],
-      logo: json["logo"],
-    );
-  }
+  factory PayementModel.fromJson(Map<String, dynamic> json) => PayementModel(
+        id: json['id'],
+        libelle: json['libelle'],
+      );
 }

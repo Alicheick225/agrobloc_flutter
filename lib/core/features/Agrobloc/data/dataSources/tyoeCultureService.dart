@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:agrobloc/core/features/Agrobloc/data/models/typecultureModel.dart';
 
 import 'package:agrobloc/core/utils/api_token.dart';
-import 'package:http/http.dart' as http;
 import 'dart:async';
 
 class TypeCultureService {
@@ -71,6 +70,4 @@ class TypeCultureService {
       throw Exception('Erreur lors de la création du type de culture: $e');
     }
   }
-
-  
 }
