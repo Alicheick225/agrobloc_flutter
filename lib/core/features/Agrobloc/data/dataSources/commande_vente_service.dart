@@ -35,4 +35,8 @@ class CommandeVenteService {
     final list = await getAllCommandes();
     return list.firstWhere((c) => c.id == id);
   }
+
+  Future<List<CommandeVente>> getCommandesEnCours() async {
+    return []; // Returning an empty list
+  }
 }

@@ -8,13 +8,20 @@ environment:
   sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
-  flutter:
+  flutter: 
     sdk: flutter
-  
-  # 🔧 CORRIGÉ : jwt_decode déplacé au bon endroit
+  # 📍 Localisation GPS + Adresse
+  geolocator: ^14.0.1
+  geocoding: ^3.0.0
+
+  # 🔑 Auth
   jwt_decode: ^0.3.1
+
+  # 🔔 Notifications
   flutter_local_notifications: ^19.4.0
   permission_handler: ^12.0.1
+
+  # 🌐 Réseau & autres
   cupertino_icons: ^1.0.2
   http: ^1.4.0
   image_picker: ^1.1.2
