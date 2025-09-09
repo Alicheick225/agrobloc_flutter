@@ -1,9 +1,9 @@
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/home/notification_livraison_page.dart';
-import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class SearchBarWidget extends StatelessWidget {
-  const SearchBarWidget({super.key});
+  final ValueChanged<String>? onChanged;
+
+  SearchBarWidget({super.key, this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -19,12 +19,13 @@ class SearchBarWidget extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
-              children: const [
-                Icon(Icons.search, color: Colors.grey),
-                SizedBox(width: 8),
+              children: [
+                const Icon(Icons.search, color: Colors.grey),
+                const SizedBox(width: 8),
                 Expanded(
                   child: TextField(
-                    decoration: InputDecoration(
+                    onChanged: onChanged,
+                    decoration: const InputDecoration(
                       hintText: 'Recherchez selon vos besoins...',
                       border: InputBorder.none,
                       isDense: true,
@@ -41,7 +42,7 @@ class SearchBarWidget extends StatelessWidget {
         // ⚙️ Bouton filtre
         GestureDetector(
           onTap: () {
-            
+
           },
           child: Container(
             height: 50,
@@ -60,12 +61,12 @@ class SearchBarWidget extends StatelessWidget {
         // 🔔 Notification cliquable avec badge
         GestureDetector(
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const NotificationLivraisonPage(),
-              ),
-            );
+            // Navigator.push(
+            //   context,
+            //   MaterialPageRoute(
+            //     builder: (_) => const NotificationLivraisonPage(),
+            //   ),
+            // );
           },
           child: Stack(
             children: [
@@ -73,7 +74,7 @@ class SearchBarWidget extends StatelessWidget {
                 height: 50,
                 width: 50,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryGreen,
+                  color: Colors.green,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(Icons.notifications_none, color: Colors.white),

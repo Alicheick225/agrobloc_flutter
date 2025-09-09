@@ -1,7 +1,8 @@
 import 'package:agrobloc/core/features/Agrobloc/data/models/commande_vente.dart';
+import 'package:agrobloc/core/utils/api_token.dart';
 
 class CommandeVenteService {
-  static const String baseUrl = 'http://192.168.252.199:3000/commandes';
+  static String get baseUrl => '${ApiConfig.apiBaseUrl}/commandes';
 
   Future<List<CommandeVente>> getAllCommandes() async {
     // DEMO : renvoie 2 commandes avec colonnes exactes

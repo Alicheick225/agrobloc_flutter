@@ -7,7 +7,7 @@ import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/order%20tracking/Trackingpage.dart';
 
 class TransactionPage extends StatefulWidget {
-  const TransactionPage({super.key});
+  const TransactionPage({super.key, required Text child});
 
   @override
   State<TransactionPage> createState() => _TransactionPageState();

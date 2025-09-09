@@ -97,9 +97,30 @@ class _LoginPageState extends State<LoginPage> {
           );
       }
     } catch (e) {
+      // Amélioration de l'affichage des erreurs
+      String errorMessage = 'Erreur de connexion';
+      
+      // Extraire le message d'erreur spécifique de l'exception
+      final errorString = e.toString();
+      
+      // Éviter la concaténation multiple de "Erreur de connexion"
+      if (errorString.contains('Erreur de connexion:')) {
+        errorMessage = errorString.replaceFirst('Exception: ', '');
+      } else if (errorString.contains('Erreur d\'authentification:')) {
+        errorMessage = errorString.replaceFirst('Exception: ', '');
+      } else {
+        errorMessage = 'Erreur de connexion: ${errorString.replaceFirst('Exception: ', '')}';
+      }
+      
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur de connexion: $e')),
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 5),
+        ),
       );
+      
+      print('❌ Erreur de connexion détaillée: $e');
     } finally {
       setState(() => _isLoading = false);
     }

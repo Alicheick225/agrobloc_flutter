@@ -1,12 +1,7 @@
-// Fichier: homeProducteur.dart
-
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/AnnonceFrom.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/AnnonceForm.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/prefinancementForm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
-// Import de la page de profil
-import 'package:agrobloc/core/features/Agrobloc/presentations/pagesProducteurs/profilPage.dart';
 
 void main() {
   runApp(const MaterialApp(home: HomeProducteur()));
@@ -21,18 +16,24 @@ class HomeProducteur extends StatefulWidget {
 
 class _HomeProducteurState extends State<HomeProducteur> {
   int _selectedIndex = 0;
+  bool isLoading = false;
+  List<dynamic> annonces = []; // Placeholder for annonces
 
-  // Mise à jour de la liste des pages pour inclure ProfilPage
   final List<Widget> pages = [
-    const OffreDeVentePage(),
+    const HomeProducteur(),
     const Center(child: Text("Messages")),
     const Center(child: Text("Transactions")),
-    const ProfilPage(), // La page Profil est maintenant le 4ème élément
+    const Center(child: Text("Profil")),
   ];
 
+  /// Méthode de changement de page
   void _onNavBarTap(int index) {
     setState(() {
-      _selectedIndex = index;
+      if (index >= 0 && index < pages.length) {
+        _selectedIndex = index;
+      } else {
+        debugPrint("⚠️ Index $index invalide !");
+      }
     });
   }
 
@@ -45,8 +46,7 @@ class _HomeProducteurState extends State<HomeProducteur> {
       builder: (context, child) {
         return Scaffold(
           backgroundColor: Colors.white,
-          // Le corps de la page est géré par la liste `pages`
-          body: pages[_selectedIndex],
+          body: _selectedIndex == 0 ? _buildHomeContent() : pages[_selectedIndex],
           bottomNavigationBar: BottomBarProducteur(
             selectedIndex: _selectedIndex,
             onTap: _onNavBarTap,
@@ -55,61 +55,8 @@ class _HomeProducteurState extends State<HomeProducteur> {
       },
     );
   }
-}
 
-class BottomBarProducteur extends StatelessWidget {
-  final int selectedIndex;
-  final ValueChanged<int> onTap;
-
-  const BottomBarProducteur({
-    super.key,
-    required this.selectedIndex,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      currentIndex: selectedIndex,
-      type: BottomNavigationBarType.fixed,
-      showUnselectedLabels: true,
-      selectedItemColor: const Color(0xFF527E3F),
-      unselectedItemColor: Colors.grey,
-      onTap: onTap,
-      items: [
-        _buildNavItem(Icons.home_outlined, "Accueil", 0),
-        _buildNavItem(Icons.message_outlined, "Messages", 1),
-        _buildNavItem(Icons.sync_alt_outlined, "Transactions", 2),
-        _buildNavItem(Icons.person_rounded, "Profil", 3),
-      ],
-    );
-  }
-
-  BottomNavigationBarItem _buildNavItem(IconData icon, String label, int index) {
-    final bool isSelected = selectedIndex == index;
-
-    return BottomNavigationBarItem(
-      icon: Container(
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF527E3F) : Colors.transparent,
-          borderRadius: BorderRadius.circular(15.r),
-        ),
-        padding: EdgeInsets.all(6.r),
-        child: Icon(
-          icon,
-          color: isSelected ? Colors.white : Colors.grey,
-        ),
-      ),
-      label: label,
-    );
-  }
-}
-
-class OffreDeVentePage extends StatelessWidget {
-  const OffreDeVentePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildHomeContent() {
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -176,9 +123,10 @@ class OffreDeVentePage extends StatelessWidget {
           ),
 
           SizedBox(height: 16.h),
+
           SizedBox(height: 30.h),
 
-          // Cartes
+          // Cartes blanches avec ombrage
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 20.w),
             child: Column(
@@ -227,9 +175,52 @@ class OffreDeVentePage extends StatelessWidget {
             ),
           ),
 
+          SizedBox(height: 24.h),
+
+          // --- Dernières annonces ---
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("Dernières annonces d'achat", style: TextStyle(fontSize: 15.sp, color: const Color.fromARGB(255, 7, 7, 7))),
+                TextButton(
+                  onPressed: () {
+                    // Navigator.push(context, MaterialPageRoute(builder: (context) => const AnnonceAchatPage()));
+                  },
+                  child: Text("Voir tout", style: TextStyle(color: const Color(0xFF4CAF50))),
+                ),
+              ],
+            ),
+          ),
+
+          if (isLoading)
+            const CircularProgressIndicator()
+          else
+            ...annonces.map((annonce) => _buildAnnonceCard(annonce)).toList(),
+
           SizedBox(height: 30.h),
         ],
       ),
+    );
+  }
+
+  Widget _buildAnnonceCard(dynamic annonce) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 6.r,
+            offset: Offset(0, 2.h),
+          ),
+        ],
+      ),
+      child: Text("Annonce: ${annonce.toString()}"), // Placeholder
     );
   }
 
@@ -284,7 +275,8 @@ class OffreDeVentePage extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15.r),
                     ),
-                    padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
                   ),
                   child: Text(
                     buttonText,
@@ -305,6 +297,54 @@ class OffreDeVentePage extends StatelessWidget {
           )
         ],
       ),
+    );
+  }
+}
+
+class BottomBarProducteur extends StatelessWidget {
+  final int selectedIndex;
+  final ValueChanged<int> onTap;
+
+  const BottomBarProducteur({
+    super.key,
+    required this.selectedIndex,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BottomNavigationBar(
+      currentIndex: selectedIndex,
+      type: BottomNavigationBarType.fixed,
+      showUnselectedLabels: true,
+      selectedItemColor: const Color(0xFF527E3F),
+      unselectedItemColor: Colors.grey,
+      onTap: onTap,
+      items: [
+        _buildNavItem(Icons.home_outlined, "Accueil", 0),
+        _buildNavItem(Icons.message_outlined, "Messages", 1),
+        _buildNavItem(Icons.sync_alt_outlined, "Transactions", 2),
+        _buildNavItem(Icons.person_rounded, "Profil", 3),
+      ],
+    );
+  }
+
+  BottomNavigationBarItem _buildNavItem(IconData icon, String label, int index) {
+    final bool isSelected = selectedIndex == index;
+
+    return BottomNavigationBarItem(
+      icon: Container(
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF527E3F) : Colors.transparent,
+          borderRadius: BorderRadius.circular(15.r),
+        ),
+        padding: EdgeInsets.all(6.r),
+        child: Icon(
+          icon,
+          color: isSelected ? Colors.white : Colors.grey,
+        ),
+      ),
+      label: label,
     );
   }
 }

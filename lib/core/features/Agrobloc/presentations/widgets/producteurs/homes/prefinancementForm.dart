@@ -6,10 +6,14 @@ import 'package:agrobloc/core/features/Agrobloc/data/dataSources/parcelleService
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/tyoeCultureService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/parcelleService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/typecultureModel.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/annoncePrefinancementModel.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/offreVentePage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PrefinancementForm extends StatefulWidget {
-  const PrefinancementForm({super.key});
+  final AnnoncePrefinancement? prefinancement; // Pour le mode édition
+
+  const PrefinancementForm({super.key, this.prefinancement});
 
   @override
   State<PrefinancementForm> createState() => _PrefinancementFormState();
@@ -36,6 +40,32 @@ class _PrefinancementFormState extends State<PrefinancementForm> {
   void initState() {
     super.initState();
     _chargerData();
+    if (widget.prefinancement != null) {
+      _populateFieldsForEditing();
+    }
+  }
+
+  void _populateFieldsForEditing() {
+    if (widget.prefinancement == null) return;
+
+    final prefinancement = widget.prefinancement!;
+
+    // Populate quantity
+    productionController.text = prefinancement.quantite.toString();
+
+    // Populate price
+    prixVenteController.text = prefinancement.prixKgPref.toString();
+
+    // Populate description
+    descriptionController.text = prefinancement.description ?? '';
+
+    // Set unit based on quantity (assuming if > 1000, it's in T)
+    if (prefinancement.quantite >= 1000) {
+      unite = "T";
+      productionController.text = (prefinancement.quantite / 1000).toString();
+    } else {
+      unite = "Kg";
+    }
   }
 
   Future<void> _chargerData() async {
@@ -64,12 +94,13 @@ void _envoyerDemande() async {
 
     final userService = UserService();
 
-    if (!userService.isLoggedIn) {
+    // Vérifier l'authentification en chargeant les données utilisateur si nécessaire
+    final isAuthenticated = await userService.isUserAuthenticated();
+    if (!isAuthenticated) {
       throw Exception("Utilisateur non connecté ou token manquant");
     }
 
     final userId = userService.userId!;
-    final token = userService.token!;
 
     // Quantité
     double quantite = double.tryParse(productionController.text) ?? 0;
@@ -85,7 +116,6 @@ void _envoyerDemande() async {
 
     // Création du préfinancement
     final annonce = await service.createPrefinancement(
-      token: token,
       typeCultureId: culture!.id,
       parcelleId: parcelle!.id,
       quantite: quantite,
@@ -94,16 +124,95 @@ void _envoyerDemande() async {
 
     );
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Demande envoyée avec succès ✅")),
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('✅'),
+          content: const Text('Votre demande de préfinancement a été enregistrée.'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Retour'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Fermer le modal
+                // Reset form fields
+                setState(() {
+                  culture = null;
+                  parcelle = null;
+                  productionController.clear();
+                  prixVenteController.clear();
+                  montantController.clear();
+                  descriptionController.clear();
+                  unite = "Kg";
+                });
+              },
+            ),
+            TextButton(
+              child: const Text('Voir ma demande'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Fermer le modal
+                // Naviguer vers la page OffreVentePage avec l'onglet Financement sélectionné
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const OffreVentePage(initialTabIndex: 2),
+                  ),
+                );
+              },
+            ),
+          ],
+        );
+      },
     );
 
     print("Réponse API : ${jsonEncode(annonce.toJson())}");
   } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Erreur : $e")),
-    );
     print("Erreur API : $e");
+
+    // Gestion spécifique des erreurs d'authentification
+    String errorMessage = "Une erreur inattendue s'est produite";
+
+    if (e.toString().contains("Token manquant") ||
+        e.toString().contains("Utilisateur non connecté") ||
+        e.toString().contains("token manquant")) {
+      errorMessage = "Session expirée. Veuillez vous reconnecter.";
+    } else if (e.toString().contains("Identifiant utilisateur invalide") ||
+               e.toString().contains("authentification") ||
+               e.toString().contains("Authentication")) {
+      errorMessage = "Problème d'authentification. Veuillez vous reconnecter.";
+    } else if (e.toString().contains("Impossible de rafraîchir le token")) {
+      errorMessage = "Session expirée. Veuillez vous reconnecter pour continuer.";
+    } else if (e.toString().contains("Erreur lors de la création du préfinancement")) {
+      errorMessage = "Erreur lors de l'envoi de la demande. Veuillez réessayer.";
+    } else if (e.toString().contains("réseau") ||
+               e.toString().contains("network") ||
+               e.toString().contains("connection")) {
+      errorMessage = "Problème de connexion. Vérifiez votre connexion internet.";
+    } else {
+      // Pour les autres erreurs, afficher un message générique mais plus user-friendly
+      errorMessage = "Une erreur s'est produite. Veuillez réessayer.";
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(errorMessage),
+        duration: const Duration(seconds: 4),
+        action: (errorMessage.contains("reconnecter") ||
+                 errorMessage.contains("Session expirée"))
+            ? SnackBarAction(
+                label: "Se connecter",
+                onPressed: () {
+                  // Navigation vers la page de connexion
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                    '/login',
+                    (route) => false,
+                  );
+                },
+              )
+            : null,
+      ),
+    );
   }
 }
 
@@ -198,12 +307,7 @@ void _envoyerDemande() async {
                   ),
                   const SizedBox(height: 16),
 
-                  if (parcelle != null) ...[
-                    Text("Adresse : ${parcelle!.adresse}", style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    Text("Surface : ${parcelle!.surface} hectares", style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 16),
-                  ],
+                 
 
                   _buildNumberField("Prix de vente", prixVenteController, "FCFA"),
                   const SizedBox(height: 16),

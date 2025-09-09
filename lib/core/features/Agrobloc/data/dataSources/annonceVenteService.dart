@@ -7,22 +7,24 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jwt_decode/jwt_decode.dart';
 import '../models/AnnonceVenteModel.dart';
+import 'tyoeCultureService.dart';
+import 'userService.dart';
 
 class AnnonceService {
-  final ApiClient api = ApiClient('http://192.168.252.199:8080');
+  final ApiClient api = ApiClient(ApiConfig.annoncesBaseUrl);
+  final TypeCultureService _typeCultureService = TypeCultureService();
   static const Duration timeoutDuration = Duration(seconds: 15);
 
-  /// Récupérer et valider le token JWT
+  Map<String, String>? _typeCultureCache;
+
+  /// Récupérer et valider le token via UserService
   Future<String> _getValidToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    // Utiliser UserService pour une gestion centralisée des tokens
+    final userService = UserService();
+    final token = await userService.getValidToken();
 
     if (token == null || token.isEmpty) {
-      throw Exception("Token manquant. Veuillez vous reconnecter.");
-    }
-
-    if (Jwt.isExpired(token)) {
-      throw Exception("Token expiré. Veuillez vous reconnecter.");
+      throw Exception("Token non trouvé ou invalide. Veuillez vous connecter.");
     }
 
     return token;
@@ -46,13 +48,45 @@ class AnnonceService {
   return uid;
 }
 
+  /// Cache all typeCultures for quick lookup
+  Future<void> _cacheTypeCultures() async {
+    if (_typeCultureCache != null) return; // already cached
+    final types = await _typeCultureService.getAllTypes();
+    _typeCultureCache = { for (var t in types) t.id : t.libelle };
+  }
+
+  /// Enrich AnnonceVente list with typeCulture libelle from cache
+  Future<List<AnnonceVente>> _enrichAnnoncesWithTypeCulture(List<AnnonceVente> annonces) async {
+    await _cacheTypeCultures();
+    return annonces.map((annonce) {
+      final libelle = _typeCultureCache?[annonce.typeCultureId] ?? '';
+      return AnnonceVente(
+        id: annonce.id,
+        photo: annonce.photo,
+        statut: annonce.statut,
+        description: annonce.description,
+        prixKg: annonce.prixKg,
+        prixUnite: annonce.prixUnite,
+        quantite: annonce.quantite,
+        quantiteUnite: annonce.quantiteUnite,
+        userNom: annonce.userNom,
+        typeCultureLibelle: libelle.isNotEmpty ? libelle : annonce.typeCultureLibelle,
+        typeCultureId: annonce.typeCultureId,
+        parcelleAdresse: annonce.parcelleAdresse,
+        createdAt: annonce.createdAt,
+        note: annonce.note,
+      );
+    }).toList();
+  }
+
   /// Récupérer toutes les annonces
   Future<List<AnnonceVente>> getAllAnnonces() async {
     try {
       final response = await api.get('/annonces_vente');
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
-        return data.map((json) => AnnonceVente.fromJson(json)).toList();
+        final annonces = data.map((json) => AnnonceVente.fromJson(json)).toList();
+        return await _enrichAnnoncesWithTypeCulture(annonces);
       } else {
         throw _handleError(response);
       }
@@ -135,6 +169,128 @@ class AnnonceService {
     }
   }
 
+  /// Récupérer une annonce par ID
+  Future<AnnonceVente> getAnnonceByID(String id) async {
+    try {
+      final response = await api.get('/annonces_vente/$id');
+      if (response.statusCode == 200) {
+        final annonce = AnnonceVente.fromJson(jsonDecode(response.body));
+        final enriched = await _enrichAnnoncesWithTypeCulture([annonce]);
+        return enriched.first;
+      } else {
+        throw _handleError(response);
+      }
+    } catch (e) {
+      throw _handleException(e);
+    }
+  }
+
+  /// Récupérer les annonces d'un utilisateur spécifique
+  Future<List<AnnonceVente>> getAnnoncesByUserID(String userId) async {
+    try {
+      final response = await api.get('/annonces_vente/user/$userId');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        final annonces = data.map((json) => AnnonceVente.fromJson(json)).toList();
+        return await _enrichAnnoncesWithTypeCulture(annonces);
+      } else {
+        throw _handleError(response);
+      }
+    } catch (e) {
+      throw _handleException(e);
+    }
+  }
+
+  /// Récupérer uniquement les annonces de l'utilisateur connecté
+  Future<List<AnnonceVente>> fetchAnnoncesByUser() async {
+    try {
+      final userId = await _getUserId();
+      return await getAnnoncesByUserID(userId);
+    } catch (e) {
+      throw _handleException(e);
+    }
+  }
+
+  /// Mettre à jour une annonce
+  Future<AnnonceVente> updateAnnonce({
+    required String id,
+    required String statut,
+    required String description,
+    required String typeCultureId,
+    required String parcelleId,
+    required double quantite,
+    required double prixKg,
+    XFile? photo,
+  }) async {
+    try {
+      if (photo == null) {
+        // Mise à jour sans photo
+        final body = {
+          'statut': statut,
+          'description': description,
+          'type_culture_id': typeCultureId,
+          'parcelle_id': parcelleId,
+          'quantite': quantite,
+          'prix_kg': prixKg,
+        };
+        final response = await api.put('/annonces_vente/$id', body);
+
+        if (response.statusCode == 200) {
+          return AnnonceVente.fromJson(jsonDecode(response.body));
+        } else {
+          throw _handleError(response);
+        }
+      } else {
+        // Mise à jour avec photo
+        var request = http.MultipartRequest(
+          'PUT',
+          Uri.parse('${api.baseUrl}/annonces_vente/$id'),
+        );
+
+        request.headers.addAll(await _getHeaders(isMultipart: true));
+
+        request.fields.addAll({
+          'statut': statut,
+          'description': description,
+          'type_culture_id': typeCultureId,
+          'parcelle_id': parcelleId,
+          'quantite': quantite.toString(),
+          'prix_kg': prixKg.toString(),
+        });
+
+        final fileExtension = photo.path.split('.').last;
+        request.files.add(await http.MultipartFile.fromPath(
+          'photo',
+          photo.path,
+          contentType: MediaType('image', fileExtension),
+        ));
+
+        final response = await request.send().timeout(timeoutDuration);
+        final responseBody = await response.stream.bytesToString();
+
+        if (response.statusCode == 200) {
+          return AnnonceVente.fromJson(jsonDecode(responseBody));
+        } else {
+          throw _handleError(http.Response(responseBody, response.statusCode));
+        }
+      }
+    } catch (e) {
+      throw _handleException(e);
+    }
+  }
+
+  /// Supprimer une annonce
+  Future<void> deleteAnnonce(String id) async {
+    try {
+      final response = await api.delete('/annonces_vente/$id');
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        throw _handleError(response);
+      }
+    } catch (e) {
+      throw _handleException(e);
+    }
+  }
+
   /// Gestion des erreurs HTTP
   Exception _handleError(http.Response response) {
     String errorMessage = "Erreur inconnue";
@@ -169,6 +325,8 @@ class AnnonceService {
       return Exception('La requête a expiré');
     } else if (e is FormatException) {
       return Exception('Erreur de format des données');
+    } else if (e.toString().contains('Token non trouvé')) {
+      return Exception('Token non trouvé. Veuillez vous connecter.');
     }
     return Exception('Erreur inattendue: ${e.toString()}');
   }

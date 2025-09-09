@@ -192,8 +192,15 @@ class _ProfilPageState extends State<ProfilPage> {
                   children: [
                     CircleAvatar(
                       radius: 45,
-                      backgroundImage: const AssetImage('assets/images/avatar.jpg'),
-                      backgroundColor: Colors.grey[300],
+                      backgroundColor: const Color(0xFF4CAF50), // Primary green color
+                      child: Text(
+                        user?.nom.isNotEmpty == true ? user!.nom[0].toUpperCase() : '?',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                     Positioned(
                       bottom: 0,

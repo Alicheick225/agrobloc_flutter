@@ -5,15 +5,16 @@ import 'package:http/http.dart' as http;
 
 import '../models/AnnonceAchatModel.dart';
 import '../dataSources/userService.dart';
+import 'package:agrobloc/core/utils/api_token.dart';
 
 class AnnonceAchatService {
   // Endpoints
-  static const String _baseUrl = 'http://192.168.252.199:8080/annonces_achat';
-  static const String _culturesUrl = 'http://192.168.252.249:8080/api/types-cultures';
+  static final String _baseUrl = '${ApiConfig.annoncesBaseUrl}/annonces_achat';
+  static final String _culturesUrl = '${ApiConfig.typesCulturesBaseUrl}/api/types-cultures';
 
-  /// Récupère le token et construit les headers
+  /// Récupère le token valide et construit les headers
   Future<Map<String, String>> _getHeaders() async {
-    final token = await UserService().getToken();
+    final token = await UserService().getValidToken(); // refresh automatique
     return {
       'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',
@@ -29,17 +30,14 @@ class AnnonceAchatService {
     final uri = Uri.parse(base);
     return clean.isEmpty
         ? uri
-        : uri.replace(queryParameters: {
-            ...uri.queryParameters,
-            ...clean,
-          });
+        : uri.replace(queryParameters: {...uri.queryParameters, ...clean});
   }
 
   // ---------------------------
   // LECTURE
   // ---------------------------
 
-  /// Récupère toutes les annonces (optionnellement filtrées par statut ou typeCulture)
+  /// Récupère toutes les annonces (optionnellement filtrées)
   Future<List<AnnonceAchat>> fetchAnnonces({
     String? statut,
     String? typeCultureId,
@@ -51,33 +49,12 @@ class AnnonceAchatService {
         'type_culture_id': typeCultureId,
       });
 
-      final response = await http.get(uri, headers: headers).timeout(const Duration(seconds: 10));
+      final response =
+          await http.get(uri, headers: headers).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final List<dynamic> body = json.decode(response.body);
-        
-        // Récupérer les cultures pour obtenir les libellés
-        final cultures = await fetchCultures();
-        
-        // Mapper les annonces avec les libellés de culture
-        return body.map((item) {
-          final annonce = AnnonceAchat.fromJson(item);
-          final typeCultureId = annonce.typeCultureId;
-          
-          // Trouver le libellé correspondant dans la liste des cultures
-          if (typeCultureId.isNotEmpty) {
-            final culture = cultures.firstWhere(
-              (c) => c['id'] == typeCultureId,
-              orElse: () => {'libelle': ''},
-            );
-            
-            if (culture['libelle'] != null && culture['libelle'].isNotEmpty) {
-              return annonce.copyWith(typeCultureLibelle: culture['libelle']);
-            }
-          }
-          
-          return annonce;
-        }).toList();
+        return body.map((item) => AnnonceAchat.fromJson(item)).toList();
       } else if (response.statusCode == 401) {
         throw Exception('Utilisateur non authentifié');
       } else {
@@ -102,36 +79,12 @@ class AnnonceAchatService {
       }
 
       final headers = await _getHeaders();
-      final url = '$_baseUrl/user/$currentUserId'; // endpoint spécifique pour mes annonces
+      final url = '$_baseUrl/user/$currentUserId';
       final response = await http.get(Uri.parse(url), headers: headers).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final List<dynamic> body = json.decode(response.body);
-        // Log pour debugger la structure des données
-        print('🔍 Réponse API fetchAnnoncesByUser: ${response.body}');
-        
-        // Récupérer les cultures pour obtenir les libellés
-        final cultures = await fetchCultures();
-        
-        // Mapper les annonces avec les libellés de culture
-        return body.map((item) {
-          final annonce = AnnonceAchat.fromJson(item);
-          final typeCultureId = annonce.typeCultureId;
-          
-          // Trouver le libellé correspondant dans la liste des cultures
-          if (typeCultureId.isNotEmpty) {
-            final culture = cultures.firstWhere(
-              (c) => c['id'] == typeCultureId,
-              orElse: () => {'libelle': ''},
-            );
-            
-            if (culture['libelle'] != null && culture['libelle'].isNotEmpty) {
-              return annonce.copyWith(typeCultureLibelle: culture['libelle']);
-            }
-          }
-          
-          return annonce;
-        }).toList();
+        return body.map((item) => AnnonceAchat.fromJson(item)).toList();
       } else if (response.statusCode == 401) {
         throw Exception('Utilisateur non authentifié');
       } else {
@@ -164,24 +117,19 @@ class AnnonceAchatService {
   Future<List<Map<String, dynamic>>> fetchCultures() async {
     try {
       final headers = await _getHeaders();
-      final response = await http
-          .get(Uri.parse(_culturesUrl), headers: headers)
-          .timeout(const Duration(seconds: 10));
+      final response = await http.get(Uri.parse(_culturesUrl), headers: headers).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final List<dynamic> body = json.decode(response.body);
         return body
-            .map<Map<String, dynamic>>((item) => {
-                  'id': item['id'].toString(),
-                  'libelle': item['libelle'] ?? '',
-                })
+            .map<Map<String, dynamic>>((item) => {'id': item['id'].toString(), 'libelle': item['libelle'] ?? ''})
             .toList();
       } else if (response.statusCode == 401) {
         throw Exception('Utilisateur non authentifié');
       } else {
         return _defaultCultures;
       }
-    } catch (_) {
+    } catch (e) {
       return _defaultCultures;
     }
   }
