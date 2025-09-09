@@ -1,10 +1,10 @@
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/AnnonceFrom.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/AnnonceForm.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/prefinancementForm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 void main() {
-  runApp(const MaterialApp(home: HomePoducteur()));
+  runApp(const MaterialApp(home: HomeProducteur()));
 }
 
 class HomeProducteur extends StatefulWidget {
@@ -16,6 +16,8 @@ class HomeProducteur extends StatefulWidget {
 
 class _HomeProducteurState extends State<HomeProducteur> {
   int _selectedIndex = 0;
+  bool isLoading = false;
+  List<dynamic> annonces = []; // Placeholder for annonces
 
   final List<Widget> pages = [
     const HomeProducteur(),
@@ -44,7 +46,7 @@ class _HomeProducteurState extends State<HomeProducteur> {
       builder: (context, child) {
         return Scaffold(
           backgroundColor: Colors.white,
-          body: pages[_selectedIndex],
+          body: _selectedIndex == 0 ? _buildHomeContent() : pages[_selectedIndex],
           bottomNavigationBar: BottomBarProducteur(
             selectedIndex: _selectedIndex,
             onTap: _onNavBarTap,
@@ -53,122 +55,72 @@ class _HomeProducteurState extends State<HomeProducteur> {
       },
     );
   }
-}
 
-class BottomBarProducteur extends StatelessWidget {
-  final int selectedIndex;
-  final ValueChanged<int> onTap;
-
-  const BottomBarProducteur({
-    super.key,
-    required this.selectedIndex,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      currentIndex: selectedIndex,
-      type: BottomNavigationBarType.fixed,
-      showUnselectedLabels: true,
-      selectedItemColor: const Color(0xFF527E3F),
-      unselectedItemColor: Colors.grey,
-      onTap: onTap,
-      items: [
-        _buildNavItem(Icons.home_outlined, "Accueil", 0),
-        _buildNavItem(Icons.message_outlined, "Messages", 1),
-        _buildNavItem(Icons.sync_alt_outlined, "Transactions", 2),
-        _buildNavItem(Icons.person_rounded, "Profil", 3),
-      ],
-    );
-  }
-
-  BottomNavigationBarItem _buildNavItem(IconData icon, String label, int index) {
-    final bool isSelected = selectedIndex == index;
-
-    return BottomNavigationBarItem(
-      icon: Container(
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF527E3F) : Colors.transparent,
-          borderRadius: BorderRadius.circular(15.r),
-        ),
-        padding: EdgeInsets.all(6.r),
-        child: Icon(
-          icon,
-          color: isSelected ? Colors.white : Colors.grey,
-        ),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildHomeContent() {
     return SingleChildScrollView(
       child: Column(
         children: [
           // Header vert
-Container(
-  width: double.infinity,
-  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 40.h),
-  decoration: BoxDecoration(
-    color: const Color(0xFF527E3F),
-    borderRadius: BorderRadius.only(
-      bottomLeft: Radius.circular(40.r),
-      bottomRight: Radius.circular(40.r),
-    ),
-  ),
-  child: SafeArea(
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            CircleAvatar(
-              backgroundColor: Colors.white.withOpacity(0.2),
-              radius: 24.r,
-              child: Icon(Icons.eco, color: Colors.white, size: 28.sp),
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 40.h),
+            decoration: BoxDecoration(
+              color: const Color(0xFF527E3F),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(40.r),
+                bottomRight: Radius.circular(40.r),
+              ),
             ),
-            SizedBox(width: 12.w),
-            RichText(
-              text: TextSpan(
-                text: 'Bonjour, ',
-                style: TextStyle(color: Colors.white, fontSize: 16.sp),
+            child: SafeArea(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TextSpan(
-                    text: 'Mr Kouassi Bernard',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 18.sp),
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: Colors.white.withOpacity(0.2),
+                        radius: 24.r,
+                        child: Icon(Icons.eco, color: Colors.white, size: 28.sp),
+                      ),
+                      SizedBox(width: 12.w),
+                      RichText(
+                        text: TextSpan(
+                          text: 'Bonjour, ',
+                          style: TextStyle(color: Colors.white, fontSize: 16.sp),
+                          children: [
+                            TextSpan(
+                              text: 'Mr Kouassi Bernard',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 18.sp),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 20.h),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF9DB98B).withOpacity(0.4),
+                      borderRadius: BorderRadius.circular(30.r),
+                    ),
+                    child: TextField(
+                      decoration: InputDecoration(
+                        hintText: "Faire une recherche",
+                        prefixIcon: const Icon(Icons.search, color: Colors.white70),
+                        suffixIcon: const Icon(Icons.mic, color: Colors.white70),
+                        border: InputBorder.none,
+                        hintStyle: TextStyle(color: Colors.white70),
+                        contentPadding: EdgeInsets.symmetric(vertical: 12.h),
+                      ),
+                      style: const TextStyle(color: Colors.white),
+                      cursorColor: Colors.white,
+                    ),
                   ),
                 ],
               ),
             ),
-          ],
-        ),
-        SizedBox(height: 20.h),
-        Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFF9DB98B).withOpacity(0.4),
-            borderRadius: BorderRadius.circular(30.r),
           ),
-          child: TextField(
-            decoration: InputDecoration(
-              hintText: "Faire une recherche",
-              prefixIcon: const Icon(Icons.search, color: Colors.white70),
-              suffixIcon: const Icon(Icons.mic, color: Colors.white70),
-              border: InputBorder.none,
-              hintStyle: TextStyle(color: Colors.white70),
-              contentPadding: EdgeInsets.symmetric(vertical: 12.h),
-            ),
-            style: const TextStyle(color: Colors.white),
-            cursorColor: Colors.white,
-          ),
-        ),
-      ],
-    ),
-  ),
-),
-
-
 
           SizedBox(height: 16.h),
 
@@ -223,34 +175,52 @@ Container(
             ),
           ),
 
-            SizedBox(height: 24.h),
+          SizedBox(height: 24.h),
 
-            // --- Dernières annonces ---
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text("Dernières annonces d'achat", style: TextStyle(fontSize: 15.sp,  color: const Color.fromARGB(255, 7, 7, 7))),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const AnnonceAchatPage()));
-                    },
-                    child: Text("Voir tout", style: TextStyle(color: const Color(0xFF4CAF50))),
-                  ),
-                ],
-              ),
+          // --- Dernières annonces ---
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("Dernières annonces d'achat", style: TextStyle(fontSize: 15.sp, color: const Color.fromARGB(255, 7, 7, 7))),
+                TextButton(
+                  onPressed: () {
+                    // Navigator.push(context, MaterialPageRoute(builder: (context) => const AnnonceAchatPage()));
+                  },
+                  child: Text("Voir tout", style: TextStyle(color: const Color(0xFF4CAF50))),
+                ),
+              ],
             ),
+          ),
 
-            if (isLoading)
-              const CircularProgressIndicator()
-            else
-              ...annonces.map((annonce) => _buildAnnonceCard(annonce)).toList(),
+          if (isLoading)
+            const CircularProgressIndicator()
+          else
+            ...annonces.map((annonce) => _buildAnnonceCard(annonce)).toList(),
 
-            SizedBox(height: 30.h),
-          ],
-        ),
+          SizedBox(height: 30.h),
+        ],
       ),
+    );
+  }
+
+  Widget _buildAnnonceCard(dynamic annonce) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 6.r,
+            offset: Offset(0, 2.h),
+          ),
+        ],
+      ),
+      child: Text("Annonce: ${annonce.toString()}"), // Placeholder
     );
   }
 
@@ -327,6 +297,54 @@ Container(
           )
         ],
       ),
+    );
+  }
+}
+
+class BottomBarProducteur extends StatelessWidget {
+  final int selectedIndex;
+  final ValueChanged<int> onTap;
+
+  const BottomBarProducteur({
+    super.key,
+    required this.selectedIndex,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BottomNavigationBar(
+      currentIndex: selectedIndex,
+      type: BottomNavigationBarType.fixed,
+      showUnselectedLabels: true,
+      selectedItemColor: const Color(0xFF527E3F),
+      unselectedItemColor: Colors.grey,
+      onTap: onTap,
+      items: [
+        _buildNavItem(Icons.home_outlined, "Accueil", 0),
+        _buildNavItem(Icons.message_outlined, "Messages", 1),
+        _buildNavItem(Icons.sync_alt_outlined, "Transactions", 2),
+        _buildNavItem(Icons.person_rounded, "Profil", 3),
+      ],
+    );
+  }
+
+  BottomNavigationBarItem _buildNavItem(IconData icon, String label, int index) {
+    final bool isSelected = selectedIndex == index;
+
+    return BottomNavigationBarItem(
+      icon: Container(
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF527E3F) : Colors.transparent,
+          borderRadius: BorderRadius.circular(15.r),
+        ),
+        padding: EdgeInsets.all(6.r),
+        child: Icon(
+          icon,
+          color: isSelected ? Colors.white : Colors.grey,
+        ),
+      ),
+      label: label,
     );
   }
 }

@@ -1,4 +1,0 @@
-- [x] Edit android/app/build.gradle.kts: Add Kotlin plugin to plugins block, upgrade AGP to 8.3.0, remove apply() for Kotlin plugin
-- [x] Run flutter clean
-- [x] Run flutter pub get
-- [ ] Run flutter run to verify the fix

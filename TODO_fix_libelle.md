@@ -1,4 +1,0 @@
-- [x] Update AnnonceVenteModel.fromJson to handle nested type_culture, parcelle, user objects
-- [x] Add logging to verify the JSON structure
-- [x] Test the changes by running the app and checking the display in OffreVentePage
-- [x] Implement enrichment by fetching typeCulture details separately

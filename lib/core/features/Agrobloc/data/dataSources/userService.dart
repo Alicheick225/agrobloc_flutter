@@ -668,4 +668,10 @@ class UserService {
       rethrow;
     }
   }
+
+  /// Déconnexion de l'utilisateur
+  Future<void> logoutUser() async {
+    await clearCurrentUser();
+    print('✅ UserService.logoutUser() - Déconnexion réussie');
+  }
 }

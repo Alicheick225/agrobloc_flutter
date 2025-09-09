@@ -1,4 +1,0 @@
-- [ ] Add createdAt (date) display to the offreVentePage.dart list items
-- [ ] Format the date properly (e.g., dd/MM/yyyy)
-- [ ] Ensure typeCultureLibelle is retrieved; add logging if needed
-- [ ] Test the display after changes
