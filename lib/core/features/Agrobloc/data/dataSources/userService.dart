@@ -292,6 +292,26 @@ class UserService {
 
             if (isRefreshTokenInvalid) {
               print('⚠️ UserService.getValidToken() - Token de rafraîchissement invalide (null/vide): "$refreshToken"');
+
+              // Vérifier si c'est un token temporaire qui peut être utilisé pour le premier refresh
+              final isTempToken = refreshToken != null && refreshToken.startsWith('temp_refresh_');
+              if (isTempToken) {
+                print('🔄 UserService.getValidToken() - Token temporaire détecté, tentative de refresh initial...');
+                try {
+                  final newTokens = await AuthService().refreshToken(refreshToken);
+                  await prefs.setString("token", newTokens['accessToken']!);
+                  await prefs.setString("refresh_token", newTokens['refreshToken']!);
+                  _token = newTokens['accessToken']!;
+                  print('✅ UserService.getValidToken() - Refresh réussi avec token temporaire');
+                  print('🔍 UserService.getValidToken() - Nouveau token: ${newTokens['accessToken']!.length} chars');
+                  return _token;
+                } catch (tempRefreshError) {
+                  print('❌ UserService.getValidToken() - Échec du refresh avec token temporaire: $tempRefreshError');
+                  print('🔄 UserService.getValidToken() - Token temporaire invalide, tentative avec backup...');
+                  // Continue to backup token logic below
+                }
+              }
+
               print('🔄 UserService.getValidToken() - Tentative d\'utilisation du backup_token comme refresh token...');
 
               // Try to use backup_token as refresh token

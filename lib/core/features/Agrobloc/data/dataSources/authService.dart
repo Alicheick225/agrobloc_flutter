@@ -98,7 +98,7 @@ class AuthService {
       if (accessToken == null) throw Exception("Access token manquant");
 
       // Vérifier si le refresh token est disponible et valide
-      String? finalRefreshToken = refreshToken;
+      String finalRefreshToken;
 
       // Check if refresh token is null, empty, or whitespace
       final isRefreshTokenInvalid = refreshToken == null ||
@@ -107,13 +107,18 @@ class AuthService {
 
       if (isRefreshTokenInvalid) {
         print('⚠️ AuthService.login() - Refresh token invalide (null/vide): "$refreshToken"');
-        print('🔄 AuthService.login() - Continuer sans refresh token - refresh manuel requis');
+        print('🔄 AuthService.login() - Génération d\'un token temporaire pour éviter le refresh manuel');
 
-        // Sauvegarder sans refresh token (empty string)
-        await UserService().setCurrentUser(user, accessToken, '');
-        print('🔍 AuthService.login() - Tokens sauvegardés sans refresh token');
+        // Générer un token de rafraîchissement temporaire
+        finalRefreshToken = _generateTemporaryRefreshToken(user.id, accessToken);
+        print('🔍 AuthService.login() - Token temporaire généré: ${finalRefreshToken.substring(0, min(20, finalRefreshToken.length))}...');
+
+        // Sauvegarder avec token temporaire
+        await UserService().setCurrentUser(user, accessToken, finalRefreshToken);
+        print('🔍 AuthService.login() - Tokens sauvegardés avec refresh token temporaire');
       } else {
         // Sauvegarde normale avec refresh token de l'API
+        finalRefreshToken = refreshToken;
         await UserService().setCurrentUser(user, accessToken, refreshToken);
         print('🔍 AuthService.login() - Tokens sauvegardés avec refresh token API');
       }
@@ -184,7 +189,13 @@ class AuthService {
       throw Exception("Token de rafraîchissement vide");
     }
 
-    if (!refreshToken.startsWith('temp_refresh_') && !_isValidTokenFormat(refreshToken)) {
+    // Vérifier si c'est un token temporaire
+    final isTempToken = refreshToken.startsWith('temp_refresh_');
+    if (isTempToken) {
+      print('🔄 AuthService.refreshToken() - Token temporaire détecté, utilisation spéciale...');
+      // Pour les tokens temporaires, on peut passer directement à l'appel API
+      // car ils sont générés localement et ne suivent pas le format JWT standard
+    } else if (!_isValidTokenFormat(refreshToken)) {
       throw Exception("Format du token de rafraîchissement invalide");
     }
 
@@ -447,6 +458,19 @@ class AuthService {
       
       throw Exception(errorMessage);
     }
+  }
+
+  /// Génère un token de rafraîchissement temporaire
+  String _generateTemporaryRefreshToken(String userId, String accessToken) {
+    // Créer un token temporaire avec un timestamp et des données utilisateur
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final randomPart = (timestamp % 1000000).toString().padLeft(6, '0');
+
+    // Format: temp_refresh_{userId}_{timestamp}_{random}
+    final tempToken = 'temp_refresh_${userId}_${timestamp}_$randomPart';
+
+    print('🔧 AuthService._generateTemporaryRefreshToken() - Token temporaire créé pour user $userId');
+    return tempToken;
   }
 
   /// Vérifier la persistance des tokens après sauvegarde
