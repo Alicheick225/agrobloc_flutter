@@ -27,50 +27,31 @@ class PrefinancementService {
   /// Cache all typeCultures for quick lookup
   Future<void> _cacheTypeCultures() async {
     if (_typeCultureCache != null) {
-      print('✅ PrefinancementService._cacheTypeCultures: Cache déjà chargé avec ${_typeCultureCache!.length} éléments');
-      print('📋 PrefinancementService._cacheTypeCultures: Contenu du cache existant: $_typeCultureCache');
       return; // already cached
     }
-    print('🔄 PrefinancementService._cacheTypeCultures: Chargement du cache typeCulture...');
     try {
       final types = await _typeCultureService.getAllTypes();
       _typeCultureCache = { for (var t in types) t.id : t.libelle };
-      print('✅ PrefinancementService._cacheTypeCultures: Cache chargé avec ${_typeCultureCache!.length} éléments');
-      print('📋 PrefinancementService._cacheTypeCultures: Contenu du cache: $_typeCultureCache');
     } catch (e) {
-      print('❌ PrefinancementService._cacheTypeCultures: Erreur lors du chargement du cache: $e');
       rethrow;
     }
   }
 
   /// Enrich AnnoncePrefinancement list with typeCulture libelle from cache
   Future<List<AnnoncePrefinancement>> _enrichAnnoncesWithTypeCulture(List<AnnoncePrefinancement> annonces) async {
-    print('🔄 PrefinancementService._enrichAnnoncesWithTypeCulture: Début enrichissement pour ${annonces.length} annonces');
     try {
       await _cacheTypeCultures();
-      print('✅ PrefinancementService._enrichAnnoncesWithTypeCulture: Cache typeCulture chargé avec succès');
     } catch (e) {
-      print('⚠️ PrefinancementService._enrichAnnoncesWithTypeCulture: Erreur lors du chargement du cache typeCulture: $e');
-      print('🔄 PrefinancementService._enrichAnnoncesWithTypeCulture: Continuation sans enrichissement typeCulture');
       return annonces; // Return original annonces without enrichment
     }
 
     return annonces.map((annonce) {
-      print('🔍 PrefinancementService._enrichAnnoncesWithTypeCulture: Traitement annonce ${annonce.id}');
-      print('🔍 PrefinancementService._enrichAnnoncesWithTypeCulture: typeCultureId: "${annonce.typeCultureId}"');
-      print('🔍 PrefinancementService._enrichAnnoncesWithTypeCulture: libelle actuel: "${annonce.libelle}"');
+      String enrichedLibelle = annonce.libelle;
 
-      final libelle = _typeCultureCache?[annonce.typeCultureId] ?? '';
-      print('🔍 PrefinancementService._enrichAnnoncesWithTypeCulture: libelle du cache: "$libelle"');
-
-      final enrichedLibelle = libelle.isNotEmpty ? libelle : annonce.libelle;
-      print('🔍 PrefinancementService._enrichAnnoncesWithTypeCulture: libelle enrichi final: "$enrichedLibelle"');
-
-      if (libelle.isNotEmpty) {
-        print('✅ PrefinancementService._enrichAnnoncesWithTypeCulture: Enrichissement réussi pour ${annonce.id} - Libelle: $libelle');
-      } else {
-        print('⚠️ PrefinancementService._enrichAnnoncesWithTypeCulture: Pas de libelle trouvé pour typeCultureId: "${annonce.typeCultureId}"');
-        print('🔄 PrefinancementService._enrichAnnoncesWithTypeCulture: Utilisation du libelle existant: "${annonce.libelle}"');
+      // Skip enrichment if typeCultureId is empty or null
+      if (annonce.typeCultureId.isNotEmpty && annonce.typeCultureId != 'null') {
+        final libelle = _typeCultureCache?[annonce.typeCultureId] ?? '';
+        enrichedLibelle = libelle.isNotEmpty ? libelle : annonce.libelle;
       }
 
       return AnnoncePrefinancement(
@@ -102,12 +83,10 @@ class PrefinancementService {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
-        print('🔍 PrefinancementService.fetchPrefinancements: JSON brut reçu: $data');
         final annonces = data.map((json) => AnnoncePrefinancement.fromJson(json)).toList();
         return await _enrichAnnoncesWithTypeCulture(annonces);
       } else if (response.statusCode == 401) {
         // Try with forced refresh
-        print("🚨 Token rejeté lors du chargement des préfinancements - tentative de refresh");
         final headersRetry = await _getHeaders(forceRefresh: true);
         final retryResponse = await http.get(
           Uri.parse('$_baseUrl/annonces_pref'),
@@ -132,38 +111,16 @@ class PrefinancementService {
   /// Récupère les préfinancements d'un utilisateur spécifique
   Future<List<AnnoncePrefinancement>> fetchPrefinancementsByUser(String userId) async {
     try {
-      print('🔄 PrefinancementService: Début fetchPrefinancementsByUser pour userId: $userId');
       final headers = await _getHeaders();
-      print('📡 PrefinancementService: Headers préparés, appel API: $_baseUrl/annonces_pref/user/$userId');
-
       final response = await http.get(
         Uri.parse('$_baseUrl/annonces_pref/user/$userId'),
         headers: headers,
       );
 
-      print('📥 PrefinancementService: Réponse reçue - Status: ${response.statusCode}');
-      print('📄 PrefinancementService: Body de la réponse: ${response.body}');
-
       if (response.statusCode == 200) {
-        print('✅ PrefinancementService: Status 200, parsing des données...');
         final List<dynamic> data = jsonDecode(response.body);
-        print('📊 PrefinancementService: ${data.length} éléments JSON reçus');
-        print('🔍 PrefinancementService: JSON brut complet: $data');
-        print('🔍 PrefinancementService: Premier élément JSON: ${data.isNotEmpty ? data[0] : "Aucun élément"}');
-
-        final annonces = data.map((json) {
-          try {
-            return AnnoncePrefinancement.fromJson(json);
-          } catch (parseError) {
-            print('❌ PrefinancementService: Erreur de parsing pour élément: $json - Erreur: $parseError');
-            rethrow;
-          }
-        }).toList();
-
-        print('✅ PrefinancementService: ${annonces.length} annonces parsées avec succès');
-        final enriched = await _enrichAnnoncesWithTypeCulture(annonces);
-        print('✅ PrefinancementService: ${enriched.length} annonces enrichies avec typeCulture');
-        return enriched;
+        final annonces = data.map((json) => AnnoncePrefinancement.fromJson(json)).toList();
+        return await _enrichAnnoncesWithTypeCulture(annonces);
       } else if (response.statusCode == 401) {
         // Try with forced refresh
         print("🚨 PrefinancementService: Token rejeté (401) - tentative de refresh forcé");

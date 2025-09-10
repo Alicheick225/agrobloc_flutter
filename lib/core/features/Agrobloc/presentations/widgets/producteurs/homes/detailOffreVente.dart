@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceAchatModel.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class DetailOffreVente extends StatelessWidget {
-  final AnnonceAchat annonce;
+  final dynamic annonce;
 
   DetailOffreVente({Key? key, required this.annonce}) : super(key: key);
 
@@ -14,6 +15,35 @@ class DetailOffreVente extends StatelessWidget {
       designSize: const Size(375, 812),
       minTextAdapt: true,
     );
+
+    // Determine the type of annonce
+    bool isAnnonceAchat = annonce is AnnonceAchat;
+    bool isAnnonceVente = annonce is AnnonceVente;
+
+    String userNom = '';
+    String typeCultureLibelle = '';
+    String formattedQuantity = '';
+    String formattedPrice = '';
+    String description = '';
+    String statut = '';
+
+    if (isAnnonceAchat) {
+      AnnonceAchat a = annonce as AnnonceAchat;
+      userNom = a.userNom;
+      typeCultureLibelle = a.typeCultureLibelle;
+      formattedQuantity = a.formattedQuantity;
+      formattedPrice = '${a.prix} FCFA';
+      description = a.description;
+      statut = a.statut;
+    } else if (isAnnonceVente) {
+      AnnonceVente a = annonce as AnnonceVente;
+      userNom = a.userNom;
+      typeCultureLibelle = a.typeCultureLibelle;
+      formattedQuantity = '${a.quantite} ${a.quantiteUnite}';
+      formattedPrice = '${a.prixKg} ${a.prixUnite}';
+      description = a.description;
+      statut = a.statut;
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -29,49 +59,31 @@ class DetailOffreVente extends StatelessWidget {
               radius: 30.r,
               backgroundColor: const Color(0xFF4CAF50),
               child: Text(
-                annonce.userNom.isNotEmpty ? annonce.userNom[0].toUpperCase() : '?',
+                userNom.isNotEmpty ? userNom[0].toUpperCase() : '?',
                 style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24),
               ),
             ),
             SizedBox(height: 16.h),
             Text(
-              annonce.userNom.isNotEmpty ? annonce.userNom : 'Nom de l\'utilisateur',
+              userNom.isNotEmpty ? userNom : 'Nom de l\'utilisateur',
               style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: const Color(0xFF4CAF50)),
             ),
             SizedBox(height: 12.h),
-            Text('Culture: ${annonce.typeCultureLibelle}', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
+            Text('Culture: $typeCultureLibelle', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text('Quantité: ${annonce.formattedQuantity}', style: TextStyle(fontSize: 16.sp)),
+            Text('Quantité: $formattedQuantity', style: TextStyle(fontSize: 16.sp)),
             const SizedBox(height: 8),
-            Text('Prix / kg: ${annonce.formattedPrice}', style: TextStyle(fontSize: 16.sp)),
+            Text('Prix / kg: $formattedPrice', style: TextStyle(fontSize: 16.sp)),
             const SizedBox(height: 8),
-            // Text(
-            //   '// Statut: ${annonce.statut}',
-            //   style: TextStyle(
-            //     fontSize: 14.sp,
-            //     color: Colors.grey[600],
-            //     fontStyle: FontStyle.italic,
-            //     fontFamily: 'monospace',
-            //   ),
-            // ),
-            // SizedBox(height: 8.h),
-            // Text(
-            //   '// Date: ${annonce.createdAt}',
-            //   style: TextStyle(
-            //     fontSize: 12.sp,
-            //     color: Colors.grey[500],
-            //     fontStyle: FontStyle.italic,
-            //     fontFamily: 'monospace',
-            //   ),
-            // ),
+            Text('Statut: $statut', style: TextStyle(fontSize: 14.sp, color: Colors.grey[600])),
             const SizedBox(height: 16),
             Text('Description:', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
-            Text(annonce.description.isNotEmpty ? annonce.description : 'Pas de description', style: TextStyle(fontSize: 14.sp)),
+            Text(description.isNotEmpty ? description : 'Pas de description', style: TextStyle(fontSize: 14.sp)),
           ],
         ),
       ),
-      bottomNavigationBar: Container(
+      bottomNavigationBar: isAnnonceAchat ? Container(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
         color: Colors.white,
         child: OutlinedButton(
@@ -113,7 +125,7 @@ class DetailOffreVente extends StatelessWidget {
             ),
           ),
         ),
-      ),
+      ) : null,
     );
   }
 }

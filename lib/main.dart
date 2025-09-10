@@ -31,9 +31,9 @@ Future<void> main() async {
   // Initialisation notifications
   try {
     await NotificationService().initializePushNotifications();
-    debugPrint('✅ Notifications initialisées');
+    // debugPrint('✅ Notifications initialisées');
   } catch (e) {
-    debugPrint('❌ Erreur notifications: $e');
+    // debugPrint('❌ Erreur notifications: $e');
   }
 
   // Initialisation UserService
@@ -207,7 +207,7 @@ class _MyAppState extends State<MyApp> {
         '/homeProducteur': (context) => const HomeProducteur(),
         '/login': (context) => const LoginPage(profile: 'producteur'),
         '/detailOffreVente': (context) {
-          final args = ModalRoute.of(context)!.settings.arguments as AnnonceAchat;
+          final args = ModalRoute.of(context)!.settings.arguments;
           return DetailOffreVente(annonce: args);
         },
       },

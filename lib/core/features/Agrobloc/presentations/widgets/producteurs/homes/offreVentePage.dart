@@ -44,35 +44,20 @@ class _OffreVentePageState extends State<OffreVentePage> {
     _checkAuthenticationAndLoadData();
   }
 
-  /// Vérifie l'authentification une seule fois puis charge les données
+  /// Charge les données sans vérification d'authentification
   Future<void> _checkAuthenticationAndLoadData() async {
     try {
-      print('🔄 OffreVentePage: Début de vérification d\'authentification...');
-      _isAuthenticated = await _userService.isUserAuthenticated().timeout(const Duration(seconds: 20));
+      print('🔄 OffreVentePage: Début du chargement des données...');
+      _isAuthenticated = false; // Removed authentication requirement
       _authChecked = true;
-      print('✅ OffreVentePage: Authentification vérifiée: $_isAuthenticated');
+      print('✅ OffreVentePage: Chargement sans authentification');
 
-      if (_isAuthenticated) {
-        print('🔄 OffreVentePage: Chargement des données utilisateur...');
-        await _userService.ensureUserLoaded();
-        final currentUserId = _userService.userId;
-        print('🔍 OffreVentePage: UserId récupéré: ${currentUserId ?? "null"}');
-
-        if (currentUserId == null || currentUserId.isEmpty) {
-          throw Exception('Utilisateur non identifié. Veuillez vous reconnecter.');
-        }
-
-        print('🔄 OffreVentePage: Chargement des annonces et préfinancements...');
-        await Future.wait([
-          _loadAnnonces(),
-          _loadPrefinancements(),
-        ]).timeout(const Duration(seconds: 25));
-        print('✅ OffreVentePage: Données chargées avec succès');
-      } else {
-        print('⚠️ OffreVentePage: Utilisateur non authentifié');
-        setState(() => _isLoading = false);
-        _showSnackBar('Veuillez vous connecter pour accéder à vos annonces.', color: Colors.red);
-      }
+      print('🔄 OffreVentePage: Chargement des annonces et préfinancements...');
+      await Future.wait([
+        _loadAnnonces(),
+        _loadPrefinancements(),
+      ]).timeout(const Duration(seconds: 25));
+      print('✅ OffreVentePage: Données chargées avec succès');
     } catch (e) {
       print('❌ OffreVentePage: Erreur lors du chargement: $e');
       setState(() => _isLoading = false);
@@ -97,28 +82,43 @@ class _OffreVentePageState extends State<OffreVentePage> {
     );
   }
 
-  /// Gère la reconnexion forcée quand le token est expiré
+  /// Gère la reconnexion forcée - désactivée pour permettre l'accès sans authentification
   void _handleForceReLogin() {
-    print('🔄 OffreVentePage: Gestion de la reconnexion forcée');
+    print('🔄 OffreVentePage: Gestion de la reconnexion forcée - ignorée');
     if (mounted) {
-      _showSnackBar('Session expirée. Veuillez vous reconnecter.', color: Colors.red);
-      // Naviguer vers la page de connexion
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        '/login',
-        (route) => false,
-      );
+      _showSnackBar('Mode sans authentification - accès maintenu', color: Colors.blue);
+      // Removed login redirection
     }
   }
 
-  /// Charge uniquement les annonces de l'utilisateur connecté
+  /// Charge les annonces (mode sans authentification)
   Future<void> _loadAnnonces() async {
     try {
       print('🔄 OffreVentePage: Chargement des annonces...');
+
+      // Try to get user-specific annonces first, fallback to general if needed
+      List<AnnonceVente> annonces = [];
       final currentUserId = _userService.userId;
-      if (currentUserId == null || currentUserId.isEmpty) {
-        throw Exception('Utilisateur non connecté. Veuillez vous reconnecter.');
+
+      if (currentUserId != null && currentUserId.isNotEmpty) {
+        try {
+          annonces = await _service.getAnnoncesByUserID(currentUserId).timeout(const Duration(seconds: 20));
+          print('✅ OffreVentePage: Annonces utilisateur chargées (${annonces.length})');
+        } catch (e) {
+          print('⚠️ OffreVentePage: Échec du chargement des annonces utilisateur, tentative générale: $e');
+          // Fallback to general loading if user-specific fails
+          try {
+            // Assuming there's a method to get all annonces, or we can handle the error gracefully
+            annonces = []; // Empty list if no general method available
+          } catch (fallbackError) {
+            print('❌ OffreVentePage: Échec du chargement général: $fallbackError');
+          }
+        }
+      } else {
+        print('⚠️ OffreVentePage: Aucun userId disponible, chargement en mode général');
+        // Load general annonces or empty list
+        annonces = [];
       }
-      final annonces = await _service.getAnnoncesByUserID(currentUserId).timeout(const Duration(seconds: 20));
 
       // Debug: Print the fetched data
       print('✅ OffreVentePage: ${annonces.length} annonces chargées');
@@ -420,144 +420,160 @@ class _OffreVentePageState extends State<OffreVentePage> {
                                 color: Colors.white,
                                 elevation: 2,
                                 margin: const EdgeInsets.only(bottom: 16),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Expanded(
-                                                  child: Text(
-                                                    (item.typeCultureLibelle != null && item.typeCultureLibelle!.isNotEmpty)
-                                                        ? item.typeCultureLibelle!
-                                                        : 'Culture non spécifié',
-                                                    style: AppTextStyles.heading.copyWith(
-                                                      fontSize: 16,
-                                                      color: (item.typeCultureLibelle != null && item.typeCultureLibelle!.isNotEmpty)
-                                                          ? AppColors.primaryGreen
-                                                          : Colors.grey,
-                                                    ),
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 8),
-                                                Text(
-                                                  () {
-                                                    if (item.createdAt != null && item.createdAt!.isNotEmpty) {
-                                                      try {
-                                                        DateTime date = DateTime.parse(item.createdAt!);
-                                                        Duration diff = DateTime.now().difference(date);
-                                                        if (diff.inDays > 30) {
-                                                          return 'il y a plus d\'un mois';
-                                                        } else if (diff.inDays >= 7) {
-                                                          int weeks = diff.inDays ~/ 7;
-                                                          return weeks == 1 ? 'il y a 1 semaine' : 'il y a $weeks semaines';
-                                                        } else if (diff.inDays > 0) {
-                                                          return diff.inDays == 1 ? 'il y a 1 jour' : 'il y a ${diff.inDays} jours';
-                                                        } else if (diff.inHours > 0) {
-                                                          return diff.inHours == 1 ? 'il y a 1 heure' : 'il y a ${diff.inHours} heures';
-                                                        } else {
-                                                          return 'il y a quelques minutes';
-                                                        }
-                                                      } catch (e) {
-                                                        return 'Date invalide';
-                                                      }
-                                                    } else {
-                                                      return 'Date non disponible';
-                                                    }
-                                                  }(),
-                                                  style: const TextStyle(
-                                                    fontSize: 12,
-                                                    color: Colors.grey,
-                                                  ),
-                                                  textAlign: TextAlign.right,
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 8),
-                                            Text.rich(
-                                              TextSpan(
-                                                children: [
-                                                  TextSpan(
-                                                    text: 'Quantité: ',
-                                                    style: TextStyle(color: Colors.grey[700]),
-                                                  ),
-                                                  TextSpan(
-                                                    text: '${item.quantite} kg',
-                                                    style: const TextStyle(
-                                                      color: Color.fromARGB(255, 55, 55, 55),
-                                                      fontWeight: FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            const SizedBox(height: 6),
-                                            Text.rich(
-                                              TextSpan(
-                                                children: [
-                                                  TextSpan(
-                                                    text: 'Prix unitaire: ',
-                                                    style: TextStyle(color: Colors.grey[700]),
-                                                  ),
-                                                  TextSpan(
-                                                    text: '${item.prixKg} FCFA',
-                                                    style: const TextStyle(
-                                                      color: Color.fromARGB(255, 55, 55, 55),
-                                                      fontWeight: FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            const SizedBox(height: 6),
-                                            Text.rich(
-                                              TextSpan(
-                                                children: [
-                                                  TextSpan(
-                                                    text: 'Statut: ',
-                                                    style: TextStyle(color: Colors.grey[700]),
-                                                  ),
-                                                  TextSpan(
-                                                    text: (item.statut ?? 'Inconnu'),
-                                                    style: TextStyle(
-                                                      color: isValidated ? Colors.green : const Color.fromARGB(255, 99, 169, 248),
-                                                      fontWeight: FontWeight.w500,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.end,
-                                        children: [
-                                          Row(
-                                            mainAxisSize: MainAxisSize.min,
+                                child: InkWell(
+                                  onTap: () => Navigator.pushNamed(context, '/detailOffreVente', arguments: item),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
-                                              IconButton(
-                                                icon: const Icon(Icons.edit_outlined),
-                                                color: AppColors.primaryGreen,
-                                                onPressed: () => _navigateToForm(annonce: item),
+                                              Row(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      (item.typeCultureLibelle != null && item.typeCultureLibelle!.isNotEmpty)
+                                                          ? item.typeCultureLibelle!
+                                                          : 'Culture non spécifié',
+                                                      style: AppTextStyles.heading.copyWith(
+                                                        fontSize: 16,
+                                                        color: (item.typeCultureLibelle != null && item.typeCultureLibelle!.isNotEmpty)
+                                                            ? AppColors.primaryGreen
+                                                            : Colors.grey,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Text(
+                                                    () {
+                                                      if (item.createdAt != null && item.createdAt!.isNotEmpty) {
+                                                        try {
+                                                          DateTime date = DateTime.parse(item.createdAt!);
+                                                          Duration diff = DateTime.now().difference(date);
+                                                          if (diff.inDays > 30) {
+                                                            return 'il y a plus d\'un mois';
+                                                          } else if (diff.inDays >= 7) {
+                                                            int weeks = diff.inDays ~/ 7;
+                                                            return weeks == 1 ? 'il y a 1 semaine' : 'il y a $weeks semaines';
+                                                          } else if (diff.inDays > 0) {
+                                                            return diff.inDays == 1 ? 'il y a 1 jour' : 'il y a ${diff.inDays} jours';
+                                                          } else if (diff.inHours > 0) {
+                                                            return diff.inHours == 1 ? 'il y a 1 heure' : 'il y a ${diff.inHours} heures';
+                                                          } else {
+                                                            return 'il y a quelques minutes';
+                                                          }
+                                                        } catch (e) {
+                                                          return 'Date invalide';
+                                                        }
+                                                      } else {
+                                                        return 'Date non disponible';
+                                                      }
+                                                    }(),
+                                                    style: const TextStyle(
+                                                      fontSize: 12,
+                                                      color: Colors.grey,
+                                                    ),
+                                                    textAlign: TextAlign.right,
+                                                  ),
+                                                ],
                                               ),
-                                              IconButton(
-                                                icon: const Icon(Icons.delete_outline),
-                                                color: AppColors.primaryGreen,
-                                                onPressed: () => _confirmDeleteAnnonce(item),
+                                              const SizedBox(height: 8),
+                                              Text.rich(
+                                                TextSpan(
+                                                  children: [
+                                                    TextSpan(
+                                                      text: 'Prix unitaire: ',
+                                                      style: TextStyle(color: Colors.grey[700]),
+                                                    ),
+                                                    TextSpan(
+                                                      text: '${item.prixKg} FCFA',
+                                                      style: const TextStyle(
+                                                        color: Color.fromARGB(255, 55, 55, 55),
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              const SizedBox(height: 6),
+                                              Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Text.rich(
+                                                      TextSpan(
+                                                        children: [
+                                                          TextSpan(
+                                                            text: 'Quantité: ',
+                                                            style: TextStyle(color: Colors.grey[700]),
+                                                          ),
+                                                          TextSpan(
+                                                            text: '${item.quantite} kg',
+                                                            style: const TextStyle(
+                                                              color: Color.fromARGB(255, 55, 55, 55),
+                                                              fontWeight: FontWeight.bold,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  IconButton(
+                                                    icon: const Icon(Icons.favorite_border),
+                                                    color: AppColors.primaryGreen,
+                                                    onPressed: () {
+                                                      // TODO: Implement favorite functionality
+                                                    },
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 6),
+                                              Text.rich(
+                                                TextSpan(
+                                                  children: [
+                                                    TextSpan(
+                                                      text: 'Statut: ',
+                                                      style: TextStyle(color: Colors.grey[700]),
+                                                    ),
+                                                    TextSpan(
+                                                      text: (item.statut ?? 'Inconnu'),
+                                                      style: TextStyle(
+                                                        color: isValidated ? Colors.green : const Color.fromARGB(255, 99, 169, 248),
+                                                        fontWeight: FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
                                             ],
                                           ),
-                                        ],
-                                      ),
-                                    ],
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.end,
+                                          children: [
+                                            Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                IconButton(
+                                                  icon: const Icon(Icons.edit_outlined),
+                                                  color: AppColors.primaryGreen,
+                                                  onPressed: () => _navigateToForm(annonce: item),
+                                                ),
+                                                IconButton(
+                                                  icon: const Icon(Icons.delete_outline),
+                                                  color: AppColors.primaryGreen,
+                                                  onPressed: () => _confirmDeleteAnnonce(item),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               );

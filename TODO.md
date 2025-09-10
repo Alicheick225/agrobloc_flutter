@@ -1,32 +1,38 @@
-# TODO: Fix Prefinancement TypeCulture Libelle Retrieval Issue
+# TODO - Modifications apportées à homeProducteur.dart
 
-## Problem
-Prefinancement is not retrieving the libelle of typeCulture. The enrichment process should populate the libelle field from TypeCultureService, but it's failing.
+## Tâches terminées ✅
 
-## Investigation Steps
-- [x] Step 1: Add debug logs to TypeCultureService.getAllTypes() to verify API call and response parsing
-- [x] Step 2: Add debug logs to PrefinancementService._cacheTypeCultures() to verify cache population
-- [x] Step 3: Add debug logs to PrefinancementService._enrichAnnoncesWithTypeCulture() to verify enrichment logic
-- [x] Step 4: Add debug logs to AnnoncePrefinancement.fromJson() to verify JSON parsing
-- [x] Step 5: Test the debug logs by running the app and checking console output
-- [x] Step 6: Identify root cause based on debug output - typeCultureId is empty in JSON
-- [x] Step 7: Fix the JSON parsing to handle different field names for typeCultureId
-- [x] Step 8: Test the fix and verify libelle retrieval works
+1. **Icône favorie ajoutée** : L'icône favorie (favorite_border) a été ajoutée sur la même ligne que la quantité, à droite, juste en dessous du montant (prix unitaire).
 
-## Files to Modify
-- lib/core/features/Agrobloc/data/dataSources/tyoeCultureService.dart
-- lib/core/features/Agrobloc/data/dataSources/AnnoncePrefinancementService.dart
-- lib/core/features/Agrobloc/data/models/annoncePrefinancementModel.dart
+2. **Annonces cliquables** : Les cartes d'annonces sont maintenant enveloppées dans un InkWell pour les rendre cliquables et naviguer vers les détails dans detailoffrevente.
 
-## Expected Outcome
-- Debug logs showing the data flow and where it fails
-- Identification of the root cause (API, parsing, cache, authentication)
-- Fixed enrichment process with proper libelle retrieval
+3. **Navigation vers détails** : La navigation utilise Navigator.pushNamed avec la route '/detailOffreVente' et passe l'annonce en arguments.
 
-## New Finding
-The authentication token has expired and the refresh token is invalid. This is preventing API calls from working, which would explain why the prefinancement data and typeCulture libelle are not loading.
+4. **Mise à jour de DetailOffreVente** : Le widget DetailOffreVente a été modifié pour accepter un objet dynamique (AnnonceAchat ou AnnonceVente) et afficher les détails appropriés.
 
-## Next Steps
-- User needs to log in again to obtain a valid token
-- After re-authentication, test the libelle retrieval fix
-- If issues persist, investigate token refresh mechanism
+5. **Route mise à jour** : La route '/detailOffreVente' dans main.dart a été modifiée pour accepter un objet dynamique au lieu d'un AnnonceAchat spécifique.
+
+## Modifications apportées
+
+### homeProducteur.dart
+- Modifié `_buildAnnonceCard` pour :
+  - Envelopper le Container dans un InkWell avec onTap pour la navigation
+  - Restructurer la mise en page : quantité et icône favorie sur une Row avec Expanded pour la quantité
+  - Ajouter IconButton avec Icons.favorite_border
+
+### detailOffreVente.dart
+- Changé le paramètre `annonce` de `AnnonceAchat` à `dynamic`
+- Ajouté la logique pour détecter le type d'annonce (AnnonceAchat ou AnnonceVente)
+- Affichage conditionnel des détails selon le type
+
+### main.dart
+- Modifié la route '/detailOffreVente' pour accepter un objet dynamique
+
+## Fonctionnalités à implémenter plus tard
+- Implémentation de la fonctionnalité de favoris (actuellement juste l'icône sans action)
+- Gestion des erreurs de navigation si la route n'existe pas
+
+## Test à effectuer
+- Vérifier que les cartes sont cliquables et naviguent vers les détails
+- Vérifier la position de l'icône favorie
+- Tester avec différentes tailles d'écran

@@ -1,5 +1,9 @@
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/AnnonceForm.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/prefinancementForm.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/annoncePage.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/offreVentePage.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/AnnonceAchat.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceAchatModel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -17,7 +21,8 @@ class HomeProducteur extends StatefulWidget {
 class _HomeProducteurState extends State<HomeProducteur> {
   int _selectedIndex = 0;
   bool isLoading = false;
-  List<dynamic> annonces = []; // Placeholder for annonces
+  List<AnnonceAchat> annonces = [];
+  final AnnonceAchatService _annonceService = AnnonceAchatService();
 
   final List<Widget> pages = [
     const HomeProducteur(),
@@ -25,6 +30,79 @@ class _HomeProducteurState extends State<HomeProducteur> {
     const Center(child: Text("Transactions")),
     const Center(child: Text("Profil")),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLatestAnnonces();
+  }
+
+  Future<void> _loadLatestAnnonces() async {
+    setState(() => isLoading = true);
+    try {
+      final allAnnonces = await _annonceService.fetchAnnonces();
+      // Sort by createdAt descending and take the latest 3
+      allAnnonces.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      final latestAnnonces = allAnnonces.take(3).toList();
+      setState(() {
+        annonces = latestAnnonces;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() => isLoading = false);
+      // Optionally show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors du chargement des annonces: $e')),
+      );
+    }
+  }
+
+  // Méthode pour formater la date avec format relatif
+  String _formatDate(String dateString) {
+    if (dateString.isEmpty) return '';
+
+    try {
+      final parts = dateString.split(' ');
+      if (parts.isEmpty) return dateString;
+
+      final dateParts = parts[0].split('-');
+      if (dateParts.length != 3) return dateString;
+
+      final year = int.tryParse(dateParts[0]) ?? 0;
+      final month = int.tryParse(dateParts[1]) ?? 0;
+      final day = int.tryParse(dateParts[2]) ?? 0;
+
+      if (year == 0 || month == 0 || day == 0) return dateString;
+
+      final date = DateTime(year, month, day);
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final yesterday = DateTime(now.year, now.month, now.day - 1);
+      final dateOnly = DateTime(date.year, date.month, date.day);
+
+      final difference = today.difference(dateOnly).inDays;
+
+      if (dateOnly == today) {
+        return 'Aujourd\'hui';
+      } else if (dateOnly == yesterday) {
+        return 'Hier';
+      } else if (difference < 7) {
+        return 'Il y a $difference ${difference == 1 ? 'jour' : 'jours'}';
+      } else if (difference < 28) {
+        final weeks = (difference / 7).floor();
+        return 'Il y a $weeks ${weeks == 1 ? 'semaine' : 'semaines'}';
+      } else {
+        // Format complet: "11 Août 2025"
+        final monthNames = [
+          'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+          'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+        ];
+        return '$day ${monthNames[month - 1]} $year';
+      }
+    } catch (e) {
+      return dateString;
+    }
+  }
 
   /// Méthode de changement de page
   void _onNavBarTap(int index) {
@@ -63,12 +141,12 @@ class _HomeProducteurState extends State<HomeProducteur> {
           // Header vert
           Container(
             width: double.infinity,
-            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 40.h),
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
             decoration: BoxDecoration(
-              color: const Color(0xFF527E3F),
+              color: const Color.fromARGB(255, 255, 255, 255),
               borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(40.r),
-                bottomRight: Radius.circular(40.r),
+                bottomLeft: Radius.circular(20.r),
+                bottomRight: Radius.circular(20.r),
               ),
             ),
             child: SafeArea(
@@ -76,46 +154,160 @@ class _HomeProducteurState extends State<HomeProducteur> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      CircleAvatar(
-                        backgroundColor: Colors.white.withOpacity(0.2),
-                        radius: 24.r,
-                        child: Icon(Icons.eco, color: Colors.white, size: 28.sp),
-                      ),
-                      SizedBox(width: 12.w),
-                      RichText(
-                        text: TextSpan(
-                          text: 'Bonjour, ',
-                          style: TextStyle(color: Colors.white, fontSize: 16.sp),
-                          children: [
-                            TextSpan(
-                              text: 'Mr Kouassi Bernard',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 18.sp),
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            backgroundColor: Colors.white,
+                            radius: 24.r,
+                            child: Icon(Icons.eco, color: const Color(0xFF4CAF50), size: 28.sp),
+                          ),
+                          SizedBox(width: 12.w),
+                          RichText(
+                            text: TextSpan(
+                              text: 'Bonjour, ',
+                              style: TextStyle(color: const Color(0xFF4CAF50), fontSize: 14.sp),
+                              children: [
+                                TextSpan(
+                                  text: 'Kouassi Bernard',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18.sp,
+                                    color: const Color(0xFF4CAF50),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Icon(Icons.search, color: const Color(0xFF4CAF50), size: 28.sp),
+                          SizedBox(width: 20.w),
+                          Icon(Icons.notifications, color: const Color(0xFF4CAF50), size: 28.sp),
+                        ],
                       ),
                     ],
                   ),
                   SizedBox(height: 20.h),
                   Container(
+                    padding: EdgeInsets.all(20.w),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF9DB98B).withOpacity(0.4),
-                      borderRadius: BorderRadius.circular(30.r),
+                      color: const Color(0xFF4CAF50),
+                      borderRadius: BorderRadius.circular(20.r),
                     ),
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: "Faire une recherche",
-                        prefixIcon: const Icon(Icons.search, color: Colors.white70),
-                        suffixIcon: const Icon(Icons.mic, color: Colors.white70),
-                        border: InputBorder.none,
-                        hintStyle: TextStyle(color: Colors.white70),
-                        contentPadding: EdgeInsets.symmetric(vertical: 12.h),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Solde total',
+                          style: TextStyle(color: Colors.white, fontSize: 14.sp),
+                        ),
+                        SizedBox(height: 8.h),
+                        Text(
+                          'CFA 1 000 000',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 28.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 16.h),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Solde Disponible',
+                                  style: TextStyle(color: Colors.white, fontSize: 14.sp),
+                                ),
+                                SizedBox(height: 4.h),
+                                Text(
+                                  'CFA 200 000',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16.sp,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Container(
+                              height: 40.h,
+                              width: 1.w,
+                              color: Colors.white54,
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Valeur du portefeuille',
+                                  style: TextStyle(color: Colors.white, fontSize: 14.sp),
+                                ),
+                                SizedBox(height: 4.h),
+                                Text(
+                                  'CFA 50 000',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16.sp,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Icon(Icons.remove_red_eye, color: Colors.white, size: 24.sp),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 20.h),
+                  Row(
+                    children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const OffreVentePage(initialTabIndex: 1)));
+                      },
+                      style: OutlinedButton.styleFrom(
+                          backgroundColor: Color(0xFF4CAF50),
+                        side: const BorderSide(color: Color.fromARGB(255, 255, 255, 255)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.r),
+                        ),
+                        padding: EdgeInsets.symmetric(vertical: 14.h),
                       ),
-                      style: const TextStyle(color: Colors.white),
-                      cursorColor: Colors.white,
+                      child: Text(
+                        "Mes demandes d'offre",
+                        style: TextStyle(color: Colors.white, fontSize: 14.sp),
+                      ),
                     ),
+                  ),
+                      SizedBox(width: 16.w),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const PrefinancementForm()));
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                         side: const BorderSide(color: Color.fromARGB(255, 255, 255, 255)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.r),
+                        ),
+                        padding: EdgeInsets.symmetric(vertical: 14.h),
+                      ),
+                      child: Text(
+                        "+ Préfinancement",
+                        style: TextStyle(color: const Color(0xFF4CAF50), fontSize: 14.sp),
+                      ),
+                    ),
+                  ),
+                    ],
                   ),
                 ],
               ),
@@ -123,59 +315,6 @@ class _HomeProducteurState extends State<HomeProducteur> {
           ),
 
           SizedBox(height: 16.h),
-
-          SizedBox(height: 30.h),
-
-          // Cartes blanches avec ombrage
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20.w),
-            child: Column(
-              children: [
-                _buildCard(
-                  title: "Offre de vente",
-                  description:
-                      "Saisissez les détails de votre récolte pour mieux la valoriser",
-                  buttonText: "entamez une offre de vente",
-                  icon: Icons.house_outlined,
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AnnonceForm(),
-                      ),
-                    );
-                  },
-                ),
-                SizedBox(height: 20.h),
-                _buildCard(
-                  title: "Demande de préfinancement",
-                  description:
-                      "Répondez à une demande pour vos produits et soyez récompensé pour votre contribution précieuse",
-                  buttonText: "entamez une demande de prefinancement",
-                  icon: Icons.phone_android_outlined,
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const PrefinancementForm(),
-                      ),
-                    );
-                  },
-                ),
-                SizedBox(height: 20.h),
-                _buildCard(
-                  title: "Voir annonces",
-                  description:
-                      "Répondez à une demande pour vos produits et soyez récompensé pour votre contribution précieuse",
-                  buttonText: "Consulter les annonces",
-                  icon: Icons.campaign_outlined,
-                  onPressed: () {},
-                ),
-              ],
-            ),
-          ),
-
-          SizedBox(height: 24.h),
 
           // --- Dernières annonces ---
           Padding(
@@ -186,7 +325,7 @@ class _HomeProducteurState extends State<HomeProducteur> {
                 Text("Dernières annonces d'achat", style: TextStyle(fontSize: 15.sp, color: const Color.fromARGB(255, 7, 7, 7))),
                 TextButton(
                   onPressed: () {
-                    // Navigator.push(context, MaterialPageRoute(builder: (context) => const AnnonceAchatPage()));
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const AnnonceAchatPage()));
                   },
                   child: Text("Voir tout", style: TextStyle(color: const Color(0xFF4CAF50))),
                 ),
@@ -205,22 +344,79 @@ class _HomeProducteurState extends State<HomeProducteur> {
     );
   }
 
-  Widget _buildAnnonceCard(dynamic annonce) {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 6.r,
-            offset: Offset(0, 2.h),
-          ),
-        ],
+  Widget _buildAnnonceCard(AnnonceAchat annonce) {
+    return InkWell(
+      onTap: () => Navigator.pushNamed(context, '/detailOffreVente', arguments: annonce),
+      child: Container(
+        margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+        padding: EdgeInsets.all(16.w),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12.r),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 6.r,
+              offset: Offset(0, 2.h),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  annonce.typeCultureLibelle,
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF4CAF50),
+                  ),
+                ),
+                Text(
+                  annonce.formattedPrice,
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 8.h),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Quantité: ${annonce.formattedQuantity}',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.favorite_border),
+                  color: const Color(0xFF4CAF50),
+                  onPressed: () {
+                    // TODO: Implement favorite functionality
+                  },
+                ),
+              ],
+            ),
+            SizedBox(height: 4.h),
+            Text(
+              ' ${_formatDate(annonce.createdAt)}',
+              style: TextStyle(
+                fontSize: 12.sp,
+                color: Colors.grey[600],
+              ),
+            ),
+          ],
+        ),
       ),
-      child: Text("Annonce: ${annonce.toString()}"), // Placeholder
     );
   }
 
