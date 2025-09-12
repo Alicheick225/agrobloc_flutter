@@ -94,8 +94,13 @@ void _envoyerDemande() async {
 
     final userService = UserService();
 
-    // Removed authentication check - allow submission without authentication
-    final userId = userService.userId ?? 'anonymous_user'; // Use anonymous user if not authenticated
+    // Vérifier l'authentification en chargeant les données utilisateur si nécessaire
+    final isAuthenticated = await userService.isUserAuthenticated();
+    if (!isAuthenticated) {
+      throw Exception("Utilisateur non connecté ou token manquant");
+    }
+
+    final userId = userService.userId!;
 
     // Quantité
     double quantite = double.tryParse(productionController.text) ?? 0;
@@ -193,7 +198,19 @@ void _envoyerDemande() async {
       SnackBar(
         content: Text(errorMessage),
         duration: const Duration(seconds: 4),
-        // Removed login redirection action
+        action: (errorMessage.contains("reconnecter") ||
+                 errorMessage.contains("Session expirée"))
+            ? SnackBarAction(
+                label: "Se connecter",
+                onPressed: () {
+                  // Navigation vers la page de connexion
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                    '/login',
+                    (route) => false,
+                  );
+                },
+              )
+            : null,
       ),
     );
   }

@@ -350,8 +350,13 @@ class _AnnonceFormState extends State<AnnonceForm> {
     try {
       final userService = UserService();
 
-      // Removed authentication check - allow submission without authentication
-      final userId = userService.userId ?? 'anonymous_user'; // Use anonymous user if not authenticated
+      // Vérifier l'authentification en chargeant les données utilisateur si nécessaire
+      final isAuthenticated = await userService.isUserAuthenticated();
+      if (!isAuthenticated) {
+        throw Exception("Utilisateur non connecté ou token manquant");
+      }
+
+      final userId = userService.userId!;
 
       final cultureChoisie = typeCultures.firstWhere((c) => c.libelle == selectedCulture);
       final parcelleChoisie = parcelles.firstWhere((p) => p.libelle == selectedParcelle);
@@ -440,7 +445,19 @@ class _AnnonceFormState extends State<AnnonceForm> {
         SnackBar(
           content: Text(errorMessage),
           duration: const Duration(seconds: 4),
-          // Removed login redirection action
+          action: (errorMessage.contains("reconnecter") ||
+                   errorMessage.contains("Session expirée"))
+              ? SnackBarAction(
+                  label: "Se connecter",
+                  onPressed: () {
+                    // Navigation vers la page de connexion
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                      '/login',
+                      (route) => false,
+                    );
+                  },
+                )
+              : null,
         ),
       );
     } finally {

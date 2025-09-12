@@ -46,7 +46,23 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
     try {
       setState(() => _isLoading = true);
 
-      // Removed authentication check - allow loading annonces without authentication
+      // Vérifier d'abord si l'utilisateur est authentifié
+      final isAuthenticated = await _userService.isUserAuthenticated();
+
+      if (!isAuthenticated) {
+        debugPrint("⚠️ Utilisateur non authentifié - redirection vers la connexion");
+        if (!mounted) return;
+        setState(() => _isLoading = false);
+
+        // Rediriger vers la page de connexion après un court délai
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) {
+            Navigator.pushReplacementNamed(context, '/login');
+          }
+        });
+        return;
+      }
+
       final annonces = await _service.fetchAnnonces();
 
       if (!mounted) return;
@@ -69,7 +85,7 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
 
       if (e.toString().contains('Utilisateur non authentifié') ||
           e.toString().contains('401')) {
-        errorMessage = 'Erreur d\'authentification - données peuvent être limitées';
+        errorMessage = 'Session expirée. Veuillez vous reconnecter';
         backgroundColor = Colors.orange;
       } else if (e.toString().contains('Pas de connexion Internet')) {
         errorMessage = 'Pas de connexion Internet';

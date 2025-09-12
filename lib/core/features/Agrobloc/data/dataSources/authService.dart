@@ -294,7 +294,18 @@ class AuthService {
           } else if (response.statusCode == 403) {
             throw Exception("Accès refusé lors du refresh: $errorMessage");
           } else if (response.statusCode == 404) {
-            throw Exception("Endpoint de refresh non trouvé: $errorMessage");
+            print('⚠️ AuthService.refreshToken() - Endpoint de refresh non trouvé (404). Le serveur ne supporte pas le refresh automatique.');
+            print('🔄 AuthService.refreshToken() - Continuer sans refresh - l\'utilisateur devra se reconnecter manuellement si nécessaire.');
+            // Instead of throwing, return the current token if it's still valid
+            // This prevents the app from repeatedly failing on refresh
+            if (refreshToken != null && refreshToken.isNotEmpty) {
+              return {
+                'accessToken': '', // Empty access token to force re-login
+                'refreshToken': refreshToken, // Keep refresh token for future attempts
+              };
+            } else {
+              throw Exception("Endpoint de refresh non trouvé et aucun token de refresh disponible: $errorMessage");
+            }
           } else if (response.statusCode >= 500) {
             // Retry on server errors (5xx) or network errors
             if (refreshAttempt >= maxRefreshRetries) {

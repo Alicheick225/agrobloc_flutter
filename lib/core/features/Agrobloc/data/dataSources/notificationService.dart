@@ -11,7 +11,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class NotificationService {
-  static const String _baseUrl = 'http://192.168.252.249:8081/api';
+  static const String _baseUrl = 'http://192.168.252.183:8082/api';
   
   // 🆕 NOUVEAU : Instance singleton pour les notifications push
   static final NotificationService _instance = NotificationService._internal();

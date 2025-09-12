@@ -41,9 +41,9 @@ class AnnonceService {
 
   Future<String> _getUserId() async {
   final prefs = await SharedPreferences.getInstance();
-  final uid = prefs.getString("user_id");
+  final uid = prefs.getString("userId");  // Changed key from "user_id" to "userId"
   if (uid == null || uid.isEmpty) {
-    throw Exception("⚠️ user_id manquant, reconnectez-vous.");
+    throw Exception("⚠️ userId manquant, reconnectez-vous.");  // Updated message to match key
   }
   return uid;
 }

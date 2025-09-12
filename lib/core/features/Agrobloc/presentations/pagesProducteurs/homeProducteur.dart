@@ -1,7 +1,10 @@
+
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/AnnonceForm.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/prefinancementForm.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/annoncePage.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/offreVentePage.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/pagesProducteurs/transactionProducteur.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/navBarProducteur.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/AnnonceAchat.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceAchatModel.dart';
 import 'package:flutter/material.dart';
@@ -18,18 +21,70 @@ class HomeProducteur extends StatefulWidget {
   State<HomeProducteur> createState() => _HomeProducteurState();
 }
 
+
+
 class _HomeProducteurState extends State<HomeProducteur> {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
+  late List<Widget> pages;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = 0;
+    pages = [
+      const HomeProducteurContent(),
+      const Center(child: Text("Messages")),
+      const TransactionProducteur(child: Text("Transactions")),
+      const Center(child: Text("Profil")),
+    ];
+  }
+
+  void _onNavBarTap(int index) {
+    if (index == 2) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const TransactionProducteur(child: Text("Transactions")),
+        ),
+      );
+    } else {
+      setState(() {
+        _selectedIndex = index;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ScreenUtilInit(
+      designSize: const Size(375, 812),
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (context, child) {
+        return Scaffold(
+          backgroundColor: Colors.white,
+          body: pages[_selectedIndex],
+          bottomNavigationBar: BottomBarProducteur(
+            selectedIndex: _selectedIndex,
+            onTap: _onNavBarTap,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class HomeProducteurContent extends StatefulWidget {
+  const HomeProducteurContent({super.key});
+
+  @override
+  State<HomeProducteurContent> createState() => _HomeProducteurContentState();
+}
+
+class _HomeProducteurContentState extends State<HomeProducteurContent> {
   bool isLoading = false;
   List<AnnonceAchat> annonces = [];
   final AnnonceAchatService _annonceService = AnnonceAchatService();
-
-  final List<Widget> pages = [
-    const HomeProducteur(),
-    const Center(child: Text("Messages")),
-    const Center(child: Text("Transactions")),
-    const Center(child: Text("Profil")),
-  ];
 
   @override
   void initState() {
@@ -104,34 +159,9 @@ class _HomeProducteurState extends State<HomeProducteur> {
     }
   }
 
-  /// Méthode de changement de page
-  void _onNavBarTap(int index) {
-    setState(() {
-      if (index >= 0 && index < pages.length) {
-        _selectedIndex = index;
-      } else {
-        debugPrint("⚠️ Index $index invalide !");
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    return ScreenUtilInit(
-      designSize: const Size(375, 812),
-      minTextAdapt: true,
-      splitScreenMode: true,
-      builder: (context, child) {
-        return Scaffold(
-          backgroundColor: Colors.white,
-          body: _selectedIndex == 0 ? _buildHomeContent() : pages[_selectedIndex],
-          bottomNavigationBar: BottomBarProducteur(
-            selectedIndex: _selectedIndex,
-            onTap: _onNavBarTap,
-          ),
-        );
-      },
-    );
+    return _buildHomeContent();
   }
 
   Widget _buildHomeContent() {
@@ -419,128 +449,10 @@ class _HomeProducteurState extends State<HomeProducteur> {
       ),
     );
   }
-
-  Widget _buildCard({
-    required String title,
-    required String description,
-    required String buttonText,
-    required IconData icon,
-    required VoidCallback onPressed,
-  }) {
-    return Container(
-      padding: EdgeInsets.all(20.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 10.r,
-            offset: Offset(0, 4.h),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 3,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: const Color(0xFF527E3F),
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 8.h),
-                Text(
-                  description,
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    color: Colors.grey[700],
-                  ),
-                ),
-                SizedBox(height: 16.h),
-                ElevatedButton(
-                  onPressed: onPressed,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF527E3F),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15.r),
-                    ),
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
-                  ),
-                  child: Text(
-                    buttonText,
-                    style: TextStyle(fontSize: 14.sp, color: Colors.white),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Icon(
-              icon,
-              size: 50.sp,
-              color: const Color(0xFF527E3F),
-            ),
-          )
-        ],
-      ),
-    );
-  }
 }
 
-class BottomBarProducteur extends StatelessWidget {
-  final int selectedIndex;
-  final ValueChanged<int> onTap;
 
-  const BottomBarProducteur({
-    super.key,
-    required this.selectedIndex,
-    required this.onTap,
-  });
 
-  @override
-  Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      currentIndex: selectedIndex,
-      type: BottomNavigationBarType.fixed,
-      showUnselectedLabels: true,
-      selectedItemColor: const Color(0xFF527E3F),
-      unselectedItemColor: Colors.grey,
-      onTap: onTap,
-      items: [
-        _buildNavItem(Icons.home_outlined, "Accueil", 0),
-        _buildNavItem(Icons.message_outlined, "Messages", 1),
-        _buildNavItem(Icons.sync_alt_outlined, "Transactions", 2),
-        _buildNavItem(Icons.person_rounded, "Profil", 3),
-      ],
-    );
-  }
 
-  BottomNavigationBarItem _buildNavItem(IconData icon, String label, int index) {
-    final bool isSelected = selectedIndex == index;
 
-    return BottomNavigationBarItem(
-      icon: Container(
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF527E3F) : Colors.transparent,
-          borderRadius: BorderRadius.circular(15.r),
-        ),
-        padding: EdgeInsets.all(6.r),
-        child: Icon(
-          icon,
-          color: isSelected ? Colors.white : Colors.grey,
-        ),
-      ),
-      label: label,
-    );
-  }
-}
+
