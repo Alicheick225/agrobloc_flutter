@@ -366,6 +366,21 @@ class UserService {
 
             print('🔄 UserService.getValidToken() - Appel de AuthService.refreshToken()...');
             final newTokens = await AuthService().refreshToken(refreshToken);
+
+            // Handle case where refresh endpoint doesn't exist (returns empty accessToken)
+            if (newTokens['accessToken'] == null || newTokens['accessToken']!.isEmpty) {
+              print('⚠️ UserService.getValidToken() - Refresh endpoint non disponible, token vide retourné');
+              print('🔄 UserService.getValidToken() - Déclenchement de la reconnexion forcée');
+              if (_onForceReLogin != null) {
+                print('🔄 UserService.getValidToken() - Callback de reconnexion forcée appelé');
+                _onForceReLogin!();
+              } else {
+                print('⚠️ UserService.getValidToken() - Aucun callback de reconnexion défini - nettoyage manuel des tokens');
+                await clearInvalidTokens();
+              }
+              return null;
+            }
+
             await prefs.setString("token", newTokens['accessToken']!);
             await prefs.setString("refresh_token", newTokens['refreshToken']!);
             _token = newTokens['accessToken']!;

@@ -9,6 +9,25 @@ enum CommandeStatus {
   terminee, // terminée
 }
 
+extension CommandeStatusExtension on CommandeStatus {
+  static CommandeStatus fromString(String status) {
+    switch (status) {
+      case 'en attente de paiement':
+        return CommandeStatus.enAttentePaiement;
+      case 'en attente de livraison':
+        return CommandeStatus.enAttenteLivraison;
+      case 'en attente de réception':
+        return CommandeStatus.enAttenteReception;
+      case 'annulée':
+        return CommandeStatus.annulee;
+      case 'terminée':
+        return CommandeStatus.terminee;
+      default:
+        return CommandeStatus.enAttentePaiement;
+    }
+  }
+}
+
 extension CommandeStatusExt on CommandeStatus {
   Color get color => {
         CommandeStatus.enAttentePaiement: AppColors.enAttentePaiement,
@@ -54,10 +73,7 @@ class CommandeModel {
       quantite: double.tryParse(json['quantite']?.toString() ?? '0') ?? 0.0,
       prixTotal: double.tryParse(json['prix_total']?.toString() ?? '0') ?? 0.0,
       modePaiementId: json['mode_paiement_id'] ?? '',
-      statut: CommandeStatus.values.firstWhere(
-        (e) => e.name == (json['statut'] ?? ''),
-        orElse: () => CommandeStatus.enAttentePaiement,
-      ),
+      statut: CommandeStatusExtension.fromString(json['statut'] ?? ''),
       createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
       typeCulture: json['type_culture'] ?? '',
       nomCulture: json['nom_culture']?.toString() ??

@@ -20,11 +20,13 @@ class ApiConfig {
   static const String devAnnoncesBaseUrl = 'http://192.168.252.199:8080';
   static const String devTypesCulturesBaseUrl = 'http://192.168.252.199:8000';
   static const String devParcellesBaseUrl = 'http://192.168.252.199:8000';
+  static const String devCommandesBaseUrl = 'http://192.168.252.199:3001';
 
   // Service-specific base URLs for prod environment
   static const String prodAnnoncesBaseUrl = 'https://api.yourproductiondomain.com';
   static const String prodTypesCulturesBaseUrl = 'https://api.yourproductiondomain.com';
   static const String prodParcellesBaseUrl = 'https://api.yourproductiondomain.com';
+  static const String prodCommandesBaseUrl = 'https://api.yourproductiondomain.com';
 
   // Current environment: change this to switch environments
   static const bool isProduction = false;
@@ -39,6 +41,7 @@ class ApiConfig {
   static String get annoncesBaseUrl => isProduction ? prodAnnoncesBaseUrl : devAnnoncesBaseUrl;
   static String get typesCulturesBaseUrl => isProduction ? prodTypesCulturesBaseUrl : devTypesCulturesBaseUrl;
   static String get parcellesBaseUrl => isProduction ? prodParcellesBaseUrl : devParcellesBaseUrl;
+  static String get commandesBaseUrl => isProduction ? prodCommandesBaseUrl : devCommandesBaseUrl;
 }
 
 /// Classes d'exception spécifiques pour les erreurs d'authentification
