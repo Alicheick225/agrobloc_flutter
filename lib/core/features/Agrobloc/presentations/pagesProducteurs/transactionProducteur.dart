@@ -40,15 +40,12 @@ class _TransactionProducteurState extends State<TransactionProducteur> {
         setState(() => isLoading = false);
         return;
       }
-      final userAnnonces = await _annonceService.fetchAnnoncesByUser();
-      final annonceIds = userAnnonces.map((a) => a.id).toSet();
-      final allCommandes = await _commandeService.getAllCommandes();
-      final filteredCommandes = allCommandes.where((c) => annonceIds.contains(c.annoncesVenteId)).toList();
+      // Use the new getProducerOrders method to fetch commandes for the producer
+      final producerCommandes = await _commandeService.getProducerOrders();
       // Sort by createdAt descending
-      filteredCommandes.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      producerCommandes.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       setState(() {
-        // Filter commandes to only those related to a single producer's products
-        commandes = filteredCommandes;
+        commandes = producerCommandes;
         isLoading = false;
       });
     } catch (e) {

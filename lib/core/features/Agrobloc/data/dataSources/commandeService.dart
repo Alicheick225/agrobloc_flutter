@@ -6,9 +6,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/commandeModel.dart';
 
 class CommandeService {
-  final ApiClient api = ApiClient('${ApiConfig.apiBaseUrl}/commandes');
+  final ApiClient api = ApiClient(ApiConfig.commandesBaseUrl);
 
-  final String baseUrl = ApiConfig.apiBaseUrl;
+  final String baseUrl = ApiConfig.commandesBaseUrl;
+
 
   Future<CommandeModel> enregistrerCommande({
     required String annoncesVenteId,
@@ -53,6 +54,35 @@ class CommandeService {
           .toList();
     } else {
       throw Exception("Erreur récupération commandes : ${response.body}");
+    }
+  }
+
+  Future<List<CommandeModel>> getProducerOrders({String? status, bool? pending}) async {
+    String query = '/commandes-ventes/producer';
+    Map<String, String> queryParams = {};
+    if (status != null) {
+      queryParams['status'] = status;
+    }
+    if (pending != null) {
+      queryParams['pending'] = pending.toString();
+    }
+    if (queryParams.isNotEmpty) {
+      final queryString = queryParams.entries.map((e) => '${e.key}=${e.value}').join('&');
+      query = '$query?$queryString';
+    }
+
+    final response = await api.get(query);
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      if (!data.containsKey('commandes')) {
+        throw Exception("Réponse serveur invalide : clé 'commandes' manquante.");
+      }
+      return (data['commandes'] as List)
+          .map((json) => CommandeModel.fromJson(json))
+          .toList();
+    } else {
+      throw Exception("Erreur récupération commandes producteur : ${response.body}");
     }
   }
 
