@@ -39,6 +39,8 @@ Future<void> main() async {
   // Initialisation UserService
   try {
     final userService = UserService();
+    // Force clear stored user session to require login on every app launch
+    await userService.clearCurrentUser();
     final hasStoredData = await userService.hasStoredUserData();
     debugPrint('🔍 main() - Données utilisateur stockées: $hasStoredData');
 
@@ -156,7 +158,7 @@ class _MyAppState extends State<MyApp> {
         primaryColor: const Color(0xFF5d9643),
         scaffoldBackgroundColor: Colors.white,
       ),
-      home: FutureBuilder<bool>(
+      home: FutureBuilder<Map<String, dynamic>>(
         future: _getAuthenticationStatus(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -168,19 +170,22 @@ class _MyAppState extends State<MyApp> {
             );
           }
 
+          final data = snapshot.data ?? {'isAuthenticated': false, 'lastProfile': null};
+          final isAuthenticated = data['isAuthenticated'] as bool;
+          final lastProfile = data['lastProfile'] as String?;
+
           // Determine which page to show based on authentication state
           Widget homePage;
 
           if (_forceLogin) {
             // Force navigation to login page when session expires
             debugPrint('🔄 MyApp - Navigation forcée vers la page de connexion');
-            homePage = const LoginPage(profile: 'producteur');
+            homePage = LoginPage(profile: lastProfile ?? 'producteur');
           } else if (widget.isFirstLaunch) {
             // First launch - show profile selection
             homePage = const SelectProfilePage();
           } else {
             // Check authentication result from FutureBuilder
-            final isAuthenticated = snapshot.data ?? false;
             final userService = UserService();
 
             if (isAuthenticated && userService.currentUser != null) {
@@ -193,9 +198,9 @@ class _MyAppState extends State<MyApp> {
               }
               debugPrint('✅ MyApp - Utilisateur authentifié: ${userService.currentUser!.nom} (${profileId})');
             } else {
-              // Not authenticated - show login page
-              debugPrint('ℹ️ MyApp - Utilisateur non authentifié - affichage page de connexion');
-              homePage = const LoginPage(profile: 'producteur');
+              // Not authenticated - show login page with last profile
+              debugPrint('ℹ️ MyApp - Utilisateur non authentifié - affichage page de connexion pour profil: ${lastProfile ?? 'producteur'}');
+              homePage = LoginPage(profile: lastProfile ?? 'producteur');
             }
           }
 
@@ -214,10 +219,15 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  /// Get authentication status with proper token validation
-  Future<bool> _getAuthenticationStatus() async {
+  /// Get authentication status with proper token validation and last profile
+  Future<Map<String, dynamic>> _getAuthenticationStatus() async {
     final userService = UserService();
-    return await userService.isUserAuthenticated();
+    final isAuthenticated = await userService.isUserAuthenticated();
+    final lastProfile = await userService.getLastProfile();
+    return {
+      'isAuthenticated': isAuthenticated,
+      'lastProfile': lastProfile,
+    };
   }
 
   @override
