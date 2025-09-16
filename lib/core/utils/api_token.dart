@@ -30,7 +30,8 @@ class ApiClient {
   }
 
   /// Requête POST
-  Future<http.Response> post(String endpoint, Map<String, dynamic> body, {bool withAuth = true}) async {
+  Future<http.Response> post(String endpoint, Map<String, dynamic> body,
+      {bool withAuth = true}) async {
     final headers = await _getHeaders(withAuth: withAuth);
     final url = Uri.parse('$baseUrl$endpoint');
     return http.post(url, headers: headers, body: jsonEncode(body));

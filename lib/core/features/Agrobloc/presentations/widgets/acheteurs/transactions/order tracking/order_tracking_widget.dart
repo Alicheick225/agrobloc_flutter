@@ -39,17 +39,12 @@ class OrderTrackingWidget extends StatelessWidget {
               );
             },
           ),
-          TypePayementWidget(
-            onConfirm: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Paiement lancé')),
-              );
-            },
-            cardHolderController: TextEditingController(),
-            cardNumberController: TextEditingController(),
-            expDateController: TextEditingController(),
-            cvvController: TextEditingController(),
+          FusionMoneyWidget(
+            montant: commande.prixTotal,
+            numeroClient: '',
+            nomClient: '',
           ),
+
           const SizedBox(height: 24),
 
           ProductInfoWidget(

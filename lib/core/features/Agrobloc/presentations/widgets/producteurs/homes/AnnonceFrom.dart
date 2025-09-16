@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/annonceVenteService.dart';
-import 'package:agrobloc/core/features/Agrobloc/data/dataSources/tyoeCultureService.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/typeCultureService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/parcelleService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/parcelleService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/typecultureModel.dart';
@@ -131,7 +131,8 @@ class _AnnonceFormState extends State<AnnonceForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        Text(label,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
         const SizedBox(height: 4),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -145,7 +146,9 @@ class _AnnonceFormState extends State<AnnonceForm> {
             isExpanded: true,
             underline: const SizedBox(),
             onChanged: onChanged,
-            items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+            items: items
+                .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                .toList(),
           ),
         ),
       ],
@@ -174,7 +177,8 @@ class _AnnonceFormState extends State<AnnonceForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("Disponibilité culture", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        const Text("Disponibilité culture",
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
         Row(
           children: [
             Expanded(
@@ -230,7 +234,9 @@ class _AnnonceFormState extends State<AnnonceForm> {
       );
 
   Future<void> _submitAnnonce() async {
-    if (selectedCulture == null || selectedParcelle == null || description.isEmpty) {
+    if (selectedCulture == null ||
+        selectedParcelle == null ||
+        description.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Veuillez remplir tous les champs")),
       );
@@ -240,10 +246,12 @@ class _AnnonceFormState extends State<AnnonceForm> {
     setState(() => isSubmitting = true);
 
     try {
-      final selectedTypeCulture = typeCultures.firstWhere((c) => c.libelle == selectedCulture);
+      final selectedTypeCulture =
+          typeCultures.firstWhere((c) => c.libelle == selectedCulture);
       final typeCultureId = selectedTypeCulture.id;
 
-      final selectedParcelleObj = parcellesList.firstWhere((p) => p.libelle == selectedParcelle);
+      final selectedParcelleObj =
+          parcellesList.firstWhere((p) => p.libelle == selectedParcelle);
       final parcelleId = selectedParcelleObj.id;
 
       final annonce = await service.createAnnonce(
@@ -253,7 +261,8 @@ class _AnnonceFormState extends State<AnnonceForm> {
         description: description,
         quantite: quantity,
         prixKg: prixKg,
-        photo: photo, userId: '',
+        photo: photo,
+        userId: '',
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
