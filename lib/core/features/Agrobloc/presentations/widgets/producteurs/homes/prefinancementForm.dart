@@ -3,7 +3,7 @@ import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dar
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/AnnoncePrefinancementService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/parcelleService.dart';
-import 'package:agrobloc/core/features/Agrobloc/data/dataSources/tyoeCultureService.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/typeCultureService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/parcelleService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/typecultureModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/annoncePrefinancementModel.dart';
