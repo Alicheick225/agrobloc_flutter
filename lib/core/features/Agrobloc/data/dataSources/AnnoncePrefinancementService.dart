@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
 import 'package:http/http.dart' as http;
 import '../models/annoncePrefinancementModel.dart';
-import 'tyoeCultureService.dart';
+import 'typeCultureService.dart';
 
 import 'package:agrobloc/core/utils/api_token.dart';
 

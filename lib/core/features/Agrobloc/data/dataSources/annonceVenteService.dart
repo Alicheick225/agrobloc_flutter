@@ -7,7 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jwt_decode/jwt_decode.dart';
 import '../models/AnnonceVenteModel.dart';
-import 'tyoeCultureService.dart';
+import 'typeCultureService.dart';
 import 'userService.dart';
 
 class AnnonceService {
