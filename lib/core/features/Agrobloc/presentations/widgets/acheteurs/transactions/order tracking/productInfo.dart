@@ -3,14 +3,14 @@ import 'package:agrobloc/core/features/Agrobloc/data/models/commandeModel.dart';
 
 class ProductInfoWidget extends StatefulWidget {
   final CommandeModel commande;
-  final bool isExpanded;
-  final VoidCallback? onToggle;
+  //final bool isExpanded;
+  //final VoidCallback? onToggle;
 
   const ProductInfoWidget({
     super.key,
     required this.commande,
-    this.isExpanded = false,
-    this.onToggle,
+    //this.isExpanded = false,
+    //this.onToggle,
   });
 
   @override
@@ -18,12 +18,12 @@ class ProductInfoWidget extends StatefulWidget {
 }
 
 class _ProductInfoWidgetState extends State<ProductInfoWidget> {
-  late bool _isExpanded;
+  //late bool _isExpanded;
 
   @override
   void initState() {
     super.initState();
-    _isExpanded = widget.isExpanded;
+    //_isExpanded = widget.isExpanded;
   }
 
   @override
@@ -71,80 +71,6 @@ class _ProductInfoWidgetState extends State<ProductInfoWidget> {
               '${cmd.quantite.toStringAsFixed(1)} kg',
             ),
             const SizedBox(height: 20),
-
-            // Ligne flèche + avatar
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    setState(() => _isExpanded = !_isExpanded);
-                    widget.onToggle?.call();
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    child: Icon(
-                      _isExpanded
-                          ? Icons.keyboard_arrow_up
-                          : Icons.keyboard_arrow_down,
-                      size: 24,
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-                ),
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: Colors.grey.shade300,
-                  backgroundImage: cmd.photoPlanteurUrl != null
-                      ? NetworkImage(cmd.photoPlanteurUrl!)
-                      : null,
-                  child: cmd.photoPlanteurUrl == null
-                      ? Text(
-                          cmd.nomCulture.isNotEmpty
-                              ? cmd.nomCulture[0].toUpperCase()
-                              : '?',
-                          style: const TextStyle(color: Colors.black87),
-                        )
-                      : null,
-                ),
-              ],
-            ),
-
-            // Contenu étendu
-            if (_isExpanded) ...[
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Détails supplémentaires',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey.shade700,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Commande n°${cmd.id}\n'
-                      'Type : ${cmd.typeCulture}\n'
-                      'Statut : ${cmd.statut.name}\n'
-                      'Créée le : ${cmd.createdAt.day}/${cmd.createdAt.month}/${cmd.createdAt.year}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
           ],
         ),
       ),

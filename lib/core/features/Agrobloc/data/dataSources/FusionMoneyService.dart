@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+
 class FusionMoneyService {
   final String apiUrl =
       "https://www.pay.moneyfusion.net/agrobloc/9c9ab8caba916000/pay/";
@@ -17,10 +18,8 @@ class FusionMoneyService {
   }) async {
     final Map<String, dynamic> paymentData = {
       "totalPrice": montant,
-      "article": [      
-        {
-          "produit": montant
-        },
+      "article": [
+        {"produit": montant},
       ],
       "personal_Info": [
         {
@@ -58,8 +57,7 @@ class FusionMoneyService {
           if (paymentUrlString != null) {
             final Uri paymentUrl = Uri.parse(paymentUrlString);
             if (await canLaunchUrl(paymentUrl)) {
-              await launchUrl(paymentUrl,
-                  mode: LaunchMode.externalApplication);
+              await launchUrl(paymentUrl, mode: LaunchMode.externalApplication);
             } else {
               throw Exception("Impossible d'ouvrir l'URL de paiement.");
             }
@@ -67,7 +65,8 @@ class FusionMoneyService {
             throw Exception("URL de paiement manquante dans la réponse.");
           }
         } else {
-          throw Exception("Erreur API: ${data['message'] ?? 'Paiement échoué'}");
+          throw Exception(
+              "Erreur API: ${data['message'] ?? 'Paiement échoué'}");
         }
       } else {
         throw Exception(

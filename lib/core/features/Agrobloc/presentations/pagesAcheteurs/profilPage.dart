@@ -1,13 +1,10 @@
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/profils/avispage.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/order%20tracking/sequestre.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/authentificationModel.dart';
-
-// Import de la vraie page AvisPage que vous avez développée
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/profils/avisPage.dart';
-
 
 class ProfilPage extends StatefulWidget {
   const ProfilPage({super.key});
@@ -108,7 +105,7 @@ class _ProfilPageState extends State<ProfilPage> {
                 // Logique de déconnexion
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.clear();
-                
+
                 Navigator.of(context).pop(); // Fermer le dialogue
                 Navigator.pushNamedAndRemoveUntil(
                   context,
@@ -150,7 +147,8 @@ class _ProfilPageState extends State<ProfilPage> {
           // ==== HEADER ====
           Container(
             color: AppColors.primaryGreen,
-            padding: const EdgeInsets.only(top: 40, left: 8, right: 8, bottom: 16),
+            padding:
+                const EdgeInsets.only(top: 40, left: 8, right: 8, bottom: 16),
             child: Row(
               children: [
                 IconButton(
@@ -175,7 +173,8 @@ class _ProfilPageState extends State<ProfilPage> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const CompteSequestrePage()),
+                      MaterialPageRoute(
+                          builder: (context) => const CompteSequestrePage()),
                     );
                   },
                 ),
@@ -192,9 +191,12 @@ class _ProfilPageState extends State<ProfilPage> {
                   children: [
                     CircleAvatar(
                       radius: 45,
-                      backgroundColor: const Color(0xFF4CAF50), // Primary green color
+                      backgroundColor:
+                          const Color(0xFF4CAF50), // Primary green color
                       child: Text(
-                        user?.nom.isNotEmpty == true ? user!.nom[0].toUpperCase() : '?',
+                        user?.nom.isNotEmpty == true
+                            ? user!.nom[0].toUpperCase()
+                            : '?',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 24,
@@ -208,7 +210,8 @@ class _ProfilPageState extends State<ProfilPage> {
                       child: CircleAvatar(
                         radius: 16,
                         backgroundColor: Colors.white,
-                        child: Icon(Icons.camera_alt, size: 18, color: AppColors.primaryGreen),
+                        child: Icon(Icons.camera_alt,
+                            size: 18, color: AppColors.primaryGreen),
                       ),
                     ),
                   ],
@@ -216,7 +219,8 @@ class _ProfilPageState extends State<ProfilPage> {
                 const SizedBox(height: 10),
                 Text(
                   user?.nom ?? "Nom d'utilisateur",
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 Text(
                   user?.profilId ?? "Profil non défini",
@@ -229,8 +233,10 @@ class _ProfilPageState extends State<ProfilPage> {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryGreen,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6)),
                   ),
                   child: const Text(
                     "Modifier mon profil",
@@ -250,8 +256,10 @@ class _ProfilPageState extends State<ProfilPage> {
                 _buildOptionItem(Icons.thumb_up_off_alt, "avis"),
                 _buildOptionItem(Icons.history, "Historique transactions"),
                 _buildOptionItem(Icons.payments_outlined, "Moyens de paiement"),
-                _buildOptionItem(Icons.description_outlined, "Conditions d'utilisation et politique de confidentialité"),
-                _buildOptionItem(Icons.logout, "Se déconnecter", color: Colors.red),
+                _buildOptionItem(Icons.description_outlined,
+                    "Conditions d'utilisation et politique de confidentialité"),
+                _buildOptionItem(Icons.logout, "Se déconnecter",
+                    color: Colors.red),
               ],
             ),
           ),
@@ -264,7 +272,8 @@ class _ProfilPageState extends State<ProfilPage> {
     return ListTile(
       leading: Icon(icon, color: color ?? Colors.black87),
       title: Text(title, style: TextStyle(color: color ?? Colors.black)),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+      trailing:
+          const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
       onTap: () => _handleOptionTap(title),
     );
   }

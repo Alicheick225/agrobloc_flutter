@@ -1,3 +1,4 @@
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/order%20tracking/payement/selectpayemode.dart';
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/commandeModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/order%20tracking/actioncard.dart';
@@ -24,6 +25,7 @@ class OrderTrackingWidget extends StatelessWidget {
         children: [
           const SizedBox(height: 24),
           _buildStatusTimeline(context),
+
           ChatWidget(
             userName: _getPlanteurName(),
             userInitial: _getPlanteurInitial(),
@@ -37,16 +39,25 @@ class OrderTrackingWidget extends StatelessWidget {
               );
             },
           ),
+          FusionMoneyWidget(
+            montant: commande.prixTotal,
+            numeroClient: '',
+            nomClient: '',
+          ),
+
           const SizedBox(height: 24),
+
           ProductInfoWidget(
             commande: commande,
-            isExpanded: false,
-            onToggle: () {},
+            //isExpanded: false,
+            //onToggle: () {},
           ),
           const SizedBox(height: 24),
           ProducerInfoWidget(commande: commande),
           const SizedBox(height: 24),
           _buildCurrentActions(),
+          const SizedBox(height: 20),
+          //  Widget de formulaire (carte ou mobile money)
         ],
       ),
     );
@@ -191,10 +202,6 @@ class OrderTrackingWidget extends StatelessWidget {
                     ),
                   ),
                 ],
-
-
-
-                
               ),
             ),
           ],
@@ -221,13 +228,6 @@ class OrderTrackingWidget extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Actions disponibles',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
             const SizedBox(height: 16),
             ...buttons,
           ],
@@ -240,12 +240,6 @@ class OrderTrackingWidget extends StatelessWidget {
     switch (status) {
       case OrderStatus.waitingPayment:
         return [
-          ActionButtonWidget(
-            text: 'Faire le paiement',
-            type: ActionButtonType.success,
-            onPressed: () => onStatusUpdate?.call(OrderStatus.waitingDelivery),
-          ),
-          const SizedBox(height: 12),
           ActionButtonWidget(
             text: 'Annuler la transaction',
             type: ActionButtonType.danger,
