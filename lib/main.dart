@@ -1,34 +1,34 @@
+// lib/main.dart
+
 import 'package:agrobloc/core/features/Agrobloc/presentations/pagesProducteurs/homeProducteur.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// 🆕 NOUVEAU : Import du service de notifications
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/notificationService.dart';
-// 🆕 NOUVEAU : Import du UserService
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
 
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/connexion/select_profile.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/pagesAcheteurs/homePage.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/connexion/login.dart';
-// ignore: unused_import
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/parametre.dart';
-
-// 🆕 AJOUT : Imports pour la route detailOffreVente
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/detailOffreVente.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceAchatModel.dart';
 
-// 🆕 MODIFIÉ : Fonction main avec initialisation des notifications et UserService
+// Importez les classes nécessaires pour les routes manquantes
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/connexion/login.dart'; 
+// Si vous avez des pages de login distinctes, importez-les ici.
+// import 'package:agrobloc/core/features/Agrobloc/presentations/pagesProducteurs/loginProducteurPage.dart';
+// import 'package:agrobloc/core/features/Agrobloc/presentations/pagesAcheteurs/loginAcheteurPage.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final prefs = await SharedPreferences.getInstance();
   bool modeSombreInitial = prefs.getBool('modeSombre') ?? false;
-  bool isFirstLaunch = prefs.getBool('isFirstLaunch') ?? true; // 🔹 Nouveau
+  bool isFirstLaunch = prefs.getBool('isFirstLaunch') ?? true;
   if (isFirstLaunch) {
-    await prefs.setBool('isFirstLaunch', false); // Set to false after first launch
+    await prefs.setBool('isFirstLaunch', false);
   }
 
-  // Initialisation notifications
   try {
     await NotificationService().initializePushNotifications();
     debugPrint('✅ Notifications initialisées');
@@ -36,7 +36,6 @@ Future<void> main() async {
     debugPrint('❌ Erreur notifications: $e');
   }
 
-  // Initialisation UserService
   try {
     final userService = UserService();
     final hasStoredData = await userService.hasStoredUserData();
@@ -57,16 +56,11 @@ Future<void> main() async {
       debugPrint('ℹ️ main() - L\'application démarrera sur la page de connexion');
     }
 
-    // Set up force re-login callback for session expiry handling
     userService.setForceReLoginCallback(() async {
       debugPrint('🔄 main() - Callback de reconnexion forcée déclenché');
       try {
-        // Clear current user session
         await userService.clearCurrentUser();
         debugPrint('✅ main() - Session utilisateur nettoyée');
-
-        // The navigation will be handled by the widget tree when tokens become invalid
-        // This callback ensures cleanup happens when refresh fails
       } catch (e) {
         debugPrint('❌ main() - Erreur lors du nettoyage de session dans callback: $e');
       }
@@ -86,13 +80,13 @@ Future<void> main() async {
 
   runApp(MyApp(
     modeSombreInitial: modeSombreInitial,
-    isFirstLaunch: isFirstLaunch, // 🔹 Passage du flag
+    isFirstLaunch: isFirstLaunch,
   ));
 }
 
 class MyApp extends StatefulWidget {
   final bool modeSombreInitial;
-  final bool isFirstLaunch; // 🔹 Nouveau
+  final bool isFirstLaunch;
 
   const MyApp({super.key, required this.modeSombreInitial, required this.isFirstLaunch});
 
@@ -124,8 +118,6 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _setupAuthStateListener() {
-    // Listen for authentication state changes
-    // This will be triggered when tokens become invalid
     final userService = UserService();
     userService.setForceReLoginCallback(() async {
       debugPrint('🔄 MyApp - Callback de reconnexion forcée reçu');
@@ -137,7 +129,6 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  // Method to reset authentication state (can be called after successful login)
   void resetAuthState() {
     if (mounted) {
       setState(() {
@@ -160,7 +151,6 @@ class _MyAppState extends State<MyApp> {
         future: _getAuthenticationStatus(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            // Show loading screen while checking authentication
             return const Scaffold(
               body: Center(
                 child: CircularProgressIndicator(),
@@ -168,23 +158,18 @@ class _MyAppState extends State<MyApp> {
             );
           }
 
-          // Determine which page to show based on authentication state
           Widget homePage;
 
           if (_forceLogin) {
-            // Force navigation to login page when session expires
             debugPrint('🔄 MyApp - Navigation forcée vers la page de connexion');
             homePage = const LoginPage(profile: 'producteur');
           } else if (widget.isFirstLaunch) {
-            // First launch - show profile selection
             homePage = const SelectProfilePage();
           } else {
-            // Check authentication result from FutureBuilder
             final isAuthenticated = snapshot.data ?? false;
             final userService = UserService();
 
             if (isAuthenticated && userService.currentUser != null) {
-              // User is authenticated - show appropriate home page
               final profileId = userService.currentUser!.profilId;
               if (profileId == 'producteur' || profileId == 'f23423d4-ca9e-409b-b3fb-26126ab66581') {
                 homePage = const HomeProducteur();
@@ -193,7 +178,6 @@ class _MyAppState extends State<MyApp> {
               }
               debugPrint('✅ MyApp - Utilisateur authentifié: ${userService.currentUser!.nom} (${profileId})');
             } else {
-              // Not authenticated - show login page
               debugPrint('ℹ️ MyApp - Utilisateur non authentifié - affichage page de connexion');
               homePage = const LoginPage(profile: 'producteur');
             }
@@ -206,6 +190,9 @@ class _MyAppState extends State<MyApp> {
         '/homePage': (context) => const HomePage(acheteurId: 'acheteur'),
         '/homeProducteur': (context) => const HomeProducteur(),
         '/login': (context) => const LoginPage(profile: 'producteur'),
+        // 🌟 Ajout des routes de connexion spécifiques pour chaque profil
+        '/loginProducteur': (context) => const LoginPage(profile: 'producteur'),
+        '/loginAcheteur': (context) => const LoginPage(profile: 'acheteur'),
         '/detailOffreVente': (context) {
           final args = ModalRoute.of(context)!.settings.arguments as AnnonceAchat;
           return DetailOffreVente(annonce: args);
@@ -214,7 +201,6 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  /// Get authentication status with proper token validation
   Future<bool> _getAuthenticationStatus() async {
     final userService = UserService();
     return await userService.isUserAuthenticated();

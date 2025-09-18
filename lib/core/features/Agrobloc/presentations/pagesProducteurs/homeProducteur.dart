@@ -1,4 +1,3 @@
-
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/AnnonceForm.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/prefinancementForm.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/annoncePage.dart';
@@ -9,6 +8,10 @@ import 'package:agrobloc/core/features/Agrobloc/data/dataSources/AnnonceAchat.da
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceAchatModel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+// Importez le fichier MessagePage.dart
+import 'package:agrobloc/core/features/Agrobloc/presentations/pagesProducteurs/MessagePage.dart';
+// Importez la page de profil
+import 'package:agrobloc/core/features/Agrobloc/presentations/pagesProducteurs/profilPage.dart';
 
 void main() {
   runApp(const MaterialApp(home: HomeProducteur()));
@@ -21,8 +24,6 @@ class HomeProducteur extends StatefulWidget {
   State<HomeProducteur> createState() => _HomeProducteurState();
 }
 
-
-
 class _HomeProducteurState extends State<HomeProducteur> {
   late int _selectedIndex;
   late List<Widget> pages;
@@ -31,15 +32,17 @@ class _HomeProducteurState extends State<HomeProducteur> {
   void initState() {
     super.initState();
     _selectedIndex = 0;
+    // Mise à jour de la liste 'pages' avec les pages réelles
     pages = [
       const HomeProducteurContent(),
-      const Center(child: Text("Messages")),
+      MessagesListPage(currentUserId: "user123"),
       const TransactionProducteur(child: Text("Transactions")),
-      const Center(child: Text("Profil")),
+      const ProfilPage(),
     ];
   }
 
   void _onNavBarTap(int index) {
+    // Si l'index est 2 (Transactions), naviguez vers une nouvelle page.
     if (index == 2) {
       Navigator.push(
         context,
@@ -48,6 +51,7 @@ class _HomeProducteurState extends State<HomeProducteur> {
         ),
       );
     } else {
+      // Sinon, changez simplement l'index de la page affichée
       setState(() {
         _selectedIndex = index;
       });
@@ -92,27 +96,36 @@ class _HomeProducteurContentState extends State<HomeProducteurContent> {
     _loadLatestAnnonces();
   }
 
+  @override
+  void dispose() {
+    // Cela empêche l'erreur "setState() called after dispose()"
+    super.dispose();
+  }
+
   Future<void> _loadLatestAnnonces() async {
+    // Vérifier si le widget est monté avant de mettre à jour l'état
+    if (!mounted) return;
     setState(() => isLoading = true);
     try {
       final allAnnonces = await _annonceService.fetchAnnonces();
-      // Sort by createdAt descending and take the latest 3
       allAnnonces.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       final latestAnnonces = allAnnonces.take(3).toList();
-      setState(() {
-        annonces = latestAnnonces;
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          annonces = latestAnnonces;
+          isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() => isLoading = false);
-      // Optionally show error message
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur lors du chargement des annonces: $e')),
       );
     }
   }
 
-  // Méthode pour formater la date avec format relatif
   String _formatDate(String dateString) {
     if (dateString.isEmpty) return '';
 
@@ -147,7 +160,6 @@ class _HomeProducteurContentState extends State<HomeProducteurContent> {
         final weeks = (difference / 7).floor();
         return 'Il y a $weeks ${weeks == 1 ? 'semaine' : 'semaines'}';
       } else {
-        // Format complet: "11 Août 2025"
         final monthNames = [
           'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
           'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
@@ -168,7 +180,6 @@ class _HomeProducteurContentState extends State<HomeProducteurContent> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          // Header vert
           Container(
             width: double.infinity,
             padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
@@ -298,45 +309,45 @@ class _HomeProducteurContentState extends State<HomeProducteurContent> {
                   SizedBox(height: 20.h),
                   Row(
                     children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const OffreVentePage(initialTabIndex: 1)));
-                      },
-                      style: OutlinedButton.styleFrom(
-                          backgroundColor: Color(0xFF4CAF50),
-                        side: const BorderSide(color: Color.fromARGB(255, 255, 255, 255)),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.r),
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => const OffreVentePage(initialTabIndex: 1)));
+                          },
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: Color(0xFF4CAF50),
+                            side: const BorderSide(color: Color.fromARGB(255, 255, 255, 255)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.r),
+                            ),
+                            padding: EdgeInsets.symmetric(vertical: 14.h),
+                          ),
+                          child: Text(
+                            "Mes demandes d'offre",
+                            style: TextStyle(color: Colors.white, fontSize: 14.sp),
+                          ),
                         ),
-                        padding: EdgeInsets.symmetric(vertical: 14.h),
                       ),
-                      child: Text(
-                        "Mes demandes d'offre",
-                        style: TextStyle(color: Colors.white, fontSize: 14.sp),
-                      ),
-                    ),
-                  ),
                       SizedBox(width: 16.w),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const PrefinancementForm()));
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                         side: const BorderSide(color: Color.fromARGB(255, 255, 255, 255)),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.r),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => const PrefinancementForm()));
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            side: const BorderSide(color: Color.fromARGB(255, 255, 255, 255)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.r),
+                            ),
+                            padding: EdgeInsets.symmetric(vertical: 14.h),
+                          ),
+                          child: Text(
+                            "+ Préfinancement",
+                            style: TextStyle(color: const Color(0xFF4CAF50), fontSize: 14.sp),
+                          ),
                         ),
-                        padding: EdgeInsets.symmetric(vertical: 14.h),
                       ),
-                      child: Text(
-                        "+ Préfinancement",
-                        style: TextStyle(color: const Color(0xFF4CAF50), fontSize: 14.sp),
-                      ),
-                    ),
-                  ),
                     ],
                   ),
                 ],
@@ -346,7 +357,6 @@ class _HomeProducteurContentState extends State<HomeProducteurContent> {
 
           SizedBox(height: 16.h),
 
-          // --- Dernières annonces ---
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.w),
             child: Row(
@@ -450,9 +460,3 @@ class _HomeProducteurContentState extends State<HomeProducteurContent> {
     );
   }
 }
-
-
-
-
-
-

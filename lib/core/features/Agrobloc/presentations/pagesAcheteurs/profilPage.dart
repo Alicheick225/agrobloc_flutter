@@ -7,7 +7,7 @@ import 'package:agrobloc/core/features/Agrobloc/data/models/authentificationMode
 
 // Import de la vraie page AvisPage que vous avez développée
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/profils/avisPage.dart';
-
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/profils/mes_informations_lecture.dart';
 
 class ProfilPage extends StatefulWidget {
   const ProfilPage({super.key});
@@ -22,7 +22,18 @@ class _ProfilPageState extends State<ProfilPage> {
   @override
   void initState() {
     super.initState();
-    user = UserService().currentUser;
+    _loadUser();
+  }
+
+  void _loadUser() {
+    UserService().loadUser().then((_) {
+      // Vérifiez si le widget est monté avant d'appeler setState
+      if (mounted) {
+        setState(() {
+          user = UserService().currentUser;
+        });
+      }
+    });
   }
 
   // Méthode pour gérer la navigation selon l'option choisie
@@ -32,7 +43,7 @@ class _ProfilPageState extends State<ProfilPage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const MesInformationsPage(),
+            builder: (context) => const MesInformationsLecture(),
           ),
         );
         break;
@@ -44,8 +55,7 @@ class _ProfilPageState extends State<ProfilPage> {
           ),
         );
         break;
-      case "avis":
-        // Correction : Naviguer vers la classe AvisPage complète
+      case "Avis": // Corrigé le 'avis' en 'Avis'
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -219,7 +229,7 @@ class _ProfilPageState extends State<ProfilPage> {
                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  user?.profilId ?? "Profil non défini",
+                  _getProfileType(user?.profilId) ?? "Profil non défini",
                   style: const TextStyle(color: Colors.grey),
                 ),
                 const SizedBox(height: 10),
@@ -247,7 +257,7 @@ class _ProfilPageState extends State<ProfilPage> {
               children: [
                 _buildOptionItem(Icons.article_outlined, "Mes informations"),
                 _buildOptionItem(Icons.favorite_border, "Mes favoris"),
-                _buildOptionItem(Icons.thumb_up_off_alt, "avis"),
+                _buildOptionItem(Icons.thumb_up_off_alt, "Avis"), // Corrigé le 'avis' en 'Avis'
                 _buildOptionItem(Icons.history, "Historique transactions"),
                 _buildOptionItem(Icons.payments_outlined, "Moyens de paiement"),
                 _buildOptionItem(Icons.description_outlined, "Conditions d'utilisation et politique de confidentialité"),
@@ -270,100 +280,52 @@ class _ProfilPageState extends State<ProfilPage> {
   }
 }
 
-// Pages de destination simplifiées. Vous devez les supprimer et les remplacer par vos vraies pages.
-
-class MesInformationsPage extends StatelessWidget {
-  const MesInformationsPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mes Informations'),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
-      ),
-      body: const Center(
-        child: Text('Page Mes Informations'),
-      ),
-    );
-  }
-}
-
+// Pages de destination simplifiées. Ces classes sont souvent définies dans leurs propres fichiers
 class MesFavorisPage extends StatelessWidget {
   const MesFavorisPage({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mes Favoris'),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
-      ),
-      body: const Center(
-        child: Text('Page Mes Favoris'),
-      ),
+      appBar: AppBar(title: const Text('Mes Favoris'), backgroundColor: AppColors.primaryGreen, foregroundColor: Colors.white),
+      body: const Center(child: Text('Page Mes Favoris')),
     );
   }
 }
 
 class HistoriqueTransactionsPage extends StatelessWidget {
   const HistoriqueTransactionsPage({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Historique des Transactions'),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
-      ),
-      body: const Center(
-        child: Text('Page Historique des Transactions'),
-      ),
+      appBar: AppBar(title: const Text('Historique des Transactions'), backgroundColor: AppColors.primaryGreen, foregroundColor: Colors.white),
+      body: const Center(child: Text('Page Historique des Transactions')),
     );
   }
 }
 
 class MoyensPaiementPage extends StatelessWidget {
   const MoyensPaiementPage({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Moyens de Paiement'),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
-      ),
-      body: const Center(
-        child: Text('Page Moyens de Paiement'),
-      ),
+      appBar: AppBar(title: const Text('Moyens de Paiement'), backgroundColor: AppColors.primaryGreen, foregroundColor: Colors.white),
+      body: const Center(child: Text('Page Moyens de Paiement')),
     );
   }
 }
 
 class ConditionsPage extends StatelessWidget {
   const ConditionsPage({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Conditions d\'utilisation'),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
-      ),
+      appBar: AppBar(title: const Text('Conditions d\'utilisation'), backgroundColor: AppColors.primaryGreen, foregroundColor: Colors.white),
       body: const SingleChildScrollView(
         padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Conditions d\'utilisation et Politique de confidentialité',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
+            Text('Conditions d\'utilisation et Politique de confidentialité', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             SizedBox(height: 16),
             Text('Contenu des conditions d\'utilisation...'),
           ],

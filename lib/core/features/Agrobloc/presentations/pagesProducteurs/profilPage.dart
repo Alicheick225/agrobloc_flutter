@@ -7,7 +7,7 @@ import 'package:agrobloc/core/features/Agrobloc/data/models/authentificationMode
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/profils/avispage.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/connexion/logout_dialog.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/order%20tracking/sequestre.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/profils/mesinformations_page.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/profils/mes_informations_lecture.dart';
 
 class ProfilPage extends StatefulWidget {
   const ProfilPage({super.key});
@@ -36,7 +36,7 @@ class _ProfilPageState extends State<ProfilPage> {
   void _handleOptionTap(String option) {
     switch (option) {
       case "Mes informations":
-        Navigator.push(context, MaterialPageRoute(builder: (context) => const MesInformationsPage()));
+        Navigator.push(context, MaterialPageRoute(builder: (context) => const MesInformationsLecture()));
         break;
       case "Mes favoris":
         Navigator.push(context, MaterialPageRoute(builder: (context) => const MesFavorisPage()));
