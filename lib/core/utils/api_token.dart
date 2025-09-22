@@ -14,19 +14,25 @@ class ApiConfig {
   static const String prodApiBaseUrl = 'https://api.yourproductiondomain.com';
 
   static const String devImageBaseUrl = 'http://192.168.252.199:8080';
-  static const String prodImageBaseUrl = 'https://images.yourproductiondomain.com';
+  static const String prodImageBaseUrl =
+      'https://images.yourproductiondomain.com';
 
   // Service-specific base URLs for dev environment
   static const String devAnnoncesBaseUrl = 'http://192.168.252.199:8080';
   static const String devTypesCulturesBaseUrl = 'http://192.168.252.199:8000';
   static const String devParcellesBaseUrl = 'http://192.168.252.199:8000';
-  static const String devCommandesBaseUrl = 'http://192.168.252.199:3001';
+  static const String devCommandesBaseUrl =
+      'http://192.168.252.199:3001/commandes';
 
   // Service-specific base URLs for prod environment
-  static const String prodAnnoncesBaseUrl = 'https://api.yourproductiondomain.com';
-  static const String prodTypesCulturesBaseUrl = 'https://api.yourproductiondomain.com';
-  static const String prodParcellesBaseUrl = 'https://api.yourproductiondomain.com';
-  static const String prodCommandesBaseUrl = 'https://api.yourproductiondomain.com';
+  static const String prodAnnoncesBaseUrl =
+      'https://api.yourproductiondomain.com';
+  static const String prodTypesCulturesBaseUrl =
+      'https://api.yourproductiondomain.com';
+  static const String prodParcellesBaseUrl =
+      'https://api.yourproductiondomain.com';
+  static const String prodCommandesBaseUrl =
+      'https://api.yourproductiondomain.com';
 
   // Current environment: change this to switch environments
   static const bool isProduction = false;
@@ -35,13 +41,18 @@ class ApiConfig {
   static String get apiBaseUrl => isProduction ? prodApiBaseUrl : devApiBaseUrl;
 
   // Get Image base URL depending on environment
-  static String get imageBaseUrl => isProduction ? prodImageBaseUrl : devImageBaseUrl;
+  static String get imageBaseUrl =>
+      isProduction ? prodImageBaseUrl : devImageBaseUrl;
 
   // Get service-specific base URLs
-  static String get annoncesBaseUrl => isProduction ? prodAnnoncesBaseUrl : devAnnoncesBaseUrl;
-  static String get typesCulturesBaseUrl => isProduction ? prodTypesCulturesBaseUrl : devTypesCulturesBaseUrl;
-  static String get parcellesBaseUrl => isProduction ? prodParcellesBaseUrl : devParcellesBaseUrl;
-  static String get commandesBaseUrl => isProduction ? prodCommandesBaseUrl : devCommandesBaseUrl;
+  static String get annoncesBaseUrl =>
+      isProduction ? prodAnnoncesBaseUrl : devAnnoncesBaseUrl;
+  static String get typesCulturesBaseUrl =>
+      isProduction ? prodTypesCulturesBaseUrl : devTypesCulturesBaseUrl;
+  static String get parcellesBaseUrl =>
+      isProduction ? prodParcellesBaseUrl : devParcellesBaseUrl;
+  static String get commandesBaseUrl =>
+      isProduction ? prodCommandesBaseUrl : devCommandesBaseUrl;
 }
 
 /// Classes d'exception spécifiques pour les erreurs d'authentification
@@ -64,7 +75,8 @@ class TokenInvalidException extends AuthenticationException {
 }
 
 class NetworkAuthenticationException extends AuthenticationException {
-  NetworkAuthenticationException(String message) : super(message, type: 'network');
+  NetworkAuthenticationException(String message)
+      : super(message, type: 'network');
 }
 
 class ApiClient {
@@ -89,16 +101,19 @@ class ApiClient {
 
     // Vérifier si le timeout du circuit breaker est écoulé
     if (_circuitBreakerLastFailure != null) {
-      final timeSinceLastFailure = DateTime.now().difference(_circuitBreakerLastFailure!);
+      final timeSinceLastFailure =
+          DateTime.now().difference(_circuitBreakerLastFailure!);
       if (timeSinceLastFailure > _circuitBreakerTimeout) {
-        print('🔄 ApiClient._isCircuitBreakerOpen() - Circuit breaker timeout écoulé, réessai autorisé');
+        print(
+            '🔄 ApiClient._isCircuitBreakerOpen() - Circuit breaker timeout écoulé, réessai autorisé');
         _circuitBreakerOpen = false;
         _circuitBreakerFailureCount = 0;
         return false;
       }
     }
 
-    print('⚠️ ApiClient._isCircuitBreakerOpen() - Circuit breaker ouvert, requête rejetée');
+    print(
+        '⚠️ ApiClient._isCircuitBreakerOpen() - Circuit breaker ouvert, requête rejetée');
     return true;
   }
 
@@ -109,7 +124,8 @@ class ApiClient {
 
     if (_circuitBreakerFailureCount >= _circuitBreakerMaxFailures) {
       _circuitBreakerOpen = true;
-      print('🚫 ApiClient._recordFailure() - Circuit breaker ouvert après $_circuitBreakerFailureCount échecs');
+      print(
+          '🚫 ApiClient._recordFailure() - Circuit breaker ouvert après $_circuitBreakerFailureCount échecs');
     }
   }
 
@@ -123,17 +139,22 @@ class ApiClient {
 
   /// Calcule le délai d'attente pour l'exponential backoff
   Duration _calculateBackoffDelay(int attempt) {
-    final delayMs = _initialRetryDelay.inMilliseconds * pow(_backoffMultiplier, attempt - 1);
-    return Duration(milliseconds: delayMs.toInt().clamp(500, 10000)); // Max 10 secondes
+    final delayMs = _initialRetryDelay.inMilliseconds *
+        pow(_backoffMultiplier, attempt - 1);
+    return Duration(
+        milliseconds: delayMs.toInt().clamp(500, 10000)); // Max 10 secondes
   }
 
   /// Exécute une requête HTTP avec retry et exponential backoff
-  Future<http.Response> _executeWithRetry(Future<http.Response> Function() requestFunction) async {
+  Future<http.Response> _executeWithRetry(
+      Future<http.Response> Function() requestFunction) async {
     // Vérifier la connectivité du serveur avant de commencer
     final isServerReachable = await _checkServerReachability();
     if (!isServerReachable) {
-      print('❌ ApiClient._executeWithRetry() - Serveur non accessible, abandon des tentatives');
-      throw Exception('Serveur non accessible. Vérifiez votre connexion réseau.');
+      print(
+          '❌ ApiClient._executeWithRetry() - Serveur non accessible, abandon des tentatives');
+      throw Exception(
+          'Serveur non accessible. Vérifiez votre connexion réseau.');
     }
 
     int attempt = 0;
@@ -146,12 +167,15 @@ class ApiClient {
           return response;
         }
         // Pour les erreurs serveur (5xx) ou erreurs réseau, retry
-        if (response.statusCode >= 500 || response.statusCode == 408 || response.statusCode == 429) {
+        if (response.statusCode >= 500 ||
+            response.statusCode == 408 ||
+            response.statusCode == 429) {
           if (attempt >= _maxRetries) {
             return response; // Retourner la dernière réponse d'erreur
           }
           final delay = _calculateBackoffDelay(attempt);
-          print('🔄 ApiClient._executeWithRetry() - Erreur ${response.statusCode}, retry dans ${delay.inMilliseconds}ms (tentative $attempt/$_maxRetries)');
+          print(
+              '🔄 ApiClient._executeWithRetry() - Erreur ${response.statusCode}, retry dans ${delay.inMilliseconds}ms (tentative $attempt/$_maxRetries)');
           await Future.delayed(delay);
           continue;
         }
@@ -163,7 +187,8 @@ class ApiClient {
           rethrow;
         }
         final delay = _calculateBackoffDelay(attempt);
-        print('🔄 ApiClient._executeWithRetry() - Exception: $e, retry dans ${delay.inMilliseconds}ms (tentative $attempt/$_maxRetries)');
+        print(
+            '🔄 ApiClient._executeWithRetry() - Exception: $e, retry dans ${delay.inMilliseconds}ms (tentative $attempt/$_maxRetries)');
         await Future.delayed(delay);
       }
     }
@@ -175,11 +200,13 @@ class ApiClient {
     final headers = {"Content-Type": "application/json"};
 
     if (withAuth) {
-      print('🔄 ApiClient._getHeaders() - Récupération du token pour les headers...');
+      print(
+          '🔄 ApiClient._getHeaders() - Récupération du token pour les headers...');
 
       // Vérifier le circuit breaker
       if (_isCircuitBreakerOpen()) {
-        throw Exception("Service temporairement indisponible (circuit breaker ouvert)");
+        throw Exception(
+            "Service temporairement indisponible (circuit breaker ouvert)");
       }
 
       int attempt = 0;
@@ -188,27 +215,33 @@ class ApiClient {
         try {
           final token = await UserService().getValidToken();
           if (token == null) {
-            print('❌ ApiClient._getHeaders() - Token null retourné par getValidToken()');
+            print(
+                '❌ ApiClient._getHeaders() - Token null retourné par getValidToken()');
             _recordFailure();
-            throw Exception("Token non trouvé ou invalide. Veuillez vous connecter.");
+            throw Exception(
+                "Token non trouvé ou invalide. Veuillez vous connecter.");
           }
 
-          print('✅ ApiClient._getHeaders() - Token valide récupéré (${token.length} chars)');
+          print(
+              '✅ ApiClient._getHeaders() - Token valide récupéré (${token.length} chars)');
           headers["Authorization"] = "Bearer $token";
           _recordSuccess();
           break;
         } catch (e, stackTrace) {
-          print('❌ ApiClient._getHeaders() - ERREUR lors de la récupération du token (tentative $attempt/$_maxRetries): $e');
+          print(
+              '❌ ApiClient._getHeaders() - ERREUR lors de la récupération du token (tentative $attempt/$_maxRetries): $e');
 
           if (attempt >= _maxRetries) {
             _recordFailure();
-            print('❌ ApiClient._getHeaders() - Échec définitif après $_maxRetries tentatives');
+            print(
+                '❌ ApiClient._getHeaders() - Échec définitif après $_maxRetries tentatives');
             rethrow;
           }
 
           // Exponential backoff
           final delay = _calculateBackoffDelay(attempt);
-          print('🔄 ApiClient._getHeaders() - Attente de ${delay.inMilliseconds}ms avant nouvelle tentative...');
+          print(
+              '🔄 ApiClient._getHeaders() - Attente de ${delay.inMilliseconds}ms avant nouvelle tentative...');
           await Future.delayed(delay);
         }
       }
@@ -226,7 +259,8 @@ class ApiClient {
   }
 
   /// Requête POST avec retry
-  Future<http.Response> post(String endpoint, Map<String, dynamic> body, {bool withAuth = true}) async {
+  Future<http.Response> post(String endpoint, Map<String, dynamic> body,
+      {bool withAuth = true}) async {
     return _executeWithRetry(() async {
       final headers = await _getHeaders(withAuth: withAuth);
       final url = Uri.parse('$baseUrl$endpoint');
@@ -235,7 +269,8 @@ class ApiClient {
   }
 
   /// Requête PUT avec retry
-  Future<http.Response> put(String endpoint, Map<String, dynamic> body, {bool withAuth = true}) async {
+  Future<http.Response> put(String endpoint, Map<String, dynamic> body,
+      {bool withAuth = true}) async {
     return _executeWithRetry(() async {
       final headers = await _getHeaders(withAuth: withAuth);
       final url = Uri.parse('$baseUrl$endpoint');
@@ -276,20 +311,25 @@ class ApiClient {
     for (int attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         final url = Uri.parse('$baseUrl/'); // Check server root
-        final response = await http.get(url).timeout(const Duration(seconds: 5));
+        final response =
+            await http.get(url).timeout(const Duration(seconds: 5));
         // Consider any HTTP response as reachable (server is responding)
         // 200-499 means server is up, only network errors mean unreachable
         if (response.statusCode >= 200 && response.statusCode < 500) {
-          print('✅ ApiClient._checkServerReachability() - Serveur accessible (tentative $attempt)');
+          print(
+              '✅ ApiClient._checkServerReachability() - Serveur accessible (tentative $attempt)');
           return true;
         } else {
-          print('⚠️ ApiClient._checkServerReachability() - Réponse serveur inattendue: ${response.statusCode} (tentative $attempt)');
+          print(
+              '⚠️ ApiClient._checkServerReachability() - Réponse serveur inattendue: ${response.statusCode} (tentative $attempt)');
           if (attempt >= maxRetries) return false;
         }
       } catch (e) {
-        print('⚠️ ApiClient._checkServerReachability() - Erreur de connectivité (tentative $attempt): $e');
+        print(
+            '⚠️ ApiClient._checkServerReachability() - Erreur de connectivité (tentative $attempt): $e');
         if (attempt >= maxRetries) {
-          print('❌ ApiClient._checkServerReachability() - Serveur non accessible après $maxRetries tentatives');
+          print(
+              '❌ ApiClient._checkServerReachability() - Serveur non accessible après $maxRetries tentatives');
           return false;
         }
         // Wait before retry
@@ -301,13 +341,15 @@ class ApiClient {
 
   /// Méthode de secours pour l'authentification en cas d'échec total
   Future<Map<String, String>> _getFallbackHeaders() async {
-    print('🔄 ApiClient._getFallbackHeaders() - Tentative d\'authentification de secours...');
+    print(
+        '🔄 ApiClient._getFallbackHeaders() - Tentative d\'authentification de secours...');
 
     try {
       // Essayer de récupérer depuis les variables d'instance de UserService
       final userService = UserService();
       if (userService.token != null && userService.token!.isNotEmpty) {
-        print('✅ ApiClient._getFallbackHeaders() - Token trouvé dans les variables d\'instance');
+        print(
+            '✅ ApiClient._getFallbackHeaders() - Token trouvé dans les variables d\'instance');
         return {
           "Content-Type": "application/json",
           "Authorization": "Bearer ${userService.token}"
@@ -318,21 +360,26 @@ class ApiClient {
       final prefs = await SharedPreferences.getInstance();
       final backupToken = prefs.getString('backup_token');
       if (backupToken != null && backupToken.isNotEmpty) {
-        print('✅ ApiClient._getFallbackHeaders() - Token trouvé dans le backup');
+        print(
+            '✅ ApiClient._getFallbackHeaders() - Token trouvé dans le backup');
         return {
           "Content-Type": "application/json",
           "Authorization": "Bearer $backupToken"
         };
       }
 
-      print('❌ ApiClient._getFallbackHeaders() - Aucune méthode de secours disponible');
-      throw TokenInvalidException("Aucune méthode d'authentification de secours disponible");
+      print(
+          '❌ ApiClient._getFallbackHeaders() - Aucune méthode de secours disponible');
+      throw TokenInvalidException(
+          "Aucune méthode d'authentification de secours disponible");
     } catch (e) {
-      print('❌ ApiClient._getFallbackHeaders() - Erreur dans l\'authentification de secours: $e');
+      print(
+          '❌ ApiClient._getFallbackHeaders() - Erreur dans l\'authentification de secours: $e');
       if (e is AuthenticationException) {
         rethrow;
       }
-      throw NetworkAuthenticationException("Erreur réseau lors de l'authentification de secours: $e");
+      throw NetworkAuthenticationException(
+          "Erreur réseau lors de l'authentification de secours: $e");
     }
   }
 }
