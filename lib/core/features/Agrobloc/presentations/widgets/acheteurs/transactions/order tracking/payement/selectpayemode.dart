@@ -1,80 +1,99 @@
-// lib/widgets/fusion_money_widget.dart
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/mtn.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/commande_vente.dart';
 import 'package:flutter/material.dart';
-import 'package:agrobloc/core/features/Agrobloc/data/dataSources/FusionMoneyService.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/commandeModel.dart';
 
-class FusionMoneyWidget extends StatefulWidget {
-  final double montant;
-  final String numeroClient;
-  final String nomClient;
+class MomoWidget extends StatefulWidget {
+  final CommandeModel commande;
 
-  const FusionMoneyWidget({
-    super.key,
-    required this.montant,
-    required this.numeroClient,
-    required this.nomClient,
-  });
+  const MomoWidget({super.key, required this.commande});
 
   @override
-  State<FusionMoneyWidget> createState() => _FusionMoneyWidgetState();
+  State<MomoWidget> createState() => _MomoWidgetState();
 }
 
-class _FusionMoneyWidgetState extends State<FusionMoneyWidget> {
-  final FusionMoneyService _fusionMoneyService = FusionMoneyService();
+class _MomoWidgetState extends State<MomoWidget> {
+  final MomoService _momoService = MomoService();
+  final TextEditingController _numeroController = TextEditingController();
   bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _numeroController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         const Text(
-          "Paiement avec FusionMoney",
+          "Veillez entrez votre numero orange",
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
         Center(
-          child: _isLoading
-              ? const CircularProgressIndicator()
-              : ElevatedButton(
-                  onPressed: () async {
-                    setState(() => _isLoading = true);
-                    try {
-                      await _fusionMoneyService.makePayment(
-                        context: context,
-                        montant: widget.montant,
-                        numeroClient: widget.numeroClient,
-                        nomClient: widget.nomClient,
-                      );
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Paiement réussi ✅")),
-                      );
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Erreur : $e")),
-                      );
-                    } finally {
-                      setState(() => _isLoading = false);
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2E7D32),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24, // ✅ réduit la largeur
-                      vertical: 12, // ✅ réduit la hauteur
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(8), // ✅ coins arrondis légers
-                    ),
-                  ),
-                  child: const Text(
-                    "Confirmer le paiement",
-                    style: TextStyle(fontSize: 14), // ✅ texte plus compact
-                  ),
-                ),
+          child: SizedBox(
+            width: 250, // largeur réduite
+            child: TextField(
+              controller: _numeroController,
+              keyboardType: TextInputType.phone,
+              decoration: const InputDecoration(
+                labelText: "Numéro de téléphone",
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(
+                    vertical: 10, horizontal: 12), // champ plus compact
+              ),
+            ),
+          ),
         ),
+        const SizedBox(height: 16),
+        _isLoading
+            ? const CircularProgressIndicator()
+            : ElevatedButton(
+                onPressed: () async {
+                  final numeroClient = _numeroController.text.trim();
+                  if (numeroClient.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Veuillez entrer votre numéro MoMo"),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
+
+                  setState(() => _isLoading = true);
+
+                  try {
+                    await _momoService.makePayment(
+                      prixTotal: widget.commande.prixTotal,
+                      numeroClient: numeroClient,
+                      nomClient: "Client MoMo", // ou widget.commande.nomClient
+                      context: context,
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Erreur paiement : $e"),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  } finally {
+                    setState(() => _isLoading = false);
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2E7D32),
+                  foregroundColor: Colors.white,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
+                ),
+                child: const Text("Confirmer le paiement"),
+              ),
       ],
     );
   }
