@@ -29,6 +29,12 @@ class UserService {
   bool get isLoggedIn => _currentUser != null && _token != null && _token!.isNotEmpty;
   bool get isLoading => _isLoading;
 
+  /// Récupère le dernier profil utilisé
+  Future<String?> getLastProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('profileId');
+  }
+
   /// Callback pour gérer la reconnexion forcée
   Function? _onForceReLogin;
 
@@ -106,6 +112,7 @@ class UserService {
       // Sauvegarde avec vérification
       await prefs.setString('user', jsonEncode(user.toJson()));
       await prefs.setString('userId', user.id);
+      await prefs.setString('profileId', user.profilId);
       await prefs.setString('token', token);
       await prefs.setString('refresh_token', refreshToken);
 
@@ -464,6 +471,7 @@ class UserService {
     await prefs.remove('userId');
     await prefs.remove('token');
     await prefs.remove('refresh_token');
+    // Keep 'profileId' to remember last profile for login page
 
     print('✅ UserService: session utilisateur nettoyée');
 

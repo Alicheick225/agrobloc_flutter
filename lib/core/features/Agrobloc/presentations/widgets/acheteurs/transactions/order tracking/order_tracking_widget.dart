@@ -1,3 +1,5 @@
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/commandeService.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/order%20tracking/payement/selectpayemode.dart';
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/commandeModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/order%20tracking/actioncard.dart';
@@ -37,16 +39,18 @@ class OrderTrackingWidget extends StatelessWidget {
               );
             },
           ),
+          MomoWidget(
+            commande: commande, // 🔹 objet CommandeModel
+          ),
           const SizedBox(height: 24),
           ProductInfoWidget(
             commande: commande,
-            isExpanded: false,
-            onToggle: () {},
           ),
           const SizedBox(height: 24),
           ProducerInfoWidget(commande: commande),
           const SizedBox(height: 24),
-          _buildCurrentActions(),
+          _buildCurrentActions(context),
+          const SizedBox(height: 20),
         ],
       ),
     );
@@ -191,10 +195,6 @@ class OrderTrackingWidget extends StatelessWidget {
                     ),
                   ),
                 ],
-
-
-
-                
               ),
             ),
           ],
@@ -210,9 +210,9 @@ class OrderTrackingWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildCurrentActions() {
+  Widget _buildCurrentActions(BuildContext context) {
     final currentOrderStatus = _convertToOrderStatus(commande.statut);
-    final buttons = _getCurrentActionButtons(currentOrderStatus);
+    final buttons = _getCurrentActionButtons(currentOrderStatus, context);
 
     return Card(
       color: Colors.white,
@@ -221,13 +221,6 @@ class OrderTrackingWidget extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Actions disponibles',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
             const SizedBox(height: 16),
             ...buttons,
           ],
@@ -236,20 +229,33 @@ class OrderTrackingWidget extends StatelessWidget {
     );
   }
 
-  List<Widget> _getCurrentActionButtons(OrderStatus status) {
+  List<Widget> _getCurrentActionButtons(
+      OrderStatus status, BuildContext context) {
     switch (status) {
       case OrderStatus.waitingPayment:
         return [
           ActionButtonWidget(
-            text: 'Faire le paiement',
-            type: ActionButtonType.success,
-            onPressed: () => onStatusUpdate?.call(OrderStatus.waitingDelivery),
-          ),
-          const SizedBox(height: 12),
-          ActionButtonWidget(
             text: 'Annuler la transaction',
             type: ActionButtonType.danger,
-            onPressed: () {},
+            onPressed: () async {
+              if (commande.id.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("❌ ID de commande manquant")),
+                );
+                return;
+              }
+
+              final success =
+                  await CommandeService().annulerCommande(commande.id);
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(success
+                      ? "✅ Commande annulée avec succès"
+                      : "❌ Impossible d’annuler la commande"),
+                ),
+              );
+            },
           ),
         ];
 
@@ -278,18 +284,16 @@ class OrderTrackingWidget extends StatelessWidget {
           ),
         ];
 
-      // On retire waitingPlanteurConfirmation
       default:
         return const [];
     }
   }
-  /* ------------------- Utilitaires ------------------- */
 
+  /* ------------------- Utilitaires ------------------- */
   String _getPlanteurName() => 'Producteur ${commande.nomCulture}';
   String _getPlanteurInitial() => commande.nomCulture.isNotEmpty
       ? commande.nomCulture[0].toUpperCase()
       : 'P';
-  String _getPlanteurPhone() => '07 XX XX XX XX';
 
   String _getStatusText(CommandeStatus status) {
     switch (status) {
@@ -313,9 +317,9 @@ class OrderTrackingWidget extends StatelessWidget {
       case CommandeStatus.enAttenteLivraison:
         return OrderStatus.waitingDelivery;
       case CommandeStatus.enAttenteReception:
-        return OrderStatus.waitingReception; // <-- OK maintenant
+        return OrderStatus.waitingReception;
       case CommandeStatus.annulee:
-        return OrderStatus.cancelled; // <-- OK maintenant
+        return OrderStatus.cancelled;
       case CommandeStatus.terminee:
         return OrderStatus.completed;
     }

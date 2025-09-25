@@ -95,7 +95,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
           unitPrice: widget.unitPrice,
           quantity: widget.quantity,
           unit: widget.unit,
-          totalAmount: widget.totalAmount, 
+          totalAmount: widget.totalAmount,
           productName: widget.productName,
         ),
       ),
@@ -138,8 +138,8 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
               ),
             ),
             const Divider(),
-
-            if (selectedLower == "carte bancaire" || selectedLower == "virement bancaire") ...[
+            if (selectedLower == "carte bancaire" ||
+                selectedLower == "virement bancaire") ...[
               const Text(
                 "Payer via une nouvelle carte",
                 style: TextStyle(fontWeight: FontWeight.bold),
@@ -149,7 +149,8 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
                 controller: cardHolderController,
                 decoration: InputDecoration(
                   hintText: "Nom du titulaire",
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
               ),
               const SizedBox(height: 12),
@@ -213,9 +214,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
                 ),
               ),
             ],
-
             const Spacer(),
-
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
@@ -223,7 +222,8 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.green,
                   side: const BorderSide(color: Colors.green),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
                 child: const Text("Confirmer le paiement"),

@@ -1,21 +1,17 @@
 // commande_service.dart
 import 'dart:convert';
 import 'package:agrobloc/core/utils/api_token.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/commandeModel.dart';
 
 class CommandeService {
   final ApiClient api = ApiClient(ApiConfig.commandesBaseUrl);
 
-  final String baseUrl = ApiConfig.commandesBaseUrl;
-
-
+  /// Enregistrer une commande
   Future<CommandeModel> enregistrerCommande({
     required String annoncesVenteId,
     required double quantite,
     required String unite,
-    required String modePaiementId,
+    String? modePaiementId,
   }) async {
     final response = await api.post(
       '/commandes-ventes',
@@ -27,8 +23,8 @@ class CommandeService {
       },
     );
 
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
+    print('📥 [POST] /commandes-ventes -> ${response.statusCode}');
+    print(response.body);
 
     if (response.statusCode == 201 || response.statusCode == 200) {
       final Map<String, dynamic> data = jsonDecode(response.body);
@@ -37,17 +33,20 @@ class CommandeService {
       }
       return CommandeModel.fromJson(data['commande']);
     } else {
-      throw Exception(jsonDecode(response.body)['message'] ?? 'Erreur inconnue');
+      throw Exception(
+          jsonDecode(response.body)['message'] ?? 'Erreur inconnue');
     }
   }
 
+  /// Récupérer toutes les commandes
   Future<List<CommandeModel>> getAllCommandes() async {
     final response = await api.get('/commandes-ventes');
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = jsonDecode(response.body);
       if (!data.containsKey('commandes')) {
-        throw Exception("Réponse serveur invalide : clé 'commandes' manquante.");
+        throw Exception(
+            "Réponse serveur invalide : clé 'commandes' manquante.");
       }
       return (data['commandes'] as List)
           .map((json) => CommandeModel.fromJson(json))
@@ -57,17 +56,18 @@ class CommandeService {
     }
   }
 
-  Future<List<CommandeModel>> getProducerOrders({String? status, bool? pending}) async {
+  /// Récupérer les commandes d’un producteur
+  Future<List<CommandeModel>> getProducerOrders(
+      {String? status, bool? pending}) async {
     String query = '/commandes-ventes/producer';
     Map<String, String> queryParams = {};
-    if (status != null) {
-      queryParams['status'] = status;
-    }
-    if (pending != null) {
-      queryParams['pending'] = pending.toString();
-    }
+
+    if (status != null) queryParams['status'] = status;
+    if (pending != null) queryParams['pending'] = pending.toString();
+
     if (queryParams.isNotEmpty) {
-      final queryString = queryParams.entries.map((e) => '${e.key}=${e.value}').join('&');
+      final queryString =
+          queryParams.entries.map((e) => '${e.key}=${e.value}').join('&');
       query = '$query?$queryString';
     }
 
@@ -76,29 +76,40 @@ class CommandeService {
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = jsonDecode(response.body);
       if (!data.containsKey('commandes')) {
-        throw Exception("Réponse serveur invalide : clé 'commandes' manquante.");
+        throw Exception(
+            "Réponse serveur invalide : clé 'commandes' manquante.");
       }
       return (data['commandes'] as List)
           .map((json) => CommandeModel.fromJson(json))
           .toList();
     } else {
-      throw Exception("Erreur récupération commandes producteur : ${response.body}");
+      throw Exception(
+          "Erreur récupération commandes producteur : ${response.body}");
     }
   }
 
+  /// Confirmer le paiement d’une commande
   Future<bool> confirmerPaiement(String commandeId) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
-    final url = Uri.parse('$baseUrl/commandes/$commandeId/confirmer-paiement');
+    final response =
+        await api.post('/commandes/$commandeId/confirmer-paiement', {});
 
-    final res = await http.post(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    );
+    print(
+        "📥 [POST] /commandes/$commandeId/confirmer-paiement -> ${response.statusCode}");
+    return response.statusCode == 200;
+  }
 
-    return res.statusCode == 200;
+  /// Annuler une commande
+  Future<bool> annulerCommande(String id) async {
+    if (id.isEmpty) {
+      print("❌ Erreur : id de commande vide");
+      return false;
+    }
+
+    final response = await api.put('/commandes-ventes/$id/annuler', {});
+
+    print("📥 [PUT] /commandes-ventes/$id/annuler -> ${response.statusCode}");
+    print(response.body);
+
+    return response.statusCode == 200;
   }
 }

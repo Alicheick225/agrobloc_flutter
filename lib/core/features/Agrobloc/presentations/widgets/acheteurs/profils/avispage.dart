@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/commande_vente.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/commande_vente_service.dart';
 // Correction de l'import, la classe s'appelle EvaluationVentePage
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/profils/evaluationVentePage.dart'; 
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/profils/evaluationVentePage.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
 
 class AvisPage extends StatefulWidget {
@@ -237,7 +237,8 @@ class AvisCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: commande.statut.color.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(8),
@@ -256,7 +257,8 @@ class AvisCard extends StatelessWidget {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.orange,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -268,14 +270,18 @@ class AvisCard extends StatelessWidget {
                               // Utilisation du bon nom de classe
                               builder: (_) => EvaluationVentePage(
                                 annoncesVenteId: commande.id,
-                                produitNom: "Produit de la commande n°${commande.id}",
-                                produitPhoto: null, // Si votre modèle CommandeVente n'a pas de photo
-                                userToken: null, // Remplacer par le vrai token utilisateur
-                                userName: "Votre Nom", // Remplacer par le nom de l'utilisateur
+                                produitNom:
+                                    "Produit de la commande n°${commande.id}",
+                                produitPhoto:
+                                    null, // Si votre modèle CommandeVente n'a pas de photo
+                                userToken:
+                                    null, // Remplacer par le vrai token utilisateur
+                                userName:
+                                    "Votre Nom", // Remplacer par le nom de l'utilisateur
                               ),
                             ),
                           );
-                          
+
                           // Si un résultat est retourné (avis créé), rafraîchir la liste
                           if (result != null) {
                             onEvaluationSubmitted();

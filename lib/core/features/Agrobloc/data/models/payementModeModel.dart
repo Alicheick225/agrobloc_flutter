@@ -1,16 +1,16 @@
-class PaymentModel {
+class PayementModel {
   final String id;
   final String libelle;
   final String? logo;
 
-  PaymentModel({
+  PayementModel({
     required this.id,
     required this.libelle,
     this.logo,
   });
 
-  factory PaymentModel.fromJson(Map<String, dynamic> json) {
-    return PaymentModel(
+  factory PayementModel.fromJson(Map<String, dynamic> json) {
+    return PayementModel(
       id: json["id"],
       libelle: json["libelle"],
       logo: json["logo"],

@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
 import 'package:http/http.dart' as http;
 import '../models/annoncePrefinancementModel.dart';
-import 'tyoeCultureService.dart';
+import 'typeCultureService.dart';
 
 import 'package:agrobloc/core/utils/api_token.dart';
 
@@ -122,7 +122,8 @@ class PrefinancementService {
           throw Exception('Erreur lors du chargement des préfinancements après retry : ${retryResponse.body}');
         }
       } else {
-        throw Exception('Erreur lors du chargement des préfinancements : ${response.body}');
+        throw Exception(
+            'Erreur lors du chargement des préfinancements : ${response.body}');
       }
     } catch (e) {
       throw Exception('Erreur lors du chargement des préfinancements : $e');

@@ -26,7 +26,10 @@ Future<void> main() async {
   bool modeSombreInitial = prefs.getBool('modeSombre') ?? false;
   bool isFirstLaunch = prefs.getBool('isFirstLaunch') ?? true;
   if (isFirstLaunch) {
+
     await prefs.setBool('isFirstLaunch', false);
+
+   
   }
 
   try {
@@ -38,22 +41,30 @@ Future<void> main() async {
 
   try {
     final userService = UserService();
+    // Force clear stored user session to require login on every app launch
+    await userService.clearCurrentUser();
     final hasStoredData = await userService.hasStoredUserData();
     debugPrint('🔍 main() - Données utilisateur stockées: $hasStoredData');
 
     if (hasStoredData) {
-      debugPrint('🔍 main() - Tentative de chargement de l\'utilisateur depuis le stockage...');
+      debugPrint(
+          '🔍 main() - Tentative de chargement de l\'utilisateur depuis le stockage...');
       final success = await userService.loadUser();
       if (success) {
-        debugPrint('✅ main() - Utilisateur chargé avec succès depuis le stockage');
-        debugPrint('🔍 main() - Utilisateur connecté: ${userService.currentUser?.nom} (${userService.currentUser?.profilId})');
+        debugPrint(
+            '✅ main() - Utilisateur chargé avec succès depuis le stockage');
+        debugPrint(
+            '🔍 main() - Utilisateur connecté: ${userService.currentUser?.nom} (${userService.currentUser?.profilId})');
       } else {
-        debugPrint('❌ main() - Échec du chargement de l\'utilisateur depuis le stockage');
-        debugPrint('ℹ️ main() - L\'application démarrera sur la page de connexion');
+        debugPrint(
+            '❌ main() - Échec du chargement de l\'utilisateur depuis le stockage');
+        debugPrint(
+            'ℹ️ main() - L\'application démarrera sur la page de connexion');
       }
     } else {
       debugPrint('ℹ️ main() - Aucune donnée utilisateur stockée trouvée');
-      debugPrint('ℹ️ main() - L\'application démarrera sur la page de connexion');
+      debugPrint(
+          'ℹ️ main() - L\'application démarrera sur la page de connexion');
     }
 
     userService.setForceReLoginCallback(() async {
@@ -62,11 +73,11 @@ Future<void> main() async {
         await userService.clearCurrentUser();
         debugPrint('✅ main() - Session utilisateur nettoyée');
       } catch (e) {
-        debugPrint('❌ main() - Erreur lors du nettoyage de session dans callback: $e');
+        debugPrint(
+            '❌ main() - Erreur lors du nettoyage de session dans callback: $e');
       }
     });
     debugPrint('✅ main() - Callback de reconnexion forcée configuré');
-
   } catch (e, stackTrace) {
     debugPrint('❌ main() - Erreur lors de l\'initialisation UserService: $e');
     debugPrint('❌ main() - Stack trace: $stackTrace');
@@ -88,7 +99,10 @@ class MyApp extends StatefulWidget {
   final bool modeSombreInitial;
   final bool isFirstLaunch;
 
-  const MyApp({super.key, required this.modeSombreInitial, required this.isFirstLaunch});
+  const MyApp(
+      {super.key,
+      required this.modeSombreInitial,
+      required this.isFirstLaunch});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -147,7 +161,7 @@ class _MyAppState extends State<MyApp> {
         primaryColor: const Color(0xFF5d9643),
         scaffoldBackgroundColor: Colors.white,
       ),
-      home: FutureBuilder<bool>(
+      home: FutureBuilder<Map<String, dynamic>>(
         future: _getAuthenticationStatus(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -158,28 +172,52 @@ class _MyAppState extends State<MyApp> {
             );
           }
 
+
           Widget homePage;
 
           if (_forceLogin) {
             debugPrint('🔄 MyApp - Navigation forcée vers la page de connexion');
             homePage = const LoginPage(profile: 'producteur');
+
+          final data =
+              snapshot.data ?? {'isAuthenticated': false, 'lastProfile': null};
+          final isAuthenticated = data['isAuthenticated'] as bool;
+          final lastProfile = data['lastProfile'] as String?;
+
+          // Determine which page to show based on authentication state
+          Widget homePage;
+
+          if (_forceLogin) {
+            // Force navigation to login page when session expires
+            debugPrint(
+                '🔄 MyApp - Navigation forcée vers la page de connexion');
+            homePage = LoginPage(profile: lastProfile ?? 'producteur');
+
           } else if (widget.isFirstLaunch) {
             homePage = const SelectProfilePage();
           } else {
+
             final isAuthenticated = snapshot.data ?? false;
+
+            // Check authentication result from FutureBuilder
+
             final userService = UserService();
 
             if (isAuthenticated && userService.currentUser != null) {
               final profileId = userService.currentUser!.profilId;
-              if (profileId == 'producteur' || profileId == 'f23423d4-ca9e-409b-b3fb-26126ab66581') {
+              if (profileId == 'producteur' ||
+                  profileId == 'f23423d4-ca9e-409b-b3fb-26126ab66581') {
                 homePage = const HomeProducteur();
               } else {
                 homePage = const HomePage(acheteurId: 'acheteur');
               }
-              debugPrint('✅ MyApp - Utilisateur authentifié: ${userService.currentUser!.nom} (${profileId})');
+              debugPrint(
+                  '✅ MyApp - Utilisateur authentifié: ${userService.currentUser!.nom} (${profileId})');
             } else {
+
               debugPrint('ℹ️ MyApp - Utilisateur non authentifié - affichage page de connexion');
               homePage = const LoginPage(profile: 'producteur');
+
             }
           }
 
@@ -194,16 +232,26 @@ class _MyAppState extends State<MyApp> {
         '/loginProducteur': (context) => const LoginPage(profile: 'producteur'),
         '/loginAcheteur': (context) => const LoginPage(profile: 'acheteur'),
         '/detailOffreVente': (context) {
-          final args = ModalRoute.of(context)!.settings.arguments as AnnonceAchat;
+          final args =
+              ModalRoute.of(context)!.settings.arguments as AnnonceAchat;
           return DetailOffreVente(annonce: args);
         },
       },
     );
   }
 
-  Future<bool> _getAuthenticationStatus() async {
+
+       
+  /// Get authentication status with proper token validation and last profile
+  Future<Map<String, dynamic>> _getAuthenticationStatus() async {
+
     final userService = UserService();
-    return await userService.isUserAuthenticated();
+    final isAuthenticated = await userService.isUserAuthenticated();
+    final lastProfile = await userService.getLastProfile();
+    return {
+      'isAuthenticated': isAuthenticated,
+      'lastProfile': lastProfile,
+    };
   }
 
   @override
