@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
 import 'package:http/http.dart' as http;
 import '../models/annoncePrefinancementModel.dart';
-import 'tyoeCultureService.dart';
+import 'typeCultureService.dart';
 
 import 'package:agrobloc/core/utils/api_token.dart';
 
@@ -25,20 +25,20 @@ class PrefinancementService {
   }
 
   /// Cache all typeCultures for quick lookup
-  Future<void> _cacheTypeCultures() async {
-    if (_typeCultureCache != null) {
-      print('✅ PrefinancementService._cacheTypeCultures: Cache déjà chargé avec ${_typeCultureCache!.length} éléments');
-      print('📋 PrefinancementService._cacheTypeCultures: Contenu du cache existant: $_typeCultureCache');
+  Future<void> cacheTypeCultures({bool forceReload = false}) async {
+    if (_typeCultureCache != null && !forceReload) {
+      print('✅ PrefinancementService.cacheTypeCultures: Cache déjà chargé avec ${_typeCultureCache!.length} éléments');
+      print('📋 PrefinancementService.cacheTypeCultures: Contenu du cache existant: $_typeCultureCache');
       return; // already cached
     }
-    print('🔄 PrefinancementService._cacheTypeCultures: Chargement du cache typeCulture...');
+    print('🔄 PrefinancementService.cacheTypeCultures: Chargement du cache typeCulture...');
     try {
       final types = await _typeCultureService.getAllTypes();
       _typeCultureCache = { for (var t in types) t.id : t.libelle };
-      print('✅ PrefinancementService._cacheTypeCultures: Cache chargé avec ${_typeCultureCache!.length} éléments');
-      print('📋 PrefinancementService._cacheTypeCultures: Contenu du cache: $_typeCultureCache');
+      print('✅ PrefinancementService.cacheTypeCultures: Cache chargé avec ${_typeCultureCache!.length} éléments');
+      print('📋 PrefinancementService.cacheTypeCultures: Contenu du cache: $_typeCultureCache');
     } catch (e) {
-      print('❌ PrefinancementService._cacheTypeCultures: Erreur lors du chargement du cache: $e');
+      print('❌ PrefinancementService.cacheTypeCultures: Erreur lors du chargement du cache: $e');
       rethrow;
     }
   }
@@ -47,8 +47,9 @@ class PrefinancementService {
   Future<List<AnnoncePrefinancement>> _enrichAnnoncesWithTypeCulture(List<AnnoncePrefinancement> annonces) async {
     print('🔄 PrefinancementService._enrichAnnoncesWithTypeCulture: Début enrichissement pour ${annonces.length} annonces');
     try {
-      await _cacheTypeCultures();
+      await cacheTypeCultures();
       print('✅ PrefinancementService._enrichAnnoncesWithTypeCulture: Cache typeCulture chargé avec succès');
+      print('📋 PrefinancementService._enrichAnnoncesWithTypeCulture: Cache contient ${_typeCultureCache?.length ?? 0} éléments');
     } catch (e) {
       print('⚠️ PrefinancementService._enrichAnnoncesWithTypeCulture: Erreur lors du chargement du cache typeCulture: $e');
       print('🔄 PrefinancementService._enrichAnnoncesWithTypeCulture: Continuation sans enrichissement typeCulture');
@@ -71,6 +72,7 @@ class PrefinancementService {
       } else {
         print('⚠️ PrefinancementService._enrichAnnoncesWithTypeCulture: Pas de libelle trouvé pour typeCultureId: "${annonce.typeCultureId}"');
         print('🔄 PrefinancementService._enrichAnnoncesWithTypeCulture: Utilisation du libelle existant: "${annonce.libelle}"');
+        print('🔍 PrefinancementService._enrichAnnoncesWithTypeCulture: Cache keys: ${_typeCultureCache?.keys.toList()}');
       }
 
       return AnnoncePrefinancement(
@@ -84,6 +86,7 @@ class PrefinancementService {
         nom: annonce.nom,
         libelle: enrichedLibelle,
         typeCultureId: annonce.typeCultureId,
+        parcelleId: annonce.parcelleId,
         adresse: annonce.adresse,
         surface: annonce.surface,
         createdAt: annonce.createdAt,
@@ -354,6 +357,83 @@ class PrefinancementService {
       }
     } catch (e) {
       throw Exception('Erreur lors de la création du préfinancement : $e');
+    }
+  }
+
+  Future<AnnoncePrefinancement> updatePrefinancement({
+    required String id,
+    required String typeCultureId,
+    required String parcelleId,
+    required double quantite,
+    required double prix,
+    String description = "Pas de description",
+  }) async {
+    try {
+      final headers = await _getHeaders();
+      final Map<String, dynamic> body = {
+        "statut": "EN_ATTENTE",
+        "description": description,
+        "type_culture_id": typeCultureId,
+        "parcelle_id": parcelleId,
+        "quantite": quantite,
+        "prix": prix,
+        "montant_pref": quantite * prix,
+      };
+
+      print("📤 Body envoyé pour mise à jour : ${jsonEncode(body)}");
+
+      final response = await http.put(
+        Uri.parse('$_baseUrl/annonces_pref/$id'),
+        headers: headers,
+        body: jsonEncode(body),
+      );
+
+      print("📥 Status code mise à jour: ${response.statusCode}");
+      print("📥 Body reçu mise à jour: ${response.body}");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final jsonItem = json.decode(response.body);
+        return AnnoncePrefinancement.fromJson(jsonItem);
+      } else {
+        // Handle authentication errors specifically
+        if (response.statusCode == 401) {
+          print("🚨 Token rejeté par le serveur lors de la mise à jour - tentative de refresh forcé");
+
+          // Force token refresh even if local check says it's valid
+          final userService = UserService();
+          final refreshedToken = await userService.getValidToken(forceRefresh: true, allowTempRefresh: true);
+
+          if (refreshedToken != null) {
+            print("✅ Token rafraîchi avec succès - nouvelle tentative de mise à jour");
+
+            // Retry with refreshed token using _getHeaders with forceRefresh
+            final newHeaders = await _getHeaders(forceRefresh: true);
+
+            final retryResponse = await http.put(
+              Uri.parse('$_baseUrl/annonces_pref/$id'),
+              headers: newHeaders,
+              body: jsonEncode(body),
+            );
+
+            print("📥 Retry status code mise à jour: ${retryResponse.statusCode}");
+            print("📥 Retry body reçu mise à jour: ${retryResponse.body}");
+
+            if (retryResponse.statusCode == 200 || retryResponse.statusCode == 201) {
+              final jsonItem = json.decode(retryResponse.body);
+              return AnnoncePrefinancement.fromJson(jsonItem);
+            } else if (retryResponse.statusCode == 401) {
+              throw Exception("Erreur d'authentification: Token toujours invalide après refresh. Veuillez vous reconnecter.");
+            } else {
+              throw Exception('Erreur lors de la mise à jour du préfinancement après retry : ${retryResponse.body}');
+            }
+          } else {
+            throw Exception("Erreur d'authentification: Impossible de rafraîchir le token. Veuillez vous reconnecter.");
+          }
+        }
+        throw Exception('Erreur lors de la mise à jour du préfinancement : ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Erreur lors de la mise à jour du préfinancement : $e');
     }
   }
 

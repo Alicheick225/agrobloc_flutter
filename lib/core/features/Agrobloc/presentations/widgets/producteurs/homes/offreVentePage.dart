@@ -163,10 +163,13 @@ class _OffreVentePageState extends State<OffreVentePage> {
       final prefinancements = await _prefinancementService.fetchPrefinancementsByUser(currentUserId).timeout(const Duration(seconds: 20));
       print('✅ OffreVentePage: ${prefinancements.length} préfinancements reçus du service');
 
+      // Forcer le rechargement du cache des types de culture pour garantir la mise à jour des libellés
+      await _prefinancementService.cacheTypeCultures(forceReload: true);
+
       // Debug: Log details of each prefinancement
       for (int i = 0; i < prefinancements.length; i++) {
         final p = prefinancements[i];
-        print('📋 Prefinancement $i: ID=${p.id}, Statut=${p.statut}, TypeCulture=${p.libelle}, Quantite=${p.quantite} ${p.quantiteUnite}');
+        print('📋 Prefinancement $i: ID=${p.id}, Statut=${p.statut}, TypeCulture=${p.libelle}, typeCultureLibelle=${p.typeCultureLibelle}, typeCultureId=${p.typeCultureId}, Quantite=${p.quantite} ${p.quantiteUnite}');
       }
 
       if (!mounted) {

@@ -1,4 +1,6 @@
 import 'package:agrobloc/core/features/Agrobloc/presentations/pagesAcheteurs/homePage.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/pagesProducteurs/homeProducteur.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/pagesProducteurs/transactionProducteur.dart';
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/commandeModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/order%20tracking/nav.dart';
@@ -30,8 +32,8 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
           onBackPressed: () {
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (_) => HomePage(
-                    acheteurId: widget.commande.acheteurId,
+                  MaterialPageRoute(builder: (_) => TransactionProducteur(
+                    profile: widget.commande.profile,
                   )), // ← ton écran d'accueil
                   (route) => false, // supprime toutes les pages précédentes
                 );

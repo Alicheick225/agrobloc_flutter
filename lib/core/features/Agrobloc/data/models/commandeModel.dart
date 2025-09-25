@@ -50,6 +50,7 @@ class CommandeModel {
   final String typeCulture;
   final String nomCulture;
   final String? photoPlanteur;
+  final String profile;
 
   CommandeModel({
     required this.id,
@@ -63,6 +64,7 @@ class CommandeModel {
     required this.typeCulture,
     required this.nomCulture,
     this.photoPlanteur,
+    required this.profile,
   });
 
   factory CommandeModel.fromJson(Map<String, dynamic> json) {
@@ -80,6 +82,7 @@ class CommandeModel {
           json['type_culture']?.toString() ??
           'Culture inconnue',
       photoPlanteur: json['photo_planteur']?.toString(),
+      profile: json['profile'] ?? '',
     );
   }
 
@@ -95,6 +98,7 @@ class CommandeModel {
         'type_culture': typeCulture,
         'nom_culture': nomCulture,
         'photo_planteur': photoPlanteur,
+        'profile': profile,
       };
 
 // ✅ Getters pour différents formats d'affichage du nom

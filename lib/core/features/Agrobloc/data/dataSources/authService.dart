@@ -15,6 +15,12 @@ class AuthService {
 
   /// Méthode pour parser manuellement les réponses JSON mal formées
   Map<String, dynamic> _parseManualResponse(String responseBody) {
+    // Vérifier si la réponse est une page HTML (erreur serveur)
+    if (responseBody.trim().startsWith('<!DOCTYPE') || responseBody.trim().startsWith('<html')) {
+      print('❌ AuthService._parseManualResponse() - Réponse HTML détectée au lieu de JSON');
+      return {'error': 'Réponse HTML détectée - probablement une page d\'erreur du serveur'};
+    }
+
     try {
       // L'API retourne un JSON avec des guillemets manquants entre les champs
       // Exemple: {"message":"Connexion réussie.""token":"..."...}
@@ -23,7 +29,7 @@ class AuthService {
         .replaceAll('""', '","')
         .replaceAll('}"', '},"')
         .replaceAll('"{', '",{');
-      
+
       return jsonDecode(fixedJson);
     } catch (e) {
       print('❌ Échec du parsing manuel: $e');
@@ -250,6 +256,21 @@ class AuthService {
             'refreshToken': newRefreshToken ?? refreshToken,
           };
         } else {
+          // Vérifier si la réponse est une page HTML d'erreur
+          if (response.body.trim().startsWith('<!DOCTYPE') || response.body.trim().startsWith('<html')) {
+            print('❌ AuthService.refreshToken() - Réponse HTML détectée pour erreur ${response.statusCode}');
+            // Gestion spécifique selon le code de statut
+            if (response.statusCode == 401) {
+              throw Exception("Token de rafraîchissement invalide ou expiré - page d'erreur HTML reçue");
+            } else if (response.statusCode == 403) {
+              throw Exception("Accès refusé lors du refresh - page d'erreur HTML reçue");
+            } else if (response.statusCode == 404) {
+              throw Exception("Endpoint de refresh non trouvé - page d'erreur HTML reçue");
+            } else {
+              throw Exception("Erreur serveur (${response.statusCode}) - page d'erreur HTML reçue");
+            }
+          }
+
           // Gestion spécifique des erreurs courantes avec parsing amélioré
           String errorMessage = "Erreur lors du refresh du token";
 

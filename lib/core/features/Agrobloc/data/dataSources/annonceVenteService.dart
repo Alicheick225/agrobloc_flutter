@@ -7,7 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jwt_decode/jwt_decode.dart';
 import '../models/AnnonceVenteModel.dart';
-import 'tyoeCultureService.dart';
+import 'typeCultureService.dart';
 import 'userService.dart';
 
 class AnnonceService {
@@ -86,12 +86,15 @@ class AnnonceService {
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         final annonces = data.map((json) => AnnonceVente.fromJson(json)).toList();
+        print(annonces);
         return await _enrichAnnoncesWithTypeCulture(annonces);
       } else {
         throw _handleError(response);
       }
     } catch (e) {
+     print("erreur");
       throw _handleException(e);
+
     }
   }
 

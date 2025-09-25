@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/annonceVenteService.dart';
-import 'package:agrobloc/core/features/Agrobloc/data/dataSources/tyoeCultureService.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/typeCultureService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/parcelleService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/parcelleService.dart';
@@ -41,11 +41,16 @@ class _AnnonceFormState extends State<AnnonceForm> {
   List<TypeCulture> typeCultures = [];
   List<Parcelle> parcelles = [];
 
+  bool get isEditing => widget.annonce != null;
+
   @override
   void initState() {
     super.initState();
     isLoading = true;
     loadedCount = 0;
+
+    _chargerCultures();
+    _chargerParcelles();
 
     // Si une annonce existe déjà, préremplir les champs
     if (widget.annonce != null) {
@@ -57,9 +62,6 @@ class _AnnonceFormState extends State<AnnonceForm> {
       description = widget.annonce!.description;
       // La photo n'est pas rechargée directement car il faut la récupérer depuis un fichier
     }
-
-    _chargerCultures();
-    _chargerParcelles();
   }
 
   Future<void> _chargerCultures() async {
@@ -156,7 +158,7 @@ class _AnnonceFormState extends State<AnnonceForm> {
     }
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Faire une offre de vente"),
+        title: Text(isEditing ? "Modifier l'offre de vente" : "Faire une offre de vente"),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
@@ -195,10 +197,10 @@ class _AnnonceFormState extends State<AnnonceForm> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
-                onPressed: isSubmitting ? null : _soumettreAnnonce,
+                onPressed: isSubmitting ? null : (isEditing ? _updateAnnonce : _soumettreAnnonce),
                 child: isSubmitting
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text("Soumettre l'annonce", style: TextStyle(color: Colors.white)),
+                    : Text(isEditing ? "Modifier l'annonce" : "Soumettre l'annonce", style: const TextStyle(color: Colors.white)),
               ),
             )
           ],
@@ -432,6 +434,101 @@ class _AnnonceFormState extends State<AnnonceForm> {
         errorMessage = "Session expirée. Veuillez vous reconnecter pour continuer.";
       } else if (e.toString().contains("Erreur lors de la création de l'annonce")) {
         errorMessage = "Erreur lors de l'envoi de l'annonce. Veuillez réessayer.";
+      } else if (e.toString().contains("réseau") ||
+                 e.toString().contains("network") ||
+                 e.toString().contains("connection")) {
+        errorMessage = "Problème de connexion. Vérifiez votre connexion internet.";
+      } else {
+        // Pour les autres erreurs, afficher un message générique mais plus user-friendly
+        errorMessage = "Une erreur s'est produite. Veuillez réessayer.";
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          duration: const Duration(seconds: 4),
+          action: (errorMessage.contains("reconnecter") ||
+                   errorMessage.contains("Session expirée"))
+              ? SnackBarAction(
+                  label: "Se connecter",
+                  onPressed: () {
+                    // Navigation vers la page de connexion
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                      '/login',
+                      (route) => false,
+                    );
+                  },
+                )
+              : null,
+        ),
+      );
+    } finally {
+      setState(() => isSubmitting = false);
+    }
+  }
+
+  Future<void> _updateAnnonce() async {
+    if (selectedCulture == null || selectedParcelle == null || description.isEmpty) {
+      _afficherMessage("Veuillez remplir tous les champs");
+      return;
+    }
+
+    setState(() => isSubmitting = true);
+
+    try {
+      final cultureChoisie = typeCultures.firstWhere((c) => c.libelle == selectedCulture);
+      final parcelleChoisie = parcelles.firstWhere((p) => p.libelle == selectedParcelle);
+
+      await annonceService.updateAnnonce(
+        id: widget.annonce!.id,
+        typeCultureId: cultureChoisie.id,
+        parcelleId: parcelleChoisie.id,
+        statut: statut,
+        description: description,
+        quantite: quantite,
+        prixKg: prixKg,
+        photo: photo,
+      );
+
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('✅'),
+            content: const Text('Votre annonce a été mise à jour avec succès.'),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Retour'),
+                onPressed: () {
+                  Navigator.of(context).pop(); // Fermer le modal
+                  Navigator.of(context).pop(); // Retour à la page précédente
+                },
+              ),
+            ],
+          );
+        },
+      );
+
+      print("Réponse API mise à jour : ${jsonEncode("Annonce mise à jour")}");
+    } catch (e) {
+      print("Erreur API mise à jour : $e");
+
+      // Gestion spécifique des erreurs d'authentification
+      String errorMessage = "Une erreur inattendue s'est produite";
+
+      if (e.toString().contains("Token manquant") ||
+          e.toString().contains("Utilisateur non connecté") ||
+          e.toString().contains("token manquant")) {
+        errorMessage = "Session expirée. Veuillez vous reconnecter.";
+      } else if (e.toString().contains("Identifiant utilisateur invalide") ||
+                 e.toString().contains("authentification") ||
+                 e.toString().contains("Authentication")) {
+        errorMessage = "Problème d'authentification. Veuillez vous reconnecter.";
+      } else if (e.toString().contains("Impossible de rafraîchir le token")) {
+        errorMessage = "Session expirée. Veuillez vous reconnecter pour continuer.";
+      } else if (e.toString().contains("Erreur lors de la mise à jour de l'annonce")) {
+        errorMessage = "Erreur lors de la mise à jour de l'annonce. Veuillez réessayer.";
       } else if (e.toString().contains("réseau") ||
                  e.toString().contains("network") ||
                  e.toString().contains("connection")) {

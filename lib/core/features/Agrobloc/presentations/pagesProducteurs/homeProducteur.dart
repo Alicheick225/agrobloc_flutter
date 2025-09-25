@@ -15,7 +15,9 @@ void main() {
 }
 
 class HomeProducteur extends StatefulWidget {
-  const HomeProducteur({super.key});
+  final String? profile;
+
+  const HomeProducteur({super.key, this.profile});
 
   @override
   State<HomeProducteur> createState() => _HomeProducteurState();
@@ -34,7 +36,7 @@ class _HomeProducteurState extends State<HomeProducteur> {
     pages = [
       const HomeProducteurContent(),
       const Center(child: Text("Messages")),
-      const TransactionProducteur(child: Text("Transactions")),
+      const TransactionProducteur(),
       const Center(child: Text("Profil")),
     ];
   }
@@ -44,7 +46,7 @@ class _HomeProducteurState extends State<HomeProducteur> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const TransactionProducteur(child: Text("Transactions")),
+          builder: (context) => const TransactionProducteur(),
         ),
       );
     } else {

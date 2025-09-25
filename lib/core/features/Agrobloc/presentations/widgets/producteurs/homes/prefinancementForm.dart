@@ -3,7 +3,7 @@ import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dar
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/AnnoncePrefinancementService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/parcelleService.dart';
-import 'package:agrobloc/core/features/Agrobloc/data/dataSources/tyoeCultureService.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/typeCultureService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/parcelleService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/typecultureModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/annoncePrefinancementModel.dart';
@@ -36,10 +36,16 @@ class _PrefinancementFormState extends State<PrefinancementForm> {
   Parcelle? parcelle;
   String unite = "Kg"; // Kg ou T
 
+  bool get isEditing => widget.prefinancement != null;
+
+  // Remove duplicate isEditing getter
+  // bool get isEditing => widget.prefinancement != null;
+
   @override
   void initState() {
     super.initState();
     _chargerData();
+
     if (widget.prefinancement != null) {
       _populateFieldsForEditing();
     }
@@ -56,6 +62,9 @@ class _PrefinancementFormState extends State<PrefinancementForm> {
     // Populate price
     prixVenteController.text = prefinancement.prixKgPref.toString();
 
+    // Populate montant
+    montantController.text = prefinancement.montantPref.toString();
+
     // Populate description
     descriptionController.text = prefinancement.description ?? '';
 
@@ -66,6 +75,31 @@ class _PrefinancementFormState extends State<PrefinancementForm> {
     } else {
       unite = "Kg";
     }
+
+    // Set culture based on typeCultureId (try id first, then libelle)
+    try {
+      culture = cultures.firstWhere((c) => c.id == prefinancement.typeCultureId);
+    } catch (e) {
+      try {
+        culture = cultures.firstWhere((c) => c.libelle == prefinancement.typeCultureId);
+      } catch (e) {
+        culture = null;
+      }
+    }
+
+    // Set parcelle based on parcelleId (try id first, then adresse)
+    try {
+      parcelle = parcelles.firstWhere((p) => p.id == prefinancement.parcelleId);
+    } catch (e) {
+      try {
+        parcelle = parcelles.firstWhere((p) => p.adresse == prefinancement.parcelleId);
+      } catch (e) {
+        parcelle = null;
+      }
+    }
+
+    // Update UI
+    setState(() {});
   }
 
   Future<void> _chargerData() async {
@@ -76,6 +110,10 @@ class _PrefinancementFormState extends State<PrefinancementForm> {
         cultures = c;
         parcelles = p;
       });
+      // Populate fields after data is loaded if editing
+      if (widget.prefinancement != null) {
+        _populateFieldsForEditing();
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Erreur de chargement : $e")),
@@ -219,14 +257,115 @@ void _envoyerDemande() async {
 
 
 
+  void _updateDemande() async {
+    try {
+      if (culture == null || parcelle == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Veuillez sélectionner une culture et une parcelle")),
+        );
+        return;
+      }
+
+      // Quantité
+      double quantite = double.tryParse(productionController.text) ?? 0;
+      if (unite == "T") quantite *= 1000; // Conversion T -> Kg
+
+      // Prix de vente
+      double prix = double.tryParse(prixVenteController.text) ?? 0;
+
+      // Description par défaut
+      final description = descriptionController.text.trim().isEmpty
+          ? "Pas de description"
+          : descriptionController.text.trim();
+
+      // Mise à jour du préfinancement
+      final annonce = await service.updatePrefinancement(
+        id: widget.prefinancement!.id,
+        typeCultureId: culture!.id,
+        parcelleId: parcelle!.id,
+        quantite: quantite,
+        prix: prix,
+        description: description,
+      );
+
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('✅'),
+            content: const Text('Votre demande de préfinancement a été mise à jour.'),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Retour'),
+                onPressed: () {
+                  Navigator.of(context).pop(); // Fermer le modal
+                  Navigator.of(context).pop(); // Retour à la page précédente
+                },
+              ),
+            ],
+          );
+        },
+      );
+
+      print("Réponse API mise à jour : ${jsonEncode(annonce.toJson())}");
+    } catch (e) {
+      print("Erreur API mise à jour : $e");
+
+      // Gestion spécifique des erreurs d'authentification
+      String errorMessage = "Une erreur inattendue s'est produite";
+
+      if (e.toString().contains("Token manquant") ||
+          e.toString().contains("Utilisateur non connecté") ||
+          e.toString().contains("token manquant")) {
+        errorMessage = "Session expirée. Veuillez vous reconnecter.";
+      } else if (e.toString().contains("Identifiant utilisateur invalide") ||
+                 e.toString().contains("authentification") ||
+                 e.toString().contains("Authentication")) {
+        errorMessage = "Problème d'authentification. Veuillez vous reconnecter.";
+      } else if (e.toString().contains("Impossible de rafraîchir le token")) {
+        errorMessage = "Session expirée. Veuillez vous reconnecter pour continuer.";
+      } else if (e.toString().contains("Erreur lors de la mise à jour du préfinancement")) {
+        errorMessage = "Erreur lors de la mise à jour de la demande. Veuillez réessayer.";
+      } else if (e.toString().contains("réseau") ||
+                 e.toString().contains("network") ||
+                 e.toString().contains("connection")) {
+        errorMessage = "Problème de connexion. Vérifiez votre connexion internet.";
+      } else {
+        // Pour les autres erreurs, afficher un message générique mais plus user-friendly
+        errorMessage = "Une erreur s'est produite. Veuillez réessayer.";
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          duration: const Duration(seconds: 4),
+          action: (errorMessage.contains("reconnecter") ||
+                   errorMessage.contains("Session expirée"))
+              ? SnackBarAction(
+                  label: "Se connecter",
+                  onPressed: () {
+                    // Navigation vers la page de connexion
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                      '/login',
+                      (route) => false,
+                    );
+                  },
+                )
+              : null,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         leading: const BackButton(color: Colors.black),
-        title: const Text(
-          "Faire une demande de préfinancement",
-          style: TextStyle(color: Colors.black, fontSize: 16),
+        title: Text(
+          isEditing ? "Modifier la demande de préfinancement" : "Faire une demande de préfinancement",
+          style: const TextStyle(color: Colors.black, fontSize: 16),
         ),
         backgroundColor: Colors.white,
         elevation: 0,
@@ -329,7 +468,7 @@ void _envoyerDemande() async {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: _envoyerDemande,
+                      onPressed: isEditing ? _updateDemande : _envoyerDemande,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -337,9 +476,9 @@ void _envoyerDemande() async {
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: const Text(
-                        "Faire une demande de préfinancement",
-                        style: TextStyle(fontSize: 16, color: Colors.white),
+                      child: Text(
+                        isEditing ? "Modifier la demande de préfinancement" : "Faire une demande de préfinancement",
+                        style: const TextStyle(fontSize: 16, color: Colors.white),
                       ),
                     ),
                   ),
