@@ -35,7 +35,7 @@ class _HomeProducteurState extends State<HomeProducteur> {
     // Mise à jour de la liste 'pages' avec les pages réelles
     pages = [
       const HomeProducteurContent(),
-      MessagesListPage(currentUserId: "user123"),
+      const MessagesPage(currentUserId: 'your_user_id_here'),
       const TransactionProducteur(child: Text("Transactions")),
       const ProfilPage(),
     ];
