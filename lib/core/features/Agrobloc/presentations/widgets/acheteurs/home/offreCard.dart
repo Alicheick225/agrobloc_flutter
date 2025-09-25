@@ -3,7 +3,7 @@ import 'package:agrobloc/core/utils/image.dart';
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
-import 'package:agrobloc/core/themes/app_text_styles.dart';
+import 'package:agrobloc/core/utils/app_text_styles.dart';
 
 class OffreCard extends StatelessWidget {
   final AnnonceVente data;

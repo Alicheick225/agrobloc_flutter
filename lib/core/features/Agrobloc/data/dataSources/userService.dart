@@ -697,4 +697,6 @@ class UserService {
     await clearCurrentUser();
     print('✅ UserService.logoutUser() - Déconnexion réussie');
   }
+
+  Future<void> storeUser(AuthentificationModel user, {required bool rememberMe}) async {}
 }

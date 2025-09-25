@@ -1,5 +1,6 @@
 // lib/core/features/Agrobloc/presentations/pagesProducteurs/profilPage.dart
 
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/profils/mes_informations_lecture.dart';
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
@@ -7,7 +8,10 @@ import 'package:agrobloc/core/features/Agrobloc/data/models/authentificationMode
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/profils/avispage.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/connexion/logout_dialog.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/order%20tracking/sequestre.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/profils/mesinformations_page.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/profils/mes_informations_lecture.dart';
+// Importez la nouvelle page de modification
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/profils/mes_informations_edition.dart';
+
 
 class ProfilPage extends StatefulWidget {
   const ProfilPage({super.key});
@@ -36,7 +40,8 @@ class _ProfilPageState extends State<ProfilPage> {
   void _handleOptionTap(String option) {
     switch (option) {
       case "Mes informations":
-        Navigator.push(context, MaterialPageRoute(builder: (context) => const MesInformationsPage()));
+        // ⚠️ Modification ici : redirige vers la page d'édition
+        Navigator.push(context, MaterialPageRoute(builder: (context) => const MesInformationsLecture()));
         break;
       case "Mes favoris":
         Navigator.push(context, MaterialPageRoute(builder: (context) => const MesFavorisPage()));
@@ -114,7 +119,8 @@ class _ProfilPageState extends State<ProfilPage> {
                 Text("#${user?.profilId ?? "Agrobloc-1ZKZKE"}", style: const TextStyle(color: Colors.grey)),
                 const SizedBox(height: 10),
                 ElevatedButton(
-                  onPressed: () => _handleOptionTap("Mes informations"),
+                  // ⚠️ Modification ici : redirige vers la page d'édition
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MesInformationsEdition())),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryGreen,
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -152,9 +158,6 @@ class _ProfilPageState extends State<ProfilPage> {
     );
   }
 }
-
-// ⚠️ J’ai supprimé le doublon de `MesInformationsPage` ici !
-// On garde seulement MesFavorisPage, HistoriqueTransactionsPage, MoyensPaiementPage, ConditionsPage
 
 class MesFavorisPage extends StatelessWidget {
   const MesFavorisPage({super.key});

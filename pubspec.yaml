@@ -6,13 +6,16 @@ version: 1.0.0+1
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
+  
 
 dependencies:
   flutter: 
     sdk: flutter
+
   # 📍 Localisation GPS + Adresse
   geolocator: ^14.0.1
   geocoding: ^3.0.0
+  web_socket_channel: ^3.0.2
 
   # 🔑 Auth
   jwt_decode: ^0.3.1
