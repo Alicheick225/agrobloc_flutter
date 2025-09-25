@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/commandeService.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/order%20tracking/payement/selectpayemode.dart';
 import 'package:flutter/material.dart';
@@ -229,6 +231,50 @@ class OrderTrackingWidget extends StatelessWidget {
     );
   }
 
+  Future<void> _annulerCommande(BuildContext context) async {
+    // 🔹 Vérification que l'ID est bien présent
+    final String id = commande.id;
+    print('🪪 ID de la commande à annuler : $id');
+
+    if (id.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Erreur : ID de la commande invalide."),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    try {
+      // 🔹 Appel au service d'annulation
+      final success = await CommandeService().annulerCommande(id);
+
+      // 🔹 Retour visuel à l'utilisateur
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            success
+                ? "✅ Commande annulée avec succès"
+                : "❌ Échec de l’annulation",
+          ),
+          backgroundColor: success ? Colors.green : Colors.red,
+        ),
+      );
+
+      // 🔹 Optionnel : fermer la page ou recharger l'affichage
+      if (success) Navigator.of(context).pop();
+    } catch (e) {
+      // 🔹 Affiche l'erreur précise provenant du service
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Erreur : ${e.toString()}"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   List<Widget> _getCurrentActionButtons(
       OrderStatus status, BuildContext context) {
     switch (status) {
@@ -237,26 +283,23 @@ class OrderTrackingWidget extends StatelessWidget {
           ActionButtonWidget(
             text: 'Annuler la transaction',
             type: ActionButtonType.danger,
-            onPressed: () async {
-              if (commande.id.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("❌ ID de commande manquant")),
-                );
-                return;
-              }
-
-              final success =
-                  await CommandeService().annulerCommande(commande.id);
-
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(success
-                      ? "✅ Commande annulée avec succès"
-                      : "❌ Impossible d’annuler la commande"),
-                ),
-              );
-            },
+            onPressed: () => _annulerCommande(context), // ✅ connecté au service
           ),
+
+          //const SizedBox(height: 12),
+          //ActionButtonWidget(
+          //text: 'Payer maintenant',
+          //type: ActionButtonType.primary,
+          //onPressed: () {
+          //showModalBottomSheet(
+          //context: context,
+          //isScrollControlled: true,
+          //builder: (context) => SelectPayMode(
+          //commande: commande,
+          //),
+          //);
+          //},
+          //),
         ];
 
       case OrderStatus.waitingDelivery:

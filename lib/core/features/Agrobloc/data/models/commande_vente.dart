@@ -4,11 +4,11 @@ import 'package:agrobloc/core/themes/app_colors.dart';
 enum CommandeStatus { enCours, termine, annule }
 
 extension CommandeStatusExt on CommandeStatus {
-Color get color => {
-      CommandeStatus.enCours: AppColors.enCours,
-      CommandeStatus.termine: AppColors.termine,
-      CommandeStatus.annule: AppColors.annule,
-    }[this]!;
+  Color get color => {
+        CommandeStatus.enCours: AppColors.enCours,
+        CommandeStatus.termine: AppColors.termine,
+        CommandeStatus.annule: AppColors.annule,
+      }[this]!;
 }
 
 class CommandeVente {
@@ -34,7 +34,7 @@ class CommandeVente {
 
   factory CommandeVente.fromJson(Map<String, dynamic> json) {
     return CommandeVente(
-      id: json['id'] ?? '',
+      id: json['id']?.toString() ?? '',
       annoncesVenteId: json['annonces_vente_id'] ?? '',
       acheteurId: json['acheteur_id'] ?? '',
       quantite: (json['quantite'] as num?)?.toDouble() ?? 0.0,

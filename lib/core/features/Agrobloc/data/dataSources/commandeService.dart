@@ -98,18 +98,32 @@ class CommandeService {
     return response.statusCode == 200;
   }
 
-  /// Annuler une commande
+  /// Annuler une commande spécifique
   Future<bool> annulerCommande(String id) async {
     if (id.isEmpty) {
-      print("❌ Erreur : id de commande vide");
-      return false;
+      throw Exception("ID de la commande manquant ou invalide.");
     }
 
-    final response = await api.put('/commandes-ventes/$id/annuler', {});
+    try {
+      // ✅ Ne rajoute pas "commandes/" puisque c'est déjà dans la base URL
+      final response = await api.put('/commandes-ventes/$id/annuler', {});
 
-    print("📥 [PUT] /commandes-ventes/$id/annuler -> ${response.statusCode}");
-    print(response.body);
+      print("📥 [PUT] /commandes-ventes/$id/annuler -> ${response.statusCode}");
+      print(response.body);
 
-    return response.statusCode == 200;
+      if (response.statusCode == 200) {
+        return true;
+      } else if ([400, 403, 404].contains(response.statusCode)) {
+        final data = jsonDecode(response.body);
+        throw Exception(data['message'] ?? 'Erreur lors de l’annulation');
+      } else {
+        throw Exception("Erreur inconnue : ${response.body}");
+      }
+    } catch (e) {
+      if (e is FormatException) {
+        throw Exception("Erreur de parsing de la réponse du serveur");
+      }
+      rethrow;
+    }
   }
 }

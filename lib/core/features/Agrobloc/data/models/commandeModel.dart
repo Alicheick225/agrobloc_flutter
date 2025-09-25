@@ -66,8 +66,9 @@ class CommandeModel {
   });
 
   factory CommandeModel.fromJson(Map<String, dynamic> json) {
+    print('DEBUG JSON: $json');
     return CommandeModel(
-      id: json['id'] ?? '',
+      id: json['id']?.toString() ?? '',
       annoncesVenteId: json['annonces_vente_id'] ?? '',
       acheteurId: json['acheteur_id'] ?? '',
       quantite: double.tryParse(json['quantite']?.toString() ?? '0') ?? 0.0,
@@ -130,4 +131,24 @@ class CommandeModel {
 
   @override
   String toString() => 'CommandeModel $id - ${statut.name} ($nomCulture)';
+}
+
+/// ✅ Nouveau modèle pour l'annulation
+class AnnulationResponse {
+  final bool success;
+  final String message;
+
+  AnnulationResponse({required this.success, required this.message});
+
+  factory AnnulationResponse.fromJson(Map<String, dynamic> json) {
+    return AnnulationResponse(
+      success: json['success'] ?? false,
+      message: json['message'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'success': success,
+        'message': message,
+      };
 }
