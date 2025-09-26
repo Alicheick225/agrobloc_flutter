@@ -2,6 +2,10 @@ import 'package:agrobloc/core/features/Agrobloc/presentations/pagesProducteurs/h
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// 🆕 Import Supabase
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'supabaseConfig.dart';
+
 // 🆕 NOUVEAU : Import du service de notifications
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/notificationService.dart';
 // 🆕 NOUVEAU : Import du UserService
@@ -17,9 +21,16 @@ import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/par
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/detailOffreVente.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceAchatModel.dart';
 
-// 🆕 MODIFIÉ : Fonction main avec initialisation des notifications et UserService
+// 🆕 MODIFIÉ : Fonction main avec initialisation Supabase, notifications et UserService
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 🟢 Initialisation Supabase
+  await Supabase.initialize(
+    url: SupabaseConfig.url,
+    anonKey: SupabaseConfig.anonKey,
+  );
+  debugPrint('✅ Supabase initialisé');
 
   final prefs = await SharedPreferences.getInstance();
   bool modeSombreInitial = prefs.getBool('modeSombre') ?? false;
@@ -137,7 +148,6 @@ class _MyAppState extends State<MyApp> {
 
   void _setupAuthStateListener() {
     // Listen for authentication state changes
-    // This will be triggered when tokens become invalid
     final userService = UserService();
     userService.setForceReLoginCallback(() async {
       debugPrint('🔄 MyApp - Callback de reconnexion forcée reçu');
@@ -172,7 +182,6 @@ class _MyAppState extends State<MyApp> {
         future: _getAuthenticationStatus(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            // Show loading screen while checking authentication
             return const Scaffold(
               body: Center(
                 child: CircularProgressIndicator(),
@@ -185,23 +194,16 @@ class _MyAppState extends State<MyApp> {
           final isAuthenticated = data['isAuthenticated'] as bool;
           final lastProfile = data['lastProfile'] as String?;
 
-          // Determine which page to show based on authentication state
           Widget homePage;
 
           if (_forceLogin) {
-            // Force navigation to login page when session expires
-            debugPrint(
-                '🔄 MyApp - Navigation forcée vers la page de connexion');
             homePage = LoginPage(profile: lastProfile ?? 'producteur');
           } else if (widget.isFirstLaunch) {
-            // First launch - show profile selection
             homePage = const SelectProfilePage();
           } else {
-            // Check authentication result from FutureBuilder
             final userService = UserService();
 
             if (isAuthenticated && userService.currentUser != null) {
-              // User is authenticated - show appropriate home page
               final profileId = userService.currentUser!.profilId;
               if (profileId == 'producteur' ||
                   profileId == 'f23423d4-ca9e-409b-b3fb-26126ab66581') {
@@ -212,9 +214,6 @@ class _MyAppState extends State<MyApp> {
               debugPrint(
                   '✅ MyApp - Utilisateur authentifié: ${userService.currentUser!.nom} (${profileId})');
             } else {
-              // Not authenticated - show login page with last profile
-              debugPrint(
-                  'ℹ️ MyApp - Utilisateur non authentifié - affichage page de connexion pour profil: ${lastProfile ?? 'producteur'}');
               homePage = LoginPage(profile: lastProfile ?? 'producteur');
             }
           }
@@ -235,7 +234,6 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  /// Get authentication status with proper token validation and last profile
   Future<Map<String, dynamic>> _getAuthenticationStatus() async {
     final userService = UserService();
     final isAuthenticated = await userService.isUserAuthenticated();

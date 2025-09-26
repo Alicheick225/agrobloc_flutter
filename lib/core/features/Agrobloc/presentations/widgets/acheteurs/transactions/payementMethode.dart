@@ -1,4 +1,4 @@
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/paiementMoney.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/transactions/paiementMoney.dart';
 import 'package:flutter/material.dart';
 import 'debitComplet.dart';
 
@@ -19,7 +19,6 @@ class PaymentMethodPage extends StatefulWidget {
     required this.quantity,
     required this.unit,
   });
-
   @override
   State<PaymentMethodPage> createState() => _PaymentMethodPageState();
 }

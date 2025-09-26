@@ -10,9 +10,12 @@ class RecommendationCard extends StatelessWidget {
   final String acheteurId; // ID de l'acheteur pour les transactions
   final String? annonceVenteId; // ID de l'annonce de vente
 
-  const RecommendationCard({super.key, required this.recommendation
-    , required this.acheteurId
-    , required this.annonceVenteId});
+  const RecommendationCard({
+    super.key,
+    required this.recommendation,
+    required this.acheteurId,
+    required this.annonceVenteId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -38,13 +41,14 @@ class RecommendationCard extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => OffreDetailPage(
-                recommendation: recommendation,
-                acheteurId: acheteurId,
-              ),
-            ));
+          context,
+          MaterialPageRoute(
+            builder: (context) => OffreDetailPage(
+              recommendation: recommendation,
+              acheteurId: acheteurId,
+            ),
+          ),
+        );
       },
       child: Container(
         height: 120,
@@ -53,12 +57,12 @@ class RecommendationCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
-          boxShadow: [BoxShadow(blurRadius: 4, color: Colors.black12)],
+          boxShadow: const [BoxShadow(blurRadius: 4, color: Colors.black12)],
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            /// ✅ IMAGE
+            /// ✅ IMAGE depuis Supabase
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: Image.network(
@@ -99,10 +103,12 @@ class RecommendationCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           recommendation.typeCultureLibelle.isNotEmpty
-                            ? "${recommendation.typeCultureLibelle} ${recommendation.quantite.toStringAsFixed(0)} tonnes"
-                            : "Type de culture non spécifié",
+                              ? "${recommendation.typeCultureLibelle} ${recommendation.quantite.toStringAsFixed(0)} tonnes"
+                              : "Type de culture non spécifié",
                           style: AppTextStyles.body.copyWith(
-                              fontSize: 13, fontWeight: FontWeight.bold),
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -126,8 +132,10 @@ class RecommendationCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           recommendation.parcelleAdresse,
-                          style: AppTextStyles.body
-                              .copyWith(fontSize: 10, color: Colors.grey),
+                          style: AppTextStyles.body.copyWith(
+                            fontSize: 10,
+                            color: Colors.grey,
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -143,8 +151,10 @@ class RecommendationCard extends StatelessWidget {
                           const SizedBox(width: 4),
                           Text(
                             getTimeText(),
-                            style: AppTextStyles.body
-                                .copyWith(fontSize: 10, color: Colors.grey),
+                            style: AppTextStyles.body.copyWith(
+                              fontSize: 10,
+                              color: Colors.grey,
+                            ),
                           ),
                         ],
                       ),
@@ -193,3 +203,4 @@ extension StringExtension on String {
     return '${this[0].toUpperCase()}${substring(1)}';
   }
 }
+

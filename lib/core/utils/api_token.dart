@@ -13,12 +13,12 @@ class ApiConfig {
   static const String devApiBaseUrl = 'http://192.168.252.199:3000';
   static const String prodApiBaseUrl = 'https://api.yourproductiondomain.com';
 
-  static const String devImageBaseUrl = 'http://192.168.252.199:8080';
+  static const String devImageBaseUrl = 'http://192.168.252.199:8081';
   static const String prodImageBaseUrl =
       'https://images.yourproductiondomain.com';
 
   // Service-specific base URLs for dev environment
-  static const String devAnnoncesBaseUrl = 'http://192.168.252.199:8080';
+  static const String devAnnoncesBaseUrl = 'http://192.168.252.199:8081';
   static const String devTypesCulturesBaseUrl = 'http://192.168.252.199:8000';
   static const String devParcellesBaseUrl = 'http://192.168.252.199:8000';
   static const String devCommandesBaseUrl =

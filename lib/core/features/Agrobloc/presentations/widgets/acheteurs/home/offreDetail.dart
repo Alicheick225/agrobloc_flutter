@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/commandesProduit.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
+import 'package:agrobloc/core/utils/image.dart'; // ✅ pour getImageUrl
 
 class OffreDetailPage extends StatelessWidget {
   final AnnonceVente recommendation;
-  final String? acheteurId; // 👈 à ajouter
+  final String? acheteurId;
 
   const OffreDetailPage({
     super.key,
-    this.acheteurId, // 👈 à initialiser
+    this.acheteurId,
     required this.recommendation,
   });
 
   @override
   Widget build(BuildContext context) {
-    final image = recommendation.photo ?? "";
+    final imageUrl = getImageUrl(recommendation.photo);
     final product = recommendation.typeCultureLibelle.isNotEmpty
         ? recommendation.typeCultureLibelle
         : "Produit inconnu";
@@ -30,7 +31,6 @@ class OffreDetailPage extends StatelessWidget {
     final nomVendeur = recommendation.userNom.isNotEmpty
         ? recommendation.userNom
         : "Nom inconnu";
-
     final note = recommendation.note?.toDouble() ?? 0.0;
 
     return Scaffold(
@@ -39,24 +39,14 @@ class OffreDetailPage extends StatelessWidget {
           /// ✅ IMAGE + BOUTONS
           Stack(
             children: [
-              (image.isNotEmpty &&
-                      (image.startsWith('http') || image.startsWith('https')))
-                  ? Image.network(
-                      image,
-                      width: double.infinity,
-                      height: 280,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          _imageErrorWidget(),
-                    )
-                  : Image.network(
-                      "http://192.168.252.199:8080$image",
-                      width: double.infinity,
-                      height: 280,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          _imageErrorWidget(),
-                    ),
+              Image.network(
+                imageUrl,
+                width: double.infinity,
+                height: 280,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) =>
+                    _imageErrorWidget(),
+              ),
 
               /// ✅ Bouton retour
               Positioned(
@@ -189,6 +179,7 @@ class OffreDetailPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
 
+                  /// ✅ Note
                   Row(
                     children: [
                       ...List.generate(5, (index) {
@@ -239,14 +230,10 @@ class OffreDetailPage extends StatelessWidget {
                                 MaterialPageRoute(
                                   builder: (context) => CommandeProduitPage(
                                     nomProduit: product,
-                                    imageProduit: image.isNotEmpty
-                                        ? (image.startsWith('http')
-                                            ? image
-                                            : "http://192.168.252.199:8080$image")
-                                        : "",
+                                    imageProduit: imageUrl,
                                     prixUnitaire: price.toDouble(),
-                                    stockDisponible: quantity.toDouble(), annonce: recommendation,
-
+                                    stockDisponible: quantity.toDouble(),
+                                    annonce: recommendation,
                                   ),
                                 ));
                           },
