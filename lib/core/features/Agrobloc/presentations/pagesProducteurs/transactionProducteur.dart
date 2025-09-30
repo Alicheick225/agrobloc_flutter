@@ -1,10 +1,10 @@
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/order%20tracking/Trackingpage.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/transactions/card.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/transactions/filter.dart';
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/commandeService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/commandeModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/transactions/nav.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/transactions/order%20tracking/Trackingpage.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/navBarProducteur.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/annonceVenteService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
@@ -78,7 +78,8 @@ class _TransactionProducteurState extends State<TransactionProducteur> {
       body: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 100.0), // Reduced bottom padding from 120.0 to 100.0
+          padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0,
+              100.0), // Reduced bottom padding from 120.0 to 100.0
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -114,18 +115,21 @@ class _TransactionProducteurState extends State<TransactionProducteur> {
                             itemCount: commandes.length,
                             itemBuilder: (_, i) {
                               final commande = commandes[i];
-                              if (_selectedStatus != null && commande.statut != _selectedStatus) {
+                              if (_selectedStatus != null &&
+                                  commande.statut != _selectedStatus) {
                                 return const SizedBox.shrink();
                               }
                               return Padding(
-                                padding: const EdgeInsets.only(bottom: 8.0), // Add spacing between cards
+                                padding: const EdgeInsets.only(
+                                    bottom: 8.0), // Add spacing between cards
                                 child: TransactionCard(
                                   commande: commande,
                                   onDetails: () => Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (_) => OrderTrackingScreen(
-                                          orderId: commande.id, commande: commande),
+                                          orderId: commande.id,
+                                          commande: commande),
                                     ),
                                   ),
                                 ),
