@@ -2,6 +2,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/typecultureModel.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/typeCultureService.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/annonceVenteService.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/parcelleService.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
 
 class CultureRenteForm extends StatefulWidget {
   const CultureRenteForm({super.key});
@@ -14,33 +19,65 @@ class _CultureRenteFormState extends State<CultureRenteForm> {
   final _formKey = GlobalKey<FormState>();
 
   String? _nomCulture;
-  String? _parcelle;
-  int? _quantite;
-  double? _prix;
   String? _description;
   File? _image;
+  int? _quantite;
 
   final ImagePicker _picker = ImagePicker();
+  final TextEditingController _prixController = TextEditingController();
 
-  // Simule chargement depuis ta BD
-  final List<String> _cultures = [
-    "Café",
-    "Cacao",
-    "Palmier à huile",
-    "Banane plantain"
-  ];
-  final Map<String, double> _prixCultures = {
-    "Café": 2000,
-    "Cacao": 3000,
-    "Palmier à huile": 1500,
-    "Banane plantain": 500,
-  };
+  List<TypeCulture> _cultures = [];
+  List<Map<String, dynamic>> _parcelles = [];
+  TypeCulture? _selectedCulture;
+  Map<String, dynamic>? _selectedParcelle;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCultures();
+    _loadParcelles();
+  }
+
+  Future<void> _loadCultures() async {
+    try {
+      final allCultures = await TypeCultureService().getAllTypes();
+      final cultures =
+          allCultures.where((c) => c.type?.toLowerCase() == 'rente').toList();
+      setState(() => _cultures = cultures);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Erreur chargement cultures : $e")),
+        );
+      }
+    }
+  }
+
+  Future<void> _loadParcelles() async {
+    try {
+      final parcelles = await ParcelleService().getAllParcelles();
+      setState(() {
+        _parcelles =
+            parcelles.map((p) => {'id': p.id, 'adresse': p.adresse}).toList();
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Erreur chargement parcelles : $e")),
+        );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _prixController.dispose();
+    super.dispose();
+  }
 
   Future<void> _pickImage() async {
     final XFile? picked = await _picker.pickImage(source: ImageSource.gallery);
-    if (picked != null) {
-      setState(() => _image = File(picked.path));
-    }
+    if (picked != null) setState(() => _image = File(picked.path));
   }
 
   Future<void> _submit() async {
@@ -51,19 +88,46 @@ class _CultureRenteFormState extends State<CultureRenteForm> {
       );
       return;
     }
+    if (_selectedCulture == null || _selectedParcelle == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Culture et parcelle requises")),
+      );
+      return;
+    }
 
-    // TODO : remplace par ton appel backend
-    // Ex. await annonceService.createAnnonce(...)
+    try {
+      final userId = await UserService().userId ?? '';
+      final photoFile = _image != null ? XFile(_image!.path) : null;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Annonce Culture de rente envoyée ✅")),
-    );
+      await AnnonceService().createAnnonce(
+        userId: userId,
+        typeCultureId: _selectedCulture!.id,
+        parcelleId: _selectedParcelle!['id'],
+        statut: "Disponible",
+        description: _description ?? '',
+        quantite: (_quantite ?? 0).toDouble(),
+        prixKg: double.parse(_prixController.text),
+        photo: photoFile,
+        type: "rente",
+        prixBordChamp: _selectedCulture!.prixBordChamp,
+      );
 
-    // Reset
-    _formKey.currentState!.reset();
-    setState(() {
-      _image = null;
-    });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Annonce créée ✅")),
+      );
+
+      _formKey.currentState!.reset();
+      _prixController.clear();
+      setState(() {
+        _image = null;
+        _selectedCulture = null;
+        _selectedParcelle = null;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Erreur : $e")),
+      );
+    }
   }
 
   @override
@@ -73,7 +137,7 @@ class _CultureRenteFormState extends State<CultureRenteForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          DropdownButtonFormField<String>(
+          DropdownButtonFormField<TypeCulture>(
             decoration: InputDecoration(
               labelText: "Nom de la culture",
               border:
@@ -81,19 +145,24 @@ class _CultureRenteFormState extends State<CultureRenteForm> {
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
             ),
+            value: _selectedCulture,
             items: _cultures
-                .map((nom) => DropdownMenuItem(value: nom, child: Text(nom)))
+                .map((c) => DropdownMenuItem<TypeCulture>(
+                      value: c,
+                      child: Text(c.libelle),
+                    ))
                 .toList(),
-            onChanged: (val) {
+            onChanged: (culture) {
+              if (culture == null) return;
               setState(() {
-                _nomCulture = val;
-                _prix = _prixCultures[val];
+                _selectedCulture = culture;
+                _prixController.text = culture.prixBordChamp.toStringAsFixed(0);
               });
             },
-            validator: (v) => v == null ? "Choisissez une culture" : null,
+            validator: (c) => c == null ? "Choisissez une culture" : null,
           ),
           const SizedBox(height: 16),
-          TextFormField(
+          DropdownButtonFormField<Map<String, dynamic>>(
             decoration: InputDecoration(
               labelText: "Parcelle",
               border:
@@ -101,9 +170,15 @@ class _CultureRenteFormState extends State<CultureRenteForm> {
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
             ),
-            onChanged: (val) => _parcelle = val,
-            validator: (v) =>
-                v == null || v.isEmpty ? "Indiquez la parcelle" : null,
+            value: _selectedParcelle,
+            items: _parcelles
+                .map((p) => DropdownMenuItem<Map<String, dynamic>>(
+                      value: p,
+                      child: Text(p['adresse']),
+                    ))
+                .toList(),
+            onChanged: (p) => setState(() => _selectedParcelle = p),
+            validator: (p) => p == null ? "Choisissez une parcelle" : null,
           ),
           const SizedBox(height: 16),
           TextFormField(
@@ -121,6 +196,8 @@ class _CultureRenteFormState extends State<CultureRenteForm> {
           ),
           const SizedBox(height: 16),
           TextFormField(
+            controller: _prixController,
+            readOnly: true,
             decoration: InputDecoration(
               labelText: "Prix (FCFA/kg)",
               border:
@@ -128,11 +205,8 @@ class _CultureRenteFormState extends State<CultureRenteForm> {
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
             ),
-            keyboardType: TextInputType.number,
-            initialValue: _prix?.toString(),
-            onChanged: (val) => _prix = double.tryParse(val),
-            validator: (v) =>
-                v == null || v.isEmpty ? "Indiquez le prix" : null,
+            validator: (_) =>
+                _prixController.text == '0' ? "Prix non disponible" : null,
           ),
           const SizedBox(height: 16),
           GestureDetector(

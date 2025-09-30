@@ -9,10 +9,14 @@ class AnnonceVente {
   final String quantiteUnite;
   final String userNom;
   final String typeCultureLibelle;
-  final String typeCultureId; // Added for enrichment
+  final String typeCultureId;
   final String parcelleAdresse;
   final String? createdAt;
   final double? note;
+
+  // ➜ NOUVEAUX CHAMPS
+  final String typeProduit; // "Vivrière" ou "de rente"
+  final double? prixBordChamp; // prix depuis la BD
 
   AnnonceVente({
     required this.id,
@@ -29,27 +33,30 @@ class AnnonceVente {
     required this.parcelleAdresse,
     this.createdAt,
     this.note,
+    // ➜ NOUVEAUX
+    required this.typeProduit,
+    this.prixBordChamp,
   });
 
   factory AnnonceVente.fromJson(Map<String, dynamic> json) {
-    // Add logging to see the JSON structure
-    print('AnnonceVente.fromJson: $json');
-
     return AnnonceVente(
       id: json['id']?.toString() ?? '',
       photo: json['photo'],
       statut: json['statut'] ?? 'Indisponible',
       description: json['description'] ?? '',
       prixKg: (json['prix_kg'] as num?)?.toDouble() ?? 0,
-      prixUnite: json['prix_unite'] ?? 'FCFA',
+      prixUnite: json['devise'] ?? 'FCFA', // ← clé JSON corrigée
       quantite: (json['quantite'] as num?)?.toDouble() ?? 0,
-      quantiteUnite: json['quantite_unite'] ?? 'kg',
-      userNom: json['user']?['nom'] ?? json['user_nom'] ?? '',
-      typeCultureLibelle: json['type_culture']?['libelle'] ?? json['type_culture_libelle'] ?? '',
-      typeCultureId: json['type_culture_id']?.toString() ?? json['type_culture']?['id']?.toString() ?? '',
-      parcelleAdresse: json['parcelle']?['adresse'] ?? json['parcelle_adresse'] ?? '',
+      quantiteUnite: json['unite'] ?? 'kg', // ← clé JSON corrigée
+      userNom: json['nom'] ?? '',
+      typeCultureLibelle: json['libelle'] ?? '',
+      typeCultureId: json['type_culture_id']?.toString() ?? '',
+      parcelleAdresse: json['adresse'] ?? '',
       createdAt: json['created_at']?.toString(),
       note: (json['note'] as num?)?.toDouble(),
+      // ➜ NOUVEAUX
+      typeProduit: json['type'] ?? 'Vivrière', // "Vivrière" ou "de rente"
+      prixBordChamp: (json['prix_bord_champ'] as num?)?.toDouble(),
     );
   }
 
@@ -60,15 +67,18 @@ class AnnonceVente {
       'statut': statut,
       'description': description,
       'prix_kg': prixKg,
-      'prix_unite': prixUnite,
+      'devise': prixUnite, // ← clé JSON corrigée
       'quantite': quantite,
-      'quantite_unite': quantiteUnite,
-      'user_nom': userNom,
-      'type_culture_libelle': typeCultureLibelle,
+      'unite': quantiteUnite, // ← clé JSON corrigée
+      'nom': userNom,
+      'libelle': typeCultureLibelle,
       'type_culture_id': typeCultureId,
-      'parcelle_adresse': parcelleAdresse,
+      'adresse': parcelleAdresse,
       'created_at': createdAt,
       'note': note,
+      // ➜ NOUVEAUX
+      'type': typeProduit,
+      'prix_bord_champ': prixBordChamp,
     };
   }
 }

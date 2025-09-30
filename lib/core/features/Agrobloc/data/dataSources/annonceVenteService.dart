@@ -12,7 +12,7 @@ import 'typeCultureService.dart';
 import 'userService.dart';
 
 class AnnonceService {
-  final ApiClient api = ApiClient(ApiConfig.annoncesBaseUrl);
+  final ApiClient api = ApiClient(ApiConfig.devAnnoncesVenteBaseUrl);
   final TypeCultureService _typeCultureService = TypeCultureService();
   static const Duration timeoutDuration = Duration(seconds: 25);
 
@@ -58,10 +58,9 @@ class AnnonceService {
       final ext = photo.path.split('.').last;
       final uniqueName = "uploads/${_uuid.v4()}.$ext";
 
-      final response = await supabase.storage
-          .from(bucketName)
-          .uploadBinary(uniqueName, bytes,
-              fileOptions: const FileOptions(upsert: true));
+      final response = await supabase.storage.from(bucketName).uploadBinary(
+          uniqueName, bytes,
+          fileOptions: const FileOptions(upsert: true));
 
       if (response.isNotEmpty) {
         throw Exception("Erreur upload Supabase: $response");
@@ -109,6 +108,8 @@ class AnnonceService {
         parcelleAdresse: annonce.parcelleAdresse,
         createdAt: annonce.createdAt,
         note: annonce.note,
+        typeProduit: annonce.typeProduit,
+        prixBordChamp: annonce.prixBordChamp,
       );
     }).toList();
   }
@@ -142,6 +143,10 @@ class AnnonceService {
     required double quantite,
     required double prixKg,
     XFile? photo,
+
+    // ➜ NOUVEAUX CHAMPS
+    String? type, // "Vivrière" ou "de rente"
+    double? prixBordChamp, // prix depuis la BD
   }) async {
     try {
       String? photoUrl;
@@ -161,6 +166,10 @@ class AnnonceService {
         'quantite': quantite,
         'prix_kg': prixKg,
         if (photoUrl != null) 'photo': photoUrl,
+
+        // ➜ NOUVEAUX CHAMPS
+        if (type != null) 'type': type,
+        if (prixBordChamp != null) 'prix_bord_champ': prixBordChamp,
       };
 
       final response = await api.post('/annonces_vente', body);
@@ -292,5 +301,55 @@ class AnnonceService {
       return Exception('Erreur de format des données');
     }
     return Exception('Erreur inattendue: ${e.toString()}');
+  }
+
+  /// 🔹 Culture catégorie Rente ou Vivrière
+
+  Future<List<Map<String, dynamic>>> fetchCultures() async {
+    try {
+      final response = await api.get('/cultures'); // <-- votre vraie route
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data
+            .map<Map<String, dynamic>>((e) =>
+                {'id': e['id'].toString(), 'libelle': e['libelle'] ?? ''})
+            .toList();
+      } else {
+        throw _handleError(response);
+      }
+    } catch (e) {
+      // ➜ Jamais null : renvoie la liste de secours
+      return [
+        {'id': 'rente', 'libelle': 'Culture de rente'},
+        {'id': 'vivriere', 'libelle': 'Culture vivrière'},
+      ];
+    }
+  }
+
+  /// 🔹 Récupérer **toutes les cultures** d’une **catégorie** ("rente" ou "vivrière")
+  Future<List<Map<String, dynamic>>> fetchCulturesByCategory(
+      String category) async {
+    try {
+      // ➜ On construit l’URL à la main
+      final url = '/cultures?Type=$Type';
+      final response = await api.get(url);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data
+            .map<Map<String, dynamic>>((e) => {
+                  'id': e['id'].toString(),
+                  'libelle': e['libelle'] ?? '',
+                  'prix_bord_champ':
+                      (e['prix_bord_champ'] as num?)?.toDouble() ?? 0.0
+                })
+            .toList();
+      } else {
+        throw _handleError(response);
+      }
+    } catch (e) {
+      // ➜ Jamais null : liste vide en cas d’erreur
+      return [];
+    }
   }
 }
