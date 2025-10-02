@@ -81,41 +81,57 @@ class _CultureRenteFormState extends State<CultureRenteForm> {
   }
 
   Future<void> _submit() async {
+    // 1. validations classiques
     if (!_formKey.currentState!.validate()) return;
     if (_image == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Veuillez ajouter une image")),
+        const SnackBar(content: Text('Veuillez ajouter une image')),
       );
       return;
     }
     if (_selectedCulture == null || _selectedParcelle == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Culture et parcelle requises")),
+        const SnackBar(content: Text('Culture et parcelle requises')),
+      );
+      return;
+    }
+
+    final cultureId = _selectedCulture!.id;
+    final parcelleId = _selectedParcelle!['id'].toString();
+
+    if (cultureId.length != 36 || parcelleId.length != 36) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ID invalide (UUID 36 caractères)')),
       );
       return;
     }
 
     try {
       final userId = await UserService().userId ?? '';
+      if (userId.length != 36) throw Exception('userId invalide');
+
+      // upload image → URL
       final photoFile = _image != null ? XFile(_image!.path) : null;
 
+      // appel service MULTIPART
       await AnnonceService().createAnnonce(
         userId: userId,
-        typeCultureId: _selectedCulture!.id,
-        parcelleId: _selectedParcelle!['id'],
-        statut: "Disponible",
-        description: _description ?? '',
+        typeCultureId: cultureId,
+        parcelleId: parcelleId,
+        statut: "Disponible", // sera ignoré par le back, mais on le met
+        description: _description?.trim() ?? '',
         quantite: (_quantite ?? 0).toDouble(),
         prixKg: double.parse(_prixController.text),
         photo: photoFile,
-        type: "rente",
+        type: "de rente",
         prixBordChamp: _selectedCulture!.prixBordChamp,
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Annonce créée ✅")),
+        const SnackBar(content: Text('Annonce créée ✅')),
       );
 
+      // reset
       _formKey.currentState!.reset();
       _prixController.clear();
       setState(() {
@@ -125,7 +141,7 @@ class _CultureRenteFormState extends State<CultureRenteForm> {
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erreur : $e")),
+        SnackBar(content: Text('Erreur : $e')),
       );
     }
   }

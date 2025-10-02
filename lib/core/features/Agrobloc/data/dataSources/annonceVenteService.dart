@@ -58,16 +58,12 @@ class AnnonceService {
       final ext = photo.path.split('.').last;
       final uniqueName = "uploads/${_uuid.v4()}.$ext";
 
-      final response = await supabase.storage.from(bucketName).uploadBinary(
-          uniqueName, bytes,
+      // Succès : uploadBinary renvoie '' ou lève une exception
+      await supabase.storage.from(bucketName).uploadBinary(uniqueName, bytes,
           fileOptions: const FileOptions(upsert: true));
 
-      if (response.isNotEmpty) {
-        throw Exception("Erreur upload Supabase: $response");
-      }
-
-      final url = supabase.storage.from(bucketName).getPublicUrl(uniqueName);
-      return url;
+      // Récupération de l’URL publique
+      return supabase.storage.from(bucketName).getPublicUrl(uniqueName);
     } catch (e) {
       print("❌ Upload échoué: $e");
       return null;
@@ -133,7 +129,7 @@ class AnnonceService {
     }
   }
 
-  /// 🔹 Créer une annonce (avec Supabase Storage pour l’image)
+  /// ➜  CRÉATION MULTIPART conforme au back
   Future<AnnonceVente> createAnnonce({
     required String userId,
     required String typeCultureId,
@@ -144,35 +140,39 @@ class AnnonceService {
     required double prixKg,
     XFile? photo,
 
-    // ➜ NOUVEAUX CHAMPS
-    String? type, // "Vivrière" ou "de rente"
-    double? prixBordChamp, // prix depuis la BD
+    // nouveaux champs
+    String? type,
+    double? prixBordChamp,
   }) async {
     try {
-      String? photoUrl;
-      if (photo != null) {
-        photoUrl = await _uploadToSupabase(photo);
-        if (photoUrl == null) {
-          throw Exception("Échec upload image Supabase");
-        }
+      final token = await _getValidToken();
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('${ApiConfig.devAnnoncesVenteBaseUrl}/annonces_vente'),
+      );
+
+      request.headers['Authorization'] = 'Bearer $token';
+
+      // 1. champs texte
+      request.fields['culture_id'] = typeCultureId;
+      request.fields['parcelle_id'] = parcelleId;
+      request.fields['quantite'] = quantite.toStringAsFixed(2);
+      request.fields['prix_kg'] = prixKg.toStringAsFixed(2);
+      request.fields['description'] = description.trim();
+      if (type != null) request.fields['type'] = type;
+      if (prixBordChamp != null) {
+        request.fields['prix_bord_champ'] = prixBordChamp.toStringAsFixed(2);
       }
 
-      final body = {
-        'user_id': userId,
-        'type_culture_id': typeCultureId,
-        'parcelle_id': parcelleId,
-        'statut': statut,
-        'description': description,
-        'quantite': quantite,
-        'prix_kg': prixKg,
-        if (photoUrl != null) 'photo': photoUrl,
+      // 2. image déjà uploadée → on passe l'URL
+      if (photo != null) {
+        final photoUrl = await _uploadToSupabase(photo);
+        if (photoUrl != null) request.fields['photo'] = photoUrl;
+      }
 
-        // ➜ NOUVEAUX CHAMPS
-        if (type != null) 'type': type,
-        if (prixBordChamp != null) 'prix_bord_champ': prixBordChamp,
-      };
+      final streamed = await request.send().timeout(timeoutDuration);
+      final response = await http.Response.fromStream(streamed);
 
-      final response = await api.post('/annonces_vente', body);
       if (response.statusCode == 201 || response.statusCode == 200) {
         return AnnonceVente.fromJson(jsonDecode(response.body));
       } else {
