@@ -19,12 +19,12 @@ class _CultureRenteFormState extends State<CultureRenteForm> {
   final _formKey = GlobalKey<FormState>();
 
   String? _nomCulture;
-  String? _description;
   File? _image;
-  int? _quantite;
 
   final ImagePicker _picker = ImagePicker();
   final TextEditingController _prixController = TextEditingController();
+  final TextEditingController _quantiteController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
 
   List<TypeCulture> _cultures = [];
   List<Map<String, dynamic>> _parcelles = [];
@@ -72,6 +72,8 @@ class _CultureRenteFormState extends State<CultureRenteForm> {
   @override
   void dispose() {
     _prixController.dispose();
+    _quantiteController.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
@@ -118,9 +120,9 @@ class _CultureRenteFormState extends State<CultureRenteForm> {
         userId: userId,
         typeCultureId: cultureId,
         parcelleId: parcelleId,
-        statut: "Disponible", // sera ignoré par le back, mais on le met
-        description: _description?.trim() ?? '',
-        quantite: (_quantite ?? 0).toDouble(),
+        statut: "Disponible",
+        description: _descriptionController.text.trim(),
+        quantite: double.tryParse(_quantiteController.text) ?? 0,
         prixKg: double.parse(_prixController.text),
         photo: photoFile,
         type: "de rente",
@@ -134,6 +136,8 @@ class _CultureRenteFormState extends State<CultureRenteForm> {
       // reset
       _formKey.currentState!.reset();
       _prixController.clear();
+      _quantiteController.clear();
+      _descriptionController.clear();
       setState(() {
         _image = null;
         _selectedCulture = null;
@@ -197,16 +201,18 @@ class _CultureRenteFormState extends State<CultureRenteForm> {
             validator: (p) => p == null ? "Choisissez une parcelle" : null,
           ),
           const SizedBox(height: 16),
+          // CHAMP QUANTITÉ
           TextFormField(
+            controller: _quantiteController,
             decoration: InputDecoration(
               labelText: "Quantité (kg)",
               border:
                   OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+              // SUPPRIMÉ : suffixIcon avec icône poubelle
             ),
             keyboardType: TextInputType.number,
-            onChanged: (val) => _quantite = int.tryParse(val),
             validator: (v) =>
                 v == null || v.isEmpty ? "Indiquez la quantité" : null,
           ),
@@ -251,16 +257,20 @@ class _CultureRenteFormState extends State<CultureRenteForm> {
             ),
           ),
           const SizedBox(height: 16),
+          // CHAMP DESCRIPTION
           TextFormField(
+            controller: _descriptionController,
             decoration: InputDecoration(
               labelText: "Description",
               border:
                   OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+              // SUPPRIMÉ : suffixIcon avec icône poubelle
             ),
             maxLines: 3,
-            onChanged: (val) => _description = val,
+            validator: (v) =>
+                v == null || v.isEmpty ? "Indiquez une description" : null,
           ),
           const SizedBox(height: 20),
           Center(

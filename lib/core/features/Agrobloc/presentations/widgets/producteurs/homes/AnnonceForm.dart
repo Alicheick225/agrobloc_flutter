@@ -51,50 +51,53 @@ class _DynamicAnnonceFormState extends State<DynamicAnnonceForm> {
           ? const Center(child: CircularProgressIndicator())
           : Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Sélectionnez le type de culture",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Liste dynamique des types de produits
-                  ..._typesProduits.map(
-                    (type) => RadioListTile<Map<String, dynamic>>(
-                      title: Text(type['libelle'] ?? "Sans libellé"),
-                      value: type,
-                      groupValue: _typeProduit != null
-                          ? _typesProduits.firstWhere(
-                              (e) => e['libelle'] == _typeProduit,
-                              orElse: () => _typesProduits.first,
-                            )
-                          : null,
-                      onChanged: (val) => setState(() => _typeProduit =
-                          val?['libelle']?.toString() ?? 'Inconnu'),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Formulaire dynamique
-                  if (_typeProduit == "Culture de rente") ...[
-                    const CultureRenteForm(),
-                  ] else if (_typeProduit == "Culture vivrière") ...[
-                    const CultureVivriereForm(),
-                  ] else if (_typeProduit != null) ...[
-                    Text(
-                      "⚠️ Type « $_typeProduit » non encore supporté",
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  ] else ...[
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     const Text(
-                      "⚠️ Veuillez sélectionner un type de produit pour continuer",
-                      style: TextStyle(color: Colors.red),
+                      "Sélectionnez le type de culture",
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
+                    const SizedBox(height: 8),
+
+                    // Liste dynamique des types de produits
+                    ..._typesProduits.map(
+                      (type) => RadioListTile<Map<String, dynamic>>(
+                        title: Text(type['libelle'] ?? "Sans libellé"),
+                        value: type,
+                        groupValue: _typeProduit != null
+                            ? _typesProduits.firstWhere(
+                                (e) => e['libelle'] == _typeProduit,
+                                orElse: () => _typesProduits.first,
+                              )
+                            : null,
+                        onChanged: (val) => setState(() => _typeProduit =
+                            val?['libelle']?.toString() ?? 'Inconnu'),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Formulaire dynamique
+                    if (_typeProduit == "Culture de rente") ...[
+                      const CultureRenteForm(),
+                    ] else if (_typeProduit == "Culture vivrière") ...[
+                      const CultureVivriereForm(),
+                    ] else if (_typeProduit != null) ...[
+                      Text(
+                        "⚠️ Type « $_typeProduit » non encore supporté",
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    ] else ...[
+                      const Text(
+                        "⚠️ Veuillez sélectionner un type de produit pour continuer",
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
     );

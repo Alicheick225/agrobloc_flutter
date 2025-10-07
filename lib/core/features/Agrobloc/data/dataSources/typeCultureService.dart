@@ -65,9 +65,8 @@ class TypeCultureService {
   // ✅ Créer une nouvelle culture
   Future<TypeCulture> createType(TypeCulture type) async {
     try {
-      final response = await api
-          .post('/api/cultures', type.toJson())
-          .timeout(timeoutDuration);
+      final response =
+          await api.post('/', type.toJson()).timeout(timeoutDuration);
 
       if (response.statusCode == 201) {
         return TypeCulture.fromJson(jsonDecode(response.body));

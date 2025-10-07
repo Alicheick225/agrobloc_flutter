@@ -1,7 +1,17 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/typecultureModel.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/typeCultureService.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/annonceVenteService.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
+
+// ---------- EXTENSION ----------
+extension FirstOrNull<T> on Iterable<T> {
+  T? get firstOrNull => isEmpty ? null : first;
+}
 
 class CultureVivriereForm extends StatefulWidget {
   const CultureVivriereForm({super.key});
@@ -12,48 +22,123 @@ class CultureVivriereForm extends StatefulWidget {
 
 class _CultureVivriereFormState extends State<CultureVivriereForm> {
   final _formKey = GlobalKey<FormState>();
-
-  String? _nomCulture;
-  double? _prix;
-  int? _quantite;
-  String? _description;
-  File? _image;
-
   final ImagePicker _picker = ImagePicker();
 
-  // Simule liste depuis ta BD (tu remplacera par ton service)
-  final List<String> _culturesDispos = [
-    "Manioc",
-    "Igname",
-    "Patate",
-    "Maïs",
-    "Haricot",
-    "Tomate",
-    "Poivron"
-  ];
+  final TextEditingController _prixController = TextEditingController();
+  final TextEditingController _quantiteController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+
+  List<TypeCulture> _cultures = [];
+  TypeCulture? _selectedCulture;
+  File? _image;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCultures();
+  }
+
+  Future<void> _loadCultures() async {
+    try {
+      final all = await TypeCultureService().getAllTypes();
+      final vivrieres =
+          all.where((c) => c.type?.toLowerCase() == 'vivriere').toList();
+      setState(() => _cultures = vivrieres);
+    } catch (e) {
+      _showError("Erreur lors du chargement des cultures : $e");
+    }
+  }
+
+  void _showError(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), backgroundColor: Colors.red),
+    );
+  }
 
   Future<void> _pickImage() async {
-    final XFile? picked = await _picker.pickImage(source: ImageSource.gallery);
+    final picked = await _picker.pickImage(source: ImageSource.gallery);
     if (picked != null) setState(() => _image = File(picked.path));
+  }
+
+  double? _parseDouble(String? s) {
+    final val = double.tryParse(s ?? '');
+    return (val == null || val <= 0) ? null : val;
+  }
+
+  // ---------- VALIDATION CROISÉE ----------
+  TypeCulture? _findCulture(String libelle) {
+    final normalised = libelle.trim().toLowerCase();
+    return _cultures
+        .where((c) => c.libelle.toLowerCase() == normalised)
+        .firstOrNull;
   }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+
+    final culture = _findCulture(_selectedCulture?.libelle ?? '');
+    if (culture == null) {
+      _showError("Le nom saisi ne correspond à aucune culture existante.");
+      return;
+    }
+    _selectedCulture = culture;
+
     if (_image == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Veuillez ajouter une image")),
-      );
+      _showError("Veuillez ajouter une image.");
       return;
     }
 
-    // TODO : brancher ton AnnonceService ici
+    final quantite = _parseDouble(_quantiteController.text);
+    final prix = _parseDouble(_prixController.text);
+    if (quantite == null || prix == null) {
+      _showError("Quantité et prix doivent être > 0.");
+      return;
+    }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Annonce Culture vivrière envoyée ✅")),
-    );
+    setState(() => _isLoading = true);
 
-    _formKey.currentState!.reset();
-    setState(() => _image = null);
+    try {
+      final userId = await UserService().userId;
+      if (userId == null || userId.isEmpty)
+        throw Exception("Utilisateur non identifié.");
+
+      await AnnonceService().createAnnonce(
+        userId: userId,
+        typeCultureId: _selectedCulture!.id,
+        parcelleId: '',
+        statut: "Disponible",
+        description: _descriptionController.text.trim(),
+        quantite: quantite,
+        prixKg: prix,
+        photo: XFile(_image!.path),
+        type: "vivriere",
+        prixBordChamp: null,
+      );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Annonce vivrière créée ✅')),
+      );
+
+      _resetForm();
+    } catch (e) {
+      _showError("Erreur : $e");
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  void _resetForm() {
+    _formKey.currentState?.reset();
+    _prixController.clear();
+    _quantiteController.clear();
+    _descriptionController.clear();
+    setState(() {
+      _selectedCulture = null;
+      _image = null;
+    });
   }
 
   @override
@@ -63,35 +148,49 @@ class _CultureVivriereFormState extends State<CultureVivriereForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Nom culture (autocompletion)
-          Autocomplete<String>(
-            optionsBuilder: (TextEditingValue val) {
-              if (val.text.isEmpty) return const Iterable<String>.empty();
-              return _culturesDispos.where(
-                  (c) => c.toLowerCase().contains(val.text.toLowerCase()));
+          /// 🌾 Sélection de la culture vivrière
+          DropdownSearch<TypeCulture>(
+            items: (filter, loadProps) async {
+              if (filter == null || filter.isEmpty) return _cultures;
+              return _cultures
+                  .where((c) =>
+                      c.libelle.toLowerCase().contains(filter.toLowerCase()))
+                  .toList();
             },
-            onSelected: (val) => _nomCulture = val,
-            fieldViewBuilder:
-                (context, controller, focusNode, onFieldSubmitted) {
-              return TextFormField(
-                controller: controller,
-                focusNode: focusNode,
+            itemAsString: (c) => c.libelle,
+            selectedItem: _selectedCulture,
+            compareFn: (a, b) => a.id == b.id, // ← clé unique
+            onChanged: (v) => setState(() => _selectedCulture = v),
+            validator: (v) =>
+                v == null ? "Veuillez sélectionner une culture" : null,
+            decoratorProps: DropDownDecoratorProps(
+              decoration: InputDecoration(
+                labelText: "Sélectionnez une culture vivrière",
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+              ),
+            ),
+            popupProps: PopupProps.menu(
+              showSearchBox: true,
+              searchFieldProps: TextFieldProps(
                 decoration: InputDecoration(
-                  labelText: "Nom de la culture",
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6)),
+                  hintText: "Rechercher une culture...",
                   contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 ),
-                onChanged: (val) => _nomCulture = val,
-                validator: (v) =>
-                    v == null || v.isEmpty ? "Indiquez le nom" : null,
-              );
-            },
+              ),
+              fit: FlexFit.loose,
+              showSelectedItems: true,
+              menuProps: MenuProps(borderRadius: BorderRadius.circular(6)),
+            ),
           ),
           const SizedBox(height: 16),
 
+          /// 💰 Prix manuel
           TextFormField(
+            controller: _prixController,
             decoration: InputDecoration(
               labelText: "Prix (FCFA/kg)",
               border:
@@ -100,13 +199,14 @@ class _CultureVivriereFormState extends State<CultureVivriereForm> {
                   const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
             ),
             keyboardType: TextInputType.number,
-            onChanged: (val) => _prix = double.tryParse(val),
             validator: (v) =>
                 v == null || v.isEmpty ? "Indiquez le prix" : null,
           ),
           const SizedBox(height: 16),
 
+          /// ⚖️ Quantité
           TextFormField(
+            controller: _quantiteController,
             decoration: InputDecoration(
               labelText: "Quantité (kg)",
               border:
@@ -115,12 +215,12 @@ class _CultureVivriereFormState extends State<CultureVivriereForm> {
                   const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
             ),
             keyboardType: TextInputType.number,
-            onChanged: (val) => _quantite = int.tryParse(val),
             validator: (v) =>
                 v == null || v.isEmpty ? "Indiquez la quantité" : null,
           ),
           const SizedBox(height: 16),
 
+          /// 🖼️ Image
           GestureDetector(
             onTap: _pickImage,
             child: Container(
@@ -148,7 +248,9 @@ class _CultureVivriereFormState extends State<CultureVivriereForm> {
           ),
           const SizedBox(height: 16),
 
+          /// 📝 Description
           TextFormField(
+            controller: _descriptionController,
             decoration: InputDecoration(
               labelText: "Description",
               border:
@@ -157,13 +259,15 @@ class _CultureVivriereFormState extends State<CultureVivriereForm> {
                   const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
             ),
             maxLines: 3,
-            onChanged: (val) => _description = val,
+            validator: (v) =>
+                v == null || v.isEmpty ? "Indiquez une description" : null,
           ),
           const SizedBox(height: 20),
 
+          /// 🚀 Bouton de publication
           Center(
             child: ElevatedButton(
-              onPressed: _submit,
+              onPressed: _isLoading ? null : _submit,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryGreen,
                 padding:
@@ -171,11 +275,17 @@ class _CultureVivriereFormState extends State<CultureVivriereForm> {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(6)),
               ),
-              child: const Text(
-                "Publier l’annonce",
-                style:
-                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                          color: Colors.white, strokeWidth: 2))
+                  : const Text(
+                      "Publier l’annonce",
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
             ),
           ),
         ],
