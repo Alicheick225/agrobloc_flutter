@@ -36,15 +36,17 @@ class _CultureVivriereFormState extends State<CultureVivriereForm> {
   @override
   void initState() {
     super.initState();
-    _loadCultures();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadCultures());
   }
 
   Future<void> _loadCultures() async {
     try {
       final all = await TypeCultureService().getAllTypes();
       final vivrieres =
-          all.where((c) => c.type?.toLowerCase() == 'vivriere').toList();
+          all.where((c) => c.type?.toLowerCase() == 'vivrière').toList();
       setState(() => _cultures = vivrieres);
+      print(
+          '🌾 cultures vivrières chargées : ${vivrieres.map((e) => e.libelle).toList()}');
     } catch (e) {
       _showError("Erreur lors du chargement des cultures : $e");
     }
@@ -150,40 +152,26 @@ class _CultureVivriereFormState extends State<CultureVivriereForm> {
         children: [
           /// 🌾 Sélection de la culture vivrière
           DropdownSearch<TypeCulture>(
-            items: (filter, loadProps) async {
-              if (filter == null || filter.isEmpty) return _cultures;
-              return _cultures
-                  .where((c) =>
-                      c.libelle.toLowerCase().contains(filter.toLowerCase()))
-                  .toList();
-            },
+            items: (filter, loadProps) async => _cultures, // liste déjà filtrée
             itemAsString: (c) => c.libelle,
             selectedItem: _selectedCulture,
-            compareFn: (a, b) => a.id == b.id, // ← clé unique
+            compareFn: (a, b) => a.id == b.id,
             onChanged: (v) => setState(() => _selectedCulture = v),
             validator: (v) =>
-                v == null ? "Veuillez sélectionner une culture" : null,
-            decoratorProps: DropDownDecoratorProps(
+                v == null ? "Choisissez une culture vivrière" : null,
+            decoratorProps: const DropDownDecoratorProps(
               decoration: InputDecoration(
                 labelText: "Sélectionnez une culture vivrière",
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+                border: OutlineInputBorder(),
                 contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                    EdgeInsets.symmetric(horizontal: 12, vertical: 14),
               ),
             ),
-            popupProps: PopupProps.menu(
+            popupProps: const PopupProps.menu(
               showSearchBox: true,
               searchFieldProps: TextFieldProps(
-                decoration: InputDecoration(
-                  hintText: "Rechercher une culture...",
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                ),
+                decoration: InputDecoration(hintText: "Rechercher..."),
               ),
-              fit: FlexFit.loose,
-              showSelectedItems: true,
-              menuProps: MenuProps(borderRadius: BorderRadius.circular(6)),
             ),
           ),
           const SizedBox(height: 16),
