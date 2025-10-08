@@ -65,7 +65,7 @@ class MessageService {
         'updated_at': DateTime.now().toIso8601String(),
       };
 
-      final response = await api.post('/conversations', conversationData);
+      final response = await api.post('/conversations', conversationData,);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
@@ -94,7 +94,7 @@ class MessageService {
         'updated_at': message.timestamp.toIso8601String(),
       };
 
-      final response = await api.post('/conversations/$conversationId/messages', messageData);
+      final response = await api.post('/conversations/$conversationId/messages', messageData,);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);

@@ -8,11 +8,12 @@ class AnnonceVente {
   final double quantite;
   final String quantiteUnite;
   final String userNom;
-  final String typeCultureLibelle;
-  final String typeCultureId; // Added for enrichment
+  final String cultureLibelle;
+  final String cultureType;
   final String parcelleAdresse;
   final String? createdAt;
   final double? note;
+  final double? culturePrixBordChamp;
 
   AnnonceVente({
     required this.id,
@@ -24,36 +25,35 @@ class AnnonceVente {
     required this.quantite,
     required this.quantiteUnite,
     required this.userNom,
-    required this.typeCultureLibelle,
-    required this.typeCultureId,
+    required this.cultureLibelle,
+    required this.cultureType,
     required this.parcelleAdresse,
     this.createdAt,
     this.note,
+    this.culturePrixBordChamp,
   });
 
   factory AnnonceVente.fromJson(Map<String, dynamic> json) {
-    // Add logging to see the JSON structure and statut values
-    final originalStatut = json['statut']?.toString() ?? 'Indisponible';
-    final normalizedStatut = originalStatut.toLowerCase();
-    print('📋 AnnonceVente.fromJson - ID: ${json['id']}, Statut original: "$originalStatut" -> normalisé: "$normalizedStatut"');
-
     return AnnonceVente(
       id: json['id']?.toString() ?? '',
       photo: json['photo'],
-      statut: normalizedStatut,
+      statut: AnnonceVente.normalizeStatut(json['statut'] ?? ''),
       description: json['description'] ?? '',
       prixKg: (json['prix_kg'] as num?)?.toDouble() ?? 0,
       prixUnite: json['prix_unite'] ?? 'FCFA',
       quantite: (json['quantite'] as num?)?.toDouble() ?? 0,
       quantiteUnite: json['quantite_unite'] ?? 'kg',
-      userNom: json['user']?['nom'] ?? json['user_nom'] ?? '',
-      typeCultureLibelle: json['type_culture']?['libelle'] ?? json['type_culture_libelle'] ?? '',
-      typeCultureId: json['type_culture_id']?.toString() ?? json['type_culture']?['id']?.toString() ?? '',
-      parcelleAdresse: json['parcelle']?['adresse'] ?? json['parcelle_adresse'] ?? '',
+      userNom: json['user_nom'] ?? '',
+      cultureLibelle: json['culture_libelle'] ?? '',
+      cultureType: json['culture_type'] ?? 'vivriere',
+      parcelleAdresse: json['parcelle_adresse'] ?? '',
       createdAt: json['created_at']?.toString(),
       note: (json['note'] as num?)?.toDouble(),
+      culturePrixBordChamp: (json['culture_prix_bord_champ'] as num?)?.toDouble(),
     );
   }
+  
+  static String normalizeStatut(String s) => s;
 
   Map<String, dynamic> toJson() {
     return {
@@ -66,11 +66,12 @@ class AnnonceVente {
       'quantite': quantite,
       'quantite_unite': quantiteUnite,
       'user_nom': userNom,
-      'type_culture_libelle': typeCultureLibelle,
-      'type_culture_id': typeCultureId,
+      'culture_libelle': cultureLibelle,
+      'culture_type': cultureType,
       'parcelle_adresse': parcelleAdresse,
       'created_at': createdAt,
       'note': note,
+      'culture_prix_bord_champ': culturePrixBordChamp,
     };
   }
 }

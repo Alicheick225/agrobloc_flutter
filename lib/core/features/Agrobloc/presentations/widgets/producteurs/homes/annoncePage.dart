@@ -212,7 +212,7 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                                                         style: TextStyle(color: Colors.grey[700]),
                                                       ),
                                                       TextSpan(
-                                                        text: '${annonce.typeCultureLibelle}',
+                                                        text: '${annonce.cultureLibelle}',
                                                         style: const TextStyle(
                                                           color: Color(0xFF4CAF50),
                                                           fontSize: 18,

@@ -22,8 +22,8 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
   @override
   Widget build(BuildContext context) {
     final imageUrl = getImageUrl(widget.recommendation.photo);
-    final product = widget.recommendation.typeCultureLibelle.isNotEmpty
-        ? widget.recommendation.typeCultureLibelle
+    final product = widget.recommendation.cultureLibelle.isNotEmpty
+        ? widget.recommendation.cultureLibelle
         : "Produit inconnu";
     final description = widget.recommendation.description.isNotEmpty
         ? widget.recommendation.description

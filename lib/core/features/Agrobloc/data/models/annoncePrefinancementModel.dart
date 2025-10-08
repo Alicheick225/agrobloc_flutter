@@ -7,8 +7,8 @@ class AnnoncePrefinancement {
   final double quantite;
   final String quantiteUnite;
   final String nom; // Changed from userNom to nom
-  final String libelle; // Changed from typeCultureLibelle to libelle
-  final String typeCultureId; // Added for enrichment
+  final String libelle; // Changed from cultureLibelle to libelle
+  final String cultureId; // Added for enrichment
   final String parcelleId; // Added for parcelle ID
   final String adresse; // Changed from parcelleAdresse to adresse
   final double surface; // Changed from parcelleSuf to surface
@@ -25,7 +25,7 @@ class AnnoncePrefinancement {
     required this.quantiteUnite,
     required this.nom,
     required this.libelle,
-    required this.typeCultureId,
+    required this.cultureId,
     required this.parcelleId,
     required this.adresse,
     required this.surface,
@@ -58,24 +58,24 @@ class AnnoncePrefinancement {
 
     // Fallback to direct field if nested data is empty
     if (libelle.isEmpty) {
-      libelle = json['typeCultureLibelle']?.toString() ?? '';
-      print('🔄 AnnoncePrefinancement.fromJson: Utilisation du fallback typeCultureLibelle: "$libelle"');
+      libelle = json['cultureLibelle']?.toString() ?? '';
+      print('🔄 AnnoncePrefinancement.fromJson: Utilisation du fallback cultureLibelle: "$libelle"');
     }
 
     print('🔍 AnnoncePrefinancement.fromJson: Libelle final après extraction: "$libelle"');
 
-    // Try multiple possible field names for typeCultureId
-    String typeCultureId = '';
+    // Try multiple possible field names for cultureId
+    String cultureId = '';
     if (json['type_culture_id'] != null) {
-      typeCultureId = json['type_culture_id'].toString();
-    } else if (json['typeCultureId'] != null) {
-      typeCultureId = json['typeCultureId'].toString();
+      cultureId = json['type_culture_id'].toString();
+    } else if (json['cultureId'] != null) {
+      cultureId = json['cultureId'].toString();
     } else if (json['type_culture'] != null && json['type_culture'] is Map<String, dynamic>) {
       final typeCulture = json['type_culture'] as Map<String, dynamic>;
-      typeCultureId = typeCulture['id']?.toString() ?? '';
+      cultureId = typeCulture['id']?.toString() ?? '';
     }
 
-    print('🔍 AnnoncePrefinancement.fromJson: typeCultureId extrait: "$typeCultureId"');
+    print('🔍 AnnoncePrefinancement.fromJson: cultureId extrait: "$cultureId"');
 
     // Extract parcelleId
     String parcelleId = '';
@@ -100,7 +100,7 @@ class AnnoncePrefinancement {
       quantiteUnite: quantiteUnite,
       nom: json['userNom']?.toString() ?? '', // Map userNom to nom
       libelle: libelle, // Use extracted libelle from nested type_culture
-      typeCultureId: typeCultureId, // Use extracted typeCultureId variable
+      cultureId: cultureId, // Use extracted cultureId variable
       parcelleId: parcelleId, // Use extracted parcelleId variable
       adresse: json['parcelleAdresse']?.toString() ?? '', // Map parcelleAdresse to adresse
       surface: (json['parcelleSuf'] as num?)?.toDouble() ?? 0.0, // Map parcelleSuf to surface
@@ -119,8 +119,8 @@ class AnnoncePrefinancement {
       'quantite': quantite,
       'quantiteUnite': quantiteUnite,
       'userNom': nom, // Map nom back to userNom
-      'typeCultureLibelle': libelle, // Map libelle back to typeCultureLibelle
-      'type_culture_id': typeCultureId, // Added for enrichment
+      'cultureLibelle': libelle, // Map libelle back to cultureLibelle
+      'type_culture_id': cultureId, // Added for enrichment
       'parcelleAdresse': adresse, // Map adresse back to parcelleAdresse
       'parcelleSuf': surface, // Map surface back to parcelleSuf
       'created_at': createdAt.toIso8601String(),
@@ -144,7 +144,7 @@ class AnnoncePrefinancement {
 
   // Getters for backward compatibility
   String get userNom => nom;
-  String get typeCultureLibelle => libelle;
+  String get cultureLibelle => libelle;
   String get parcelleAdresse => adresse;
   double get parcelleSuf => surface;
 }

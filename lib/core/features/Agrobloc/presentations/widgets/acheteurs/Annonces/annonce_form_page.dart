@@ -56,12 +56,12 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
     _prix = annonce.prix ?? 0;
     _prixController.text = _prix.toString();
 
-    // Use the typeCultureId directly for more reliable matching
+    // Use the cultureId directly for more reliable matching
     if (_cultures.isNotEmpty) {
-      _setCultureFromId(annonce.typeCultureId);
+      _setCultureFromId(annonce.cultureId);
     } else {
       // Store the culture ID to set once cultures are loaded
-      _selectedCultureId = annonce.typeCultureId;
+      _selectedCultureId = annonce.cultureId;
     }
   }
 
@@ -99,7 +99,7 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
         if (_isEditMode &&
             (_selectedCultureId == null || _selectedCultureId!.isEmpty)) {
           final existingCulture = _cultures.firstWhere(
-            (c) => c['libelle'] == widget.annonceToEdit?.typeCultureLibelle,
+            (c) => c['libelle'] == widget.annonceToEdit?.cultureLibelle,
             orElse: () => {'id': '', 'libelle': ''},
           );
           if (existingCulture['id'] != '') {
@@ -157,7 +157,7 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
         await _service.updateAnnonceAchat(
           id: widget.annonceToEdit!.id,
           description: _descriptionController.text.trim(),
-          typeCultureId: _selectedCultureId!,
+          cultureId: _selectedCultureId!,
           quantite: quantityInKg,
           prix: _prix,
           statut: 'active',
@@ -171,7 +171,7 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
       } else {
         await _service.createAnnonceAchat(
           description: _descriptionController.text.trim(),
-          typeCultureId: _selectedCultureId!,
+          cultureId: _selectedCultureId!,
           quantite: quantityInKg,
           prix: _prix,
           statut: 'active',

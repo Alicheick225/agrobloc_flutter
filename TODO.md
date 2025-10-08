@@ -1,3 +1,1 @@
-- [ ] Improve error handling in CommandeProduitPage catch block to detect "Cette annonce n'existe plus ou a été supprimée" and show user-friendly message
-- [ ] Add a check in _enregistrerCommande to fetch the announcement again before creating the command
-- [ ] If announcement is deleted or not available, show message and navigate back
+- [x] Add client-side validations to enregistrerCommande method in commandeService.dart

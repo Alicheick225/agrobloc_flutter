@@ -1,13 +1,11 @@
-
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/profils/avispage.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/order%20tracking/sequestre.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/authentificationModel.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/profils/avisPage.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/profils/mes_informations_lecture.dart';
-
 
 class ProfilPage extends StatefulWidget {
   const ProfilPage({super.key});
@@ -266,7 +264,8 @@ class _ProfilPageState extends State<ProfilPage> {
               children: [
                 _buildOptionItem(Icons.article_outlined, "Mes informations"),
                 _buildOptionItem(Icons.favorite_border, "Mes favoris"),
-                _buildOptionItem(Icons.thumb_up_off_alt, "Avis"), // Corrigé le 'avis' en 'Avis'
+                _buildOptionItem(Icons.thumb_up_off_alt,
+                    "Avis"), // Corrigé le 'avis' en 'Avis'
                 _buildOptionItem(Icons.history, "Historique transactions"),
                 _buildOptionItem(Icons.payments_outlined, "Moyens de paiement"),
                 _buildOptionItem(Icons.description_outlined,
@@ -298,7 +297,10 @@ class MesFavorisPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Mes Favoris'), backgroundColor: AppColors.primaryGreen, foregroundColor: Colors.white),
+      appBar: AppBar(
+          title: const Text('Mes Favoris'),
+          backgroundColor: AppColors.primaryGreen,
+          foregroundColor: Colors.white),
       body: const Center(child: Text('Page Mes Favoris')),
     );
   }
@@ -309,7 +311,10 @@ class HistoriqueTransactionsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Historique des Transactions'), backgroundColor: AppColors.primaryGreen, foregroundColor: Colors.white),
+      appBar: AppBar(
+          title: const Text('Historique des Transactions'),
+          backgroundColor: AppColors.primaryGreen,
+          foregroundColor: Colors.white),
       body: const Center(child: Text('Page Historique des Transactions')),
     );
   }
@@ -320,7 +325,10 @@ class MoyensPaiementPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Moyens de Paiement'), backgroundColor: AppColors.primaryGreen, foregroundColor: Colors.white),
+      appBar: AppBar(
+          title: const Text('Moyens de Paiement'),
+          backgroundColor: AppColors.primaryGreen,
+          foregroundColor: Colors.white),
       body: const Center(child: Text('Page Moyens de Paiement')),
     );
   }
@@ -331,13 +339,17 @@ class ConditionsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Conditions d\'utilisation'), backgroundColor: AppColors.primaryGreen, foregroundColor: Colors.white),
+      appBar: AppBar(
+          title: const Text('Conditions d\'utilisation'),
+          backgroundColor: AppColors.primaryGreen,
+          foregroundColor: Colors.white),
       body: const SingleChildScrollView(
         padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Conditions d\'utilisation et Politique de confidentialité', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('Conditions d\'utilisation et Politique de confidentialité',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             SizedBox(height: 16),
             Text('Contenu des conditions d\'utilisation...'),
           ],

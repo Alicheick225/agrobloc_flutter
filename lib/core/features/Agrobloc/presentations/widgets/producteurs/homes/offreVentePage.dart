@@ -48,7 +48,9 @@ class _OffreVentePageState extends State<OffreVentePage> {
   Future<void> _checkAuthenticationAndLoadData() async {
     try {
       print('🔄 OffreVentePage: Début de vérification d\'authentification...');
-      _isAuthenticated = await _userService.isUserAuthenticated().timeout(const Duration(seconds: 20));
+      _isAuthenticated = await _userService
+          .isUserAuthenticated()
+          .timeout(const Duration(seconds: 20));
       _authChecked = true;
       print('✅ OffreVentePage: Authentification vérifiée: $_isAuthenticated');
 
@@ -59,10 +61,12 @@ class _OffreVentePageState extends State<OffreVentePage> {
         print('🔍 OffreVentePage: UserId récupéré: ${currentUserId ?? "null"}');
 
         if (currentUserId == null || currentUserId.isEmpty) {
-          throw Exception('Utilisateur non identifié. Veuillez vous reconnecter.');
+          throw Exception(
+              'Utilisateur non identifié. Veuillez vous reconnecter.');
         }
 
-        print('🔄 OffreVentePage: Chargement des annonces et préfinancements...');
+        print(
+            '🔄 OffreVentePage: Chargement des annonces et préfinancements...');
         await Future.wait([
           _loadAnnonces(),
           _loadPrefinancements(),
@@ -71,12 +75,14 @@ class _OffreVentePageState extends State<OffreVentePage> {
       } else {
         print('⚠️ OffreVentePage: Utilisateur non authentifié');
         setState(() => _isLoading = false);
-        _showSnackBar('Veuillez vous connecter pour accéder à vos annonces.', color: Colors.red);
+        _showSnackBar('Veuillez vous connecter pour accéder à vos annonces.',
+            color: Colors.red);
       }
     } catch (e) {
       print('❌ OffreVentePage: Erreur lors du chargement: $e');
       setState(() => _isLoading = false);
-      _showSnackBar('Erreur lors du chargement des données: ${e.toString()}', color: Colors.red);
+      _showSnackBar('Erreur lors du chargement des données: ${e.toString()}',
+          color: Colors.red);
     } finally {
       // Assurer que _isLoading est toujours false à la fin
       if (mounted && _isLoading) {
@@ -101,7 +107,8 @@ class _OffreVentePageState extends State<OffreVentePage> {
   void _handleForceReLogin() {
     print('🔄 OffreVentePage: Gestion de la reconnexion forcée');
     if (mounted) {
-      _showSnackBar('Session expirée. Veuillez vous reconnecter.', color: Colors.red);
+      _showSnackBar('Session expirée. Veuillez vous reconnecter.',
+          color: Colors.red);
       // Naviguer vers la page de connexion
       Navigator.of(context).pushNamedAndRemoveUntil(
         '/login',
@@ -118,13 +125,15 @@ class _OffreVentePageState extends State<OffreVentePage> {
       if (currentUserId == null || currentUserId.isEmpty) {
         throw Exception('Utilisateur non connecté. Veuillez vous reconnecter.');
       }
-      final annonces = await _service.getAnnoncesByUserID(currentUserId).timeout(const Duration(seconds: 20));
+      final annonces = await _service
+          .getAnnoncesByUserID(currentUserId)
+          .timeout(const Duration(seconds: 20));
 
       // Debug: Print the fetched data
       print('✅ OffreVentePage: ${annonces.length} annonces chargées');
       for (var annonce in annonces) {
         print('Annonce ID: ${annonce.id}');
-        print('Type Culture Libelle: ${annonce.typeCultureLibelle}');
+        print('Culture Libelle: ${annonce.cultureLibelle}');
         print('Created At: ${annonce.createdAt}');
         print('---');
       }
@@ -142,7 +151,8 @@ class _OffreVentePageState extends State<OffreVentePage> {
     } catch (e) {
       print('❌ OffreVentePage: Erreur lors du chargement des annonces: $e');
       if (!mounted) return;
-      _showSnackBar('Erreur lors du chargement des annonces: ${e.toString()}', color: Colors.red);
+      _showSnackBar('Erreur lors du chargement des annonces: ${e.toString()}',
+          color: Colors.red);
       rethrow; // Re-throw to be caught by the main method
     }
   }
@@ -155,7 +165,8 @@ class _OffreVentePageState extends State<OffreVentePage> {
       print('🔍 OffreVentePage: UserId récupéré: ${currentUserId ?? "null"}');
 
       if (currentUserId == null || currentUserId.isEmpty) {
-        print('❌ OffreVentePage: UserId null ou vide - utilisateur non connecté');
+        print(
+            '❌ OffreVentePage: UserId null ou vide - utilisateur non connecté');
         throw Exception('Utilisateur non connecté. Veuillez vous reconnecter.');
       }
 
@@ -164,16 +175,17 @@ class _OffreVentePageState extends State<OffreVentePage> {
       print('✅ OffreVentePage: ${prefinancements.length} préfinancements reçus du service');
 
       // Forcer le rechargement du cache des types de culture pour garantir la mise à jour des libellés
-      await _prefinancementService.cacheTypeCultures(forceReload: true);
+      await _prefinancementService.cacheCultures(forceReload: true);
 
       // Debug: Log details of each prefinancement
       for (int i = 0; i < prefinancements.length; i++) {
         final p = prefinancements[i];
-        print('📋 Prefinancement $i: ID=${p.id}, Statut=${p.statut}, TypeCulture=${p.libelle}, typeCultureLibelle=${p.typeCultureLibelle}, typeCultureId=${p.typeCultureId}, Quantite=${p.quantite} ${p.quantiteUnite}');
+        print('📋 Prefinancement $i: ID=${p.id}, Statut=${p.statut}, TypeCulture=${p.libelle}, cultureLibelle=${p.cultureLibelle}, cultureId=${p.cultureId}, Quantite=${p.quantite} ${p.quantiteUnite}');
       }
 
       if (!mounted) {
-        print('⚠️ OffreVentePage: Widget non monté, annulation de la mise à jour UI');
+        print(
+            '⚠️ OffreVentePage: Widget non monté, annulation de la mise à jour UI');
         return;
       }
 
@@ -184,12 +196,15 @@ class _OffreVentePageState extends State<OffreVentePage> {
           ..addAll(prefinancements);
         if (_selectedButtonIndex == 2) {
           _filteredAnnonces = prefinancements;
-          print('📋 OffreVentePage: _filteredAnnonces mis à jour avec ${prefinancements.length} préfinancements');
+          print(
+              '📋 OffreVentePage: _filteredAnnonces mis à jour avec ${prefinancements.length} préfinancements');
         }
       });
-      print('✅ OffreVentePage: Préfinancements mis à jour dans l\'UI avec succès');
+      print(
+          '✅ OffreVentePage: Préfinancements mis à jour dans l\'UI avec succès');
     } catch (e) {
-      print('❌ OffreVentePage: Erreur lors du chargement des préfinancements: $e');
+      print(
+          '❌ OffreVentePage: Erreur lors du chargement des préfinancements: $e');
       print('🔍 OffreVentePage: Type d\'erreur: ${e.runtimeType}');
       print('🔍 OffreVentePage: Message d\'erreur: ${e.toString()}');
 
@@ -200,14 +215,19 @@ class _OffreVentePageState extends State<OffreVentePage> {
 
       // Handle specific error types
       String errorMessage = 'Erreur lors du chargement des préfinancements';
-      if (e.toString().contains('Token manquant') || e.toString().contains('non connecté')) {
+      if (e.toString().contains('Token manquant') ||
+          e.toString().contains('non connecté')) {
         errorMessage = 'Session expirée. Veuillez vous reconnecter.';
-      } else if (e.toString().contains('réseau') || e.toString().contains('network') || e.toString().contains('connection')) {
-        errorMessage = 'Problème de connexion. Vérifiez votre connexion internet.';
+      } else if (e.toString().contains('réseau') ||
+          e.toString().contains('network') ||
+          e.toString().contains('connection')) {
+        errorMessage =
+            'Problème de connexion. Vérifiez votre connexion internet.';
       } else if (e.toString().contains('timeout')) {
         errorMessage = 'Délai d\'attente dépassé. Réessayez plus tard.';
       } else {
-        errorMessage = 'Erreur lors du chargement des préfinancements: ${e.toString()}';
+        errorMessage =
+            'Erreur lors du chargement des préfinancements: ${e.toString()}';
       }
 
       _showSnackBar(errorMessage, color: Colors.red);
@@ -220,18 +240,20 @@ class _OffreVentePageState extends State<OffreVentePage> {
     final lowerQuery = query.toLowerCase();
     setState(() {
       _filteredAnnonces = _annonces.where((annonce) {
-        final libelle = annonce.typeCultureLibelle ?? '';
+        final libelle = annonce.cultureLibelle ?? '';
         final statut = annonce.statut ?? '';
         return libelle.toLowerCase().contains(lowerQuery) ||
-               statut.toLowerCase().contains(lowerQuery);
+            statut.toLowerCase().contains(lowerQuery);
       }).toList();
     });
   }
 
   /// Navigation vers le formulaire de création / édition
-  Future<void> _navigateToForm({AnnonceVente? annonce, AnnoncePrefinancement? prefinancement}) async {
+  Future<void> _navigateToForm(
+      {AnnonceVente? annonce, AnnoncePrefinancement? prefinancement}) async {
     if (!_isAuthenticated) {
-      _showSnackBar('Session expirée. Veuillez vous reconnecter.', color: Colors.red);
+      _showSnackBar('Session expirée. Veuillez vous reconnecter.',
+          color: Colors.red);
       return;
     }
 
@@ -240,7 +262,7 @@ class _OffreVentePageState extends State<OffreVentePage> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => AnnonceForm(annonce: annonce), // Edition si annonce != null
+          builder: (_) => DynamicAnnonceForm(), // Edition si annonce != null
         ),
       ).then((_) => _loadAnnonces());
     } else {
@@ -267,7 +289,8 @@ class _OffreVentePageState extends State<OffreVentePage> {
         _loadPrefinancements();
       }
     } catch (e) {
-      _showSnackBar('Erreur lors de la suppression: ${e.toString()}', color: Colors.red);
+      _showSnackBar('Erreur lors de la suppression: ${e.toString()}',
+          color: Colors.red);
     }
   }
 
@@ -291,7 +314,8 @@ class _OffreVentePageState extends State<OffreVentePage> {
             ),
             TextButton(
               child: const Text('Oui'),
-              style: TextButton.styleFrom(foregroundColor: AppColors.primaryGreen),
+              style:
+                  TextButton.styleFrom(foregroundColor: AppColors.primaryGreen),
               onPressed: () => Navigator.of(context).pop(true),
             ),
           ],
@@ -325,8 +349,11 @@ class _OffreVentePageState extends State<OffreVentePage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          _selectedButtonIndex == 1 ? 'Mes Offres de Vente' : 'Mes Préfinancements',
-          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          _selectedButtonIndex == 1
+              ? 'Mes Offres de Vente'
+              : 'Mes Préfinancements',
+          style:
+              const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         backgroundColor: AppColors.primaryGreen,
         elevation: 0,
@@ -341,6 +368,7 @@ class _OffreVentePageState extends State<OffreVentePage> {
                   padding: const EdgeInsets.all(12.0),
                   child: SearchBarWidget(onChanged: _filterAnnonces),
                 ),
+
                 /// Boutons de navigation (Offres / Financement)
                 Padding(
                   padding: const EdgeInsets.all(12),
@@ -400,6 +428,7 @@ class _OffreVentePageState extends State<OffreVentePage> {
                     ],
                   ),
                 ),
+
                 /// Liste des annonces
                 Expanded(
                   child: _filteredAnnonces.isEmpty
@@ -408,7 +437,8 @@ class _OffreVentePageState extends State<OffreVentePage> {
                             _selectedButtonIndex == 1
                                 ? 'Aucune offre de vente créée par vous'
                                 : 'Aucun préfinancement créé par vous',
-                            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                            style: TextStyle(
+                                fontSize: 16, color: Colors.grey[600]),
                           ),
                         )
                       : ListView.builder(
@@ -418,7 +448,8 @@ class _OffreVentePageState extends State<OffreVentePage> {
                             final item = _filteredAnnonces[index];
 
                             if (item is AnnonceVente) {
-                              final isValidated = (item.statut ?? '').toLowerCase() == 'validé';
+                              final isValidated =
+                                  (item.statut ?? '').toLowerCase() == 'validé';
                               return Card(
                                 color: Colors.white,
                                 elevation: 2,
@@ -426,24 +457,36 @@ class _OffreVentePageState extends State<OffreVentePage> {
                                 child: Padding(
                                   padding: const EdgeInsets.all(16),
                                   child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Row(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 Expanded(
                                                   child: Text(
-                                                    (item.typeCultureLibelle != null && item.typeCultureLibelle!.isNotEmpty)
-                                                        ? item.typeCultureLibelle!
+                                                    (item.cultureLibelle !=
+                                                                null &&
+                                                            item.cultureLibelle!
+                                                                .isNotEmpty)
+                                                        ? item
+                                                            .cultureLibelle!
                                                         : 'Culture non spécifié',
-                                                    style: AppTextStyles.heading.copyWith(
+                                                    style: AppTextStyles.heading
+                                                        .copyWith(
                                                       fontSize: 16,
-                                                      color: (item.typeCultureLibelle != null && item.typeCultureLibelle!.isNotEmpty)
-                                                          ? AppColors.primaryGreen
+                                                      color: (item.cultureLibelle !=
+                                                                  null &&
+                                                              item.cultureLibelle!
+                                                                  .isNotEmpty)
+                                                          ? AppColors
+                                                              .primaryGreen
                                                           : Colors.grey,
                                                     ),
                                                   ),
@@ -451,19 +494,41 @@ class _OffreVentePageState extends State<OffreVentePage> {
                                                 const SizedBox(width: 8),
                                                 Text(
                                                   () {
-                                                    if (item.createdAt != null && item.createdAt!.isNotEmpty) {
+                                                    if (item.createdAt !=
+                                                            null &&
+                                                        item.createdAt!
+                                                            .isNotEmpty) {
                                                       try {
-                                                        DateTime date = DateTime.parse(item.createdAt!);
-                                                        Duration diff = DateTime.now().difference(date);
+                                                        DateTime date =
+                                                            DateTime.parse(item
+                                                                .createdAt!);
+                                                        Duration diff =
+                                                            DateTime.now()
+                                                                .difference(
+                                                                    date);
                                                         if (diff.inDays > 30) {
                                                           return 'il y a plus d\'un mois';
-                                                        } else if (diff.inDays >= 7) {
-                                                          int weeks = diff.inDays ~/ 7;
-                                                          return weeks == 1 ? 'il y a 1 semaine' : 'il y a $weeks semaines';
-                                                        } else if (diff.inDays > 0) {
-                                                          return diff.inDays == 1 ? 'il y a 1 jour' : 'il y a ${diff.inDays} jours';
-                                                        } else if (diff.inHours > 0) {
-                                                          return diff.inHours == 1 ? 'il y a 1 heure' : 'il y a ${diff.inHours} heures';
+                                                        } else if (diff
+                                                                .inDays >=
+                                                            7) {
+                                                          int weeks =
+                                                              diff.inDays ~/ 7;
+                                                          return weeks == 1
+                                                              ? 'il y a 1 semaine'
+                                                              : 'il y a $weeks semaines';
+                                                        } else if (diff.inDays >
+                                                            0) {
+                                                          return diff.inDays ==
+                                                                  1
+                                                              ? 'il y a 1 jour'
+                                                              : 'il y a ${diff.inDays} jours';
+                                                        } else if (diff
+                                                                .inHours >
+                                                            0) {
+                                                          return diff.inHours ==
+                                                                  1
+                                                              ? 'il y a 1 heure'
+                                                              : 'il y a ${diff.inHours} heures';
                                                         } else {
                                                           return 'il y a quelques minutes';
                                                         }
@@ -488,13 +553,17 @@ class _OffreVentePageState extends State<OffreVentePage> {
                                                 children: [
                                                   TextSpan(
                                                     text: 'Quantité: ',
-                                                    style: TextStyle(color: Colors.grey[700]),
+                                                    style: TextStyle(
+                                                        color:
+                                                            Colors.grey[700]),
                                                   ),
                                                   TextSpan(
                                                     text: '${item.quantite} kg',
                                                     style: const TextStyle(
-                                                      color: Color.fromARGB(255, 55, 55, 55),
-                                                      fontWeight: FontWeight.bold,
+                                                      color: Color.fromARGB(
+                                                          255, 55, 55, 55),
+                                                      fontWeight:
+                                                          FontWeight.bold,
                                                     ),
                                                   ),
                                                 ],
@@ -506,13 +575,17 @@ class _OffreVentePageState extends State<OffreVentePage> {
                                                 children: [
                                                   TextSpan(
                                                     text: 'Prix unitaire: ',
-                                                    style: TextStyle(color: Colors.grey[700]),
+                                                    style: TextStyle(
+                                                        color:
+                                                            Colors.grey[700]),
                                                   ),
                                                   TextSpan(
                                                     text: '${item.prixKg} FCFA',
                                                     style: const TextStyle(
-                                                      color: Color.fromARGB(255, 55, 55, 55),
-                                                      fontWeight: FontWeight.bold,
+                                                      color: Color.fromARGB(
+                                                          255, 55, 55, 55),
+                                                      fontWeight:
+                                                          FontWeight.bold,
                                                     ),
                                                   ),
                                                 ],
@@ -524,13 +597,21 @@ class _OffreVentePageState extends State<OffreVentePage> {
                                                 children: [
                                                   TextSpan(
                                                     text: 'Statut: ',
-                                                    style: TextStyle(color: Colors.grey[700]),
+                                                    style: TextStyle(
+                                                        color:
+                                                            Colors.grey[700]),
                                                   ),
                                                   TextSpan(
-                                                    text: (item.statut ?? 'Inconnu'),
+                                                    text: (item.statut ??
+                                                        'Inconnu'),
                                                     style: TextStyle(
-                                                      color: isValidated ? Colors.green : const Color.fromARGB(255, 99, 169, 248),
-                                                      fontWeight: FontWeight.w500,
+                                                      color: isValidated
+                                                          ? Colors.green
+                                                          : const Color
+                                                              .fromARGB(255, 99,
+                                                              169, 248),
+                                                      fontWeight:
+                                                          FontWeight.w500,
                                                     ),
                                                   ),
                                                 ],
@@ -541,20 +622,26 @@ class _OffreVentePageState extends State<OffreVentePage> {
                                       ),
                                       const SizedBox(width: 12),
                                       Column(
-                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
                                         children: [
                                           Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
                                               IconButton(
-                                                icon: const Icon(Icons.edit_outlined),
+                                                icon: const Icon(
+                                                    Icons.edit_outlined),
                                                 color: AppColors.primaryGreen,
-                                                onPressed: () => _navigateToForm(annonce: item),
+                                                onPressed: () =>
+                                                    _navigateToForm(
+                                                        annonce: item),
                                               ),
                                               IconButton(
-                                                icon: const Icon(Icons.delete_outline),
+                                                icon: const Icon(
+                                                    Icons.delete_outline),
                                                 color: AppColors.primaryGreen,
-                                                onPressed: () => _confirmDeleteAnnonce(item),
+                                                onPressed: () =>
+                                                    _confirmDeleteAnnonce(item),
                                               ),
                                             ],
                                           ),
@@ -565,7 +652,8 @@ class _OffreVentePageState extends State<OffreVentePage> {
                                 ),
                               );
                             } else if (item is AnnoncePrefinancement) {
-                              final isValidated = item.statut.toLowerCase() == 'validé';
+                              final isValidated =
+                                  item.statut.toLowerCase() == 'validé';
                               return Card(
                                 color: Colors.white,
                                 elevation: 2,
@@ -573,24 +661,36 @@ class _OffreVentePageState extends State<OffreVentePage> {
                                 child: Padding(
                                   padding: const EdgeInsets.all(16),
                                   child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Row(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 Expanded(
                                                   child: Text(
-                                                    (item.typeCultureLibelle != null && item.typeCultureLibelle!.isNotEmpty)
-                                                        ? item.typeCultureLibelle!
+                                                    (item.cultureLibelle !=
+                                                                null &&
+                                                            item.cultureLibelle!
+                                                                .isNotEmpty)
+                                                        ? item
+                                                            .cultureLibelle!
                                                         : 'Type de culture non spécifié',
-                                                    style: AppTextStyles.heading.copyWith(
+                                                    style: AppTextStyles.heading
+                                                        .copyWith(
                                                       fontSize: 16,
-                                                      color: (item.typeCultureLibelle != null && item.typeCultureLibelle!.isNotEmpty)
-                                                          ? AppColors.primaryGreen
+                                                      color: (item.cultureLibelle !=
+                                                                  null &&
+                                                              item.cultureLibelle!
+                                                                  .isNotEmpty)
+                                                          ? AppColors
+                                                              .primaryGreen
                                                           : Colors.grey,
                                                     ),
                                                   ),
@@ -598,17 +698,31 @@ class _OffreVentePageState extends State<OffreVentePage> {
                                                 const SizedBox(width: 8),
                                                 Text(
                                                   () {
-                                                    if (item.createdAt != null) {
-                                                      Duration diff = DateTime.now().difference(item.createdAt!);
+                                                    if (item.createdAt !=
+                                                        null) {
+                                                      Duration diff =
+                                                          DateTime.now()
+                                                              .difference(item
+                                                                  .createdAt!);
                                                       if (diff.inDays > 30) {
                                                         return 'il y a plus d\'un mois';
-                                                      } else if (diff.inDays >= 7) {
-                                                        int weeks = diff.inDays ~/ 7;
-                                                        return weeks == 1 ? 'il y a 1 semaine' : 'il y a $weeks semaines';
-                                                      } else if (diff.inDays > 0) {
-                                                        return diff.inDays == 1 ? 'il y a 1 jour' : 'il y a ${diff.inDays} jours';
-                                                      } else if (diff.inHours > 0) {
-                                                        return diff.inHours == 1 ? 'il y a 1 heure' : 'il y a ${diff.inHours} heures';
+                                                      } else if (diff.inDays >=
+                                                          7) {
+                                                        int weeks =
+                                                            diff.inDays ~/ 7;
+                                                        return weeks == 1
+                                                            ? 'il y a 1 semaine'
+                                                            : 'il y a $weeks semaines';
+                                                      } else if (diff.inDays >
+                                                          0) {
+                                                        return diff.inDays == 1
+                                                            ? 'il y a 1 jour'
+                                                            : 'il y a ${diff.inDays} jours';
+                                                      } else if (diff.inHours >
+                                                          0) {
+                                                        return diff.inHours == 1
+                                                            ? 'il y a 1 heure'
+                                                            : 'il y a ${diff.inHours} heures';
                                                       } else {
                                                         return 'il y a quelques minutes';
                                                       }
@@ -630,13 +744,17 @@ class _OffreVentePageState extends State<OffreVentePage> {
                                                 children: [
                                                   TextSpan(
                                                     text: 'Quantité: ',
-                                                    style: TextStyle(color: Colors.grey[700]),
+                                                    style: TextStyle(
+                                                        color:
+                                                            Colors.grey[700]),
                                                   ),
                                                   TextSpan(
                                                     text: '${item.quantite} kg',
                                                     style: const TextStyle(
-                                                      color: Color.fromARGB(255, 55, 55, 55),
-                                                      fontWeight: FontWeight.bold,
+                                                      color: Color.fromARGB(
+                                                          255, 55, 55, 55),
+                                                      fontWeight:
+                                                          FontWeight.bold,
                                                     ),
                                                   ),
                                                 ],
@@ -648,13 +766,18 @@ class _OffreVentePageState extends State<OffreVentePage> {
                                                 children: [
                                                   TextSpan(
                                                     text: 'Prix unitaire: ',
-                                                    style: TextStyle(color: Colors.grey[700]),
+                                                    style: TextStyle(
+                                                        color:
+                                                            Colors.grey[700]),
                                                   ),
                                                   TextSpan(
-                                                    text: '${item.prixKgPref} FCFA',
+                                                    text:
+                                                        '${item.prixKgPref} FCFA',
                                                     style: const TextStyle(
-                                                      color: Color.fromARGB(255, 55, 55, 55),
-                                                      fontWeight: FontWeight.bold,
+                                                      color: Color.fromARGB(
+                                                          255, 55, 55, 55),
+                                                      fontWeight:
+                                                          FontWeight.bold,
                                                     ),
                                                   ),
                                                 ],
@@ -666,15 +789,20 @@ class _OffreVentePageState extends State<OffreVentePage> {
                                                 children: [
                                                   TextSpan(
                                                     text: 'Statut: ',
-                                                    style: TextStyle(color: Colors.grey[700]),
+                                                    style: TextStyle(
+                                                        color:
+                                                            Colors.grey[700]),
                                                   ),
                                                   TextSpan(
                                                     text: item.statut,
                                                     style: TextStyle(
                                                       color: isValidated
                                                           ? Colors.green
-                                                          : const Color.fromARGB(255, 99, 169, 248),
-                                                      fontWeight: FontWeight.w500,
+                                                          : const Color
+                                                              .fromARGB(255, 99,
+                                                              169, 248),
+                                                      fontWeight:
+                                                          FontWeight.w500,
                                                     ),
                                                   ),
                                                 ],
@@ -685,20 +813,26 @@ class _OffreVentePageState extends State<OffreVentePage> {
                                       ),
                                       const SizedBox(width: 12),
                                       Column(
-                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
                                         children: [
                                           Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
                                               IconButton(
-                                                icon: const Icon(Icons.edit_outlined),
+                                                icon: const Icon(
+                                                    Icons.edit_outlined),
                                                 color: AppColors.primaryGreen,
-                                                onPressed: () => _navigateToForm(prefinancement: item),
+                                                onPressed: () =>
+                                                    _navigateToForm(
+                                                        prefinancement: item),
                                               ),
                                               IconButton(
-                                                icon: const Icon(Icons.delete_outline),
+                                                icon: const Icon(
+                                                    Icons.delete_outline),
                                                 color: AppColors.primaryGreen,
-                                                onPressed: () => _confirmDeleteAnnonce(item),
+                                                onPressed: () =>
+                                                    _confirmDeleteAnnonce(item),
                                               ),
                                             ],
                                           ),

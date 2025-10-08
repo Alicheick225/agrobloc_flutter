@@ -14,6 +14,23 @@ class CommandeService {
     String? modePaiementId,
     String typeCommande = 'Annonce vente',
   }) async {
+    // Validations client-side
+    if (typeCommande.isEmpty || quantite <= 0 || unite.isEmpty) {
+      throw Exception('Champs obligatoires manquants.');
+    }
+
+    if (typeCommande == 'Annonce vente' && annonceId.isEmpty) {
+      throw Exception('annonces_vente_id requis pour type_commande Annonce vente.');
+    }
+
+    if (typeCommande == 'Annonce achat' && annonceId.isEmpty) {
+      throw Exception('annonces_achat_id requis pour type_commande Annonce achat.');
+    }
+
+    if (!['Annonce vente', 'Annonce achat'].contains(typeCommande)) {
+      throw Exception('type_commande invalide.');
+    }
+
     print('🛒 Tentative de création de commande - Annonce ID: $annonceId, Quantité: $quantite $unite');
 
     final response = await api.post(
@@ -92,6 +109,7 @@ class CommandeService {
   Future<List<CommandeModel>> getProducerOrders(
       {String? status, bool? pending}) async {
     String query = '/commandes/producer';
+
     Map<String, String> queryParams = {};
 
     if (status != null) queryParams['status'] = status;
@@ -139,7 +157,9 @@ class CommandeService {
     try {
       // ✅ Ne rajoute pas "commandes/" puisque c'est déjà dans la base URL
       final response = await api.put('/commandes/$id/annuler', {});
+     
 
+      print("📥 [PUT] /commandes/$id/annuler -> ${response.statusCode}");
       print("📥 [PUT] /commandes/$id/annuler -> ${response.statusCode}");
       print(response.body);
 

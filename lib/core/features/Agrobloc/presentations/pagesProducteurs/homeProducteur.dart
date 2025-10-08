@@ -430,7 +430,7 @@ class _HomeProducteurContentState extends State<HomeProducteurContent> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  annonce.typeCultureLibelle,
+                  annonce.cultureLibelle,
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.bold,

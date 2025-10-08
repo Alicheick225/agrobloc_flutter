@@ -225,6 +225,7 @@ class _MyAppState extends State<MyApp> {
         '/homePage': (context) => const HomePage(acheteurId: 'acheteur'),
         '/homeProducteur': (context) => const HomeProducteur(),
         '/login': (context) => const LoginPage(profile: 'producteur'),
+        '/loginProducteur': (context) => const LoginPage(profile: 'producteur'),
         '/detailOffreVente': (context) {
           final args =
               ModalRoute.of(context)!.settings.arguments as AnnonceAchat;

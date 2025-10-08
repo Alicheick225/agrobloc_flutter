@@ -156,8 +156,8 @@ class OffreCard extends StatelessWidget {
 
                   // ✅ TYPE + QUANTITÉ
                   Text(
-                    data.typeCultureLibelle.isNotEmpty
-                        ? "${data.typeCultureLibelle} ${data.quantite.toStringAsFixed(0)} tonnes"
+                    data.cultureLibelle.isNotEmpty
+                        ? "${data.cultureLibelle} ${data.quantite.toStringAsFixed(0)} tonnes"
                         : "Type de culture non spécifié",
                     style: AppTextStyles.body.copyWith(fontSize: 11),
                     overflow: TextOverflow.ellipsis,

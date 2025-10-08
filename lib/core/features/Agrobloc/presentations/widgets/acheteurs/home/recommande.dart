@@ -102,9 +102,9 @@ class RecommendationCard extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          recommendation.typeCultureLibelle.isNotEmpty
-                              ? "${recommendation.typeCultureLibelle} ${recommendation.quantite.toStringAsFixed(0)} tonnes"
-                              : "Type de culture non spécifié",
+                          recommendation.cultureLibelle.isNotEmpty
+                            ? "${recommendation.cultureLibelle} ${recommendation.quantite.toStringAsFixed(0)} tonnes"
+                            : "Type de culture non spécifié",
                           style: AppTextStyles.body.copyWith(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,

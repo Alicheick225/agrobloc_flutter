@@ -40,8 +40,6 @@ class OrderTrackingWidget extends StatelessWidget {
           const SizedBox(height: 24),
           ProductInfoWidget(
             commande: commande,
-            isExpanded: false,
-            onToggle: () {},
           ),
           const SizedBox(height: 24),
           ProducerInfoWidget(commande: commande),

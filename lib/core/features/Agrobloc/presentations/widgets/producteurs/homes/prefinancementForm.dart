@@ -76,12 +76,12 @@ class _PrefinancementFormState extends State<PrefinancementForm> {
       unite = "Kg";
     }
 
-    // Set culture based on typeCultureId (try id first, then libelle)
+    // Set culture based on cultureId (try id first, then libelle)
     try {
-      culture = cultures.firstWhere((c) => c.id == prefinancement.typeCultureId);
+      culture = cultures.firstWhere((c) => c.id == prefinancement.cultureId);
     } catch (e) {
       try {
-        culture = cultures.firstWhere((c) => c.libelle == prefinancement.typeCultureId);
+        culture = cultures.firstWhere((c) => c.libelle == prefinancement.cultureId);
       } catch (e) {
         culture = null;
       }
@@ -157,7 +157,7 @@ class _PrefinancementFormState extends State<PrefinancementForm> {
 
     // Création du préfinancement
     final annonce = await service.createPrefinancement(
-      typeCultureId: culture!.id,
+      cultureId: culture!.id,
       parcelleId: parcelle!.id,
       quantite: quantite,
       prix: prix,
@@ -284,7 +284,7 @@ class _PrefinancementFormState extends State<PrefinancementForm> {
       // Mise à jour du préfinancement
       final annonce = await service.updatePrefinancement(
         id: widget.prefinancement!.id,
-        typeCultureId: culture!.id,
+        cultureId: culture!.id,
         parcelleId: parcelle!.id,
         quantite: quantite,
         prix: prix,

@@ -50,7 +50,6 @@ class AuthService {
         'password': password,
         'rememberMe': rememberMe,
       },
-      withAuth: false,
     );
 
     final responseBody = response.body;
@@ -212,10 +211,9 @@ class AuthService {
       refreshAttempt++;
       try {
         final response = await api.post(
-          '/refresh',
-          {'refreshToken': refreshToken},
-          withAuth: false,
-        );
+              '/refresh',
+              {'refreshToken': refreshToken},
+            );
 
         print('🔍 AuthService.refreshToken() - Réponse API: Status ${response.statusCode}');
         print('🔍 AuthService.refreshToken() - Body length: ${response.body.length} chars');
@@ -434,7 +432,6 @@ class AuthService {
         'confirmPassword': confirmPassword,
         'profilId': profilId,
       },
-      withAuth: false,
     );
 
     final responseBody = response.body;

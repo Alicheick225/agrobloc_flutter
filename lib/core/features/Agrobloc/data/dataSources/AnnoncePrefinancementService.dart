@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/cultureService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
 import 'package:http/http.dart' as http;
 import '../models/annoncePrefinancementModel.dart';
@@ -7,9 +8,9 @@ import 'cultureService.dart';
 import 'package:agrobloc/core/utils/api_token.dart';
 
 class PrefinancementService {
-  static final String _baseUrl = ApiConfig.annoncesBaseUrl;
-  final cultureService _typeCultureService = cultureService();
-  Map<String, String>? _typeCultureCache;
+  static final String _baseUrl = ApiConfig.annoncesPrefBaseUrl;
+  final cultureService _cultureService = cultureService();
+  Map<String, String>? _cultureCache;
 
   /// Récupère le token valide et construit les headers
   Future<Map<String, String>> _getHeaders({bool forceRefresh = false}) async {
@@ -25,20 +26,20 @@ class PrefinancementService {
   }
 
   /// Cache all typeCultures for quick lookup
-  Future<void> cacheTypeCultures({bool forceReload = false}) async {
-    if (_typeCultureCache != null && !forceReload) {
-      print('✅ PrefinancementService.cacheTypeCultures: Cache déjà chargé avec ${_typeCultureCache!.length} éléments');
-      print('📋 PrefinancementService.cacheTypeCultures: Contenu du cache existant: $_typeCultureCache');
+  Future<void> cacheCultures({bool forceReload = false}) async {
+    if (_cultureCache != null && !forceReload) {
+      print('✅ PrefinancementService.cacheCultures: Cache déjà chargé avec ${_cultureCache!.length} éléments');
+      print('📋 PrefinancementService.cacheCultures: Contenu du cache existant: $_cultureCache');
       return; // already cached
     }
-    print('🔄 PrefinancementService.cacheTypeCultures: Chargement du cache typeCulture...');
+    print('🔄 PrefinancementService.cacheCultures: Chargement du cache culture...');
     try {
-      final types = await _typeCultureService.getAllCulture();
-      _typeCultureCache = { for (var t in types) t.id : t.libelle };
-      print('✅ PrefinancementService.cacheTypeCultures: Cache chargé avec ${_typeCultureCache!.length} éléments');
-      print('📋 PrefinancementService.cacheTypeCultures: Contenu du cache: $_typeCultureCache');
+      final types = await _cultureService.getAllCulture();
+      _cultureCache = { for (var t in types) t.id : t.libelle };
+      print('✅ PrefinancementService.cacheCultures: Cache chargé avec ${_cultureCache!.length} éléments');
+      print('📋 PrefinancementService.cacheCultures: Contenu du cache: $_cultureCache');
     } catch (e) {
-      print('❌ PrefinancementService.cacheTypeCultures: Erreur lors du chargement du cache: $e');
+      print('❌ PrefinancementService.cacheCultures: Erreur lors du chargement du cache: $e');
       rethrow;
     }
   }
@@ -47,9 +48,9 @@ class PrefinancementService {
   Future<List<AnnoncePrefinancement>> _enrichAnnoncesWithTypeCulture(List<AnnoncePrefinancement> annonces) async {
     print('🔄 PrefinancementService._enrichAnnoncesWithTypeCulture: Début enrichissement pour ${annonces.length} annonces');
     try {
-      await cacheTypeCultures();
+      await cacheCultures();
       print('✅ PrefinancementService._enrichAnnoncesWithTypeCulture: Cache typeCulture chargé avec succès');
-      print('📋 PrefinancementService._enrichAnnoncesWithTypeCulture: Cache contient ${_typeCultureCache?.length ?? 0} éléments');
+      print('📋 PrefinancementService._enrichAnnoncesWithTypeCulture: Cache contient ${_cultureCache?.length ?? 0} éléments');
     } catch (e) {
       print('⚠️ PrefinancementService._enrichAnnoncesWithTypeCulture: Erreur lors du chargement du cache typeCulture: $e');
       print('🔄 PrefinancementService._enrichAnnoncesWithTypeCulture: Continuation sans enrichissement typeCulture');
@@ -58,10 +59,10 @@ class PrefinancementService {
 
     return annonces.map((annonce) {
       print('🔍 PrefinancementService._enrichAnnoncesWithTypeCulture: Traitement annonce ${annonce.id}');
-      print('🔍 PrefinancementService._enrichAnnoncesWithTypeCulture: typeCultureId: "${annonce.typeCultureId}"');
+      print('🔍 PrefinancementService._enrichAnnoncesWithTypeCulture: cultureId: "${annonce.cultureId}"');
       print('🔍 PrefinancementService._enrichAnnoncesWithTypeCulture: libelle actuel: "${annonce.libelle}"');
 
-      final libelle = _typeCultureCache?[annonce.typeCultureId] ?? '';
+      final libelle = _cultureCache?[annonce.cultureId] ?? '';
       print('🔍 PrefinancementService._enrichAnnoncesWithTypeCulture: libelle du cache: "$libelle"');
 
       final enrichedLibelle = libelle.isNotEmpty ? libelle : annonce.libelle;
@@ -70,9 +71,9 @@ class PrefinancementService {
       if (libelle.isNotEmpty) {
         print('✅ PrefinancementService._enrichAnnoncesWithTypeCulture: Enrichissement réussi pour ${annonce.id} - Libelle: $libelle');
       } else {
-        print('⚠️ PrefinancementService._enrichAnnoncesWithTypeCulture: Pas de libelle trouvé pour typeCultureId: "${annonce.typeCultureId}"');
+        print('⚠️ PrefinancementService._enrichAnnoncesWithTypeCulture: Pas de libelle trouvé pour cultureId: "${annonce.cultureId}"');
         print('🔄 PrefinancementService._enrichAnnoncesWithTypeCulture: Utilisation du libelle existant: "${annonce.libelle}"');
-        print('🔍 PrefinancementService._enrichAnnoncesWithTypeCulture: Cache keys: ${_typeCultureCache?.keys.toList()}');
+        print('🔍 PrefinancementService._enrichAnnoncesWithTypeCulture: Cache keys: ${_cultureCache?.keys.toList()}');
       }
 
       return AnnoncePrefinancement(
@@ -85,7 +86,7 @@ class PrefinancementService {
         quantiteUnite: annonce.quantiteUnite,
         nom: annonce.nom,
         libelle: enrichedLibelle,
-        typeCultureId: annonce.typeCultureId,
+        cultureId: annonce.cultureId,
         parcelleId: annonce.parcelleId,
         adresse: annonce.adresse,
         surface: annonce.surface,
@@ -286,7 +287,7 @@ class PrefinancementService {
   }
 
   Future<AnnoncePrefinancement> createPrefinancement({
-    required String typeCultureId,
+    required String cultureId,
     required String parcelleId,
     required double quantite,
     required double prix,
@@ -297,7 +298,7 @@ class PrefinancementService {
       final Map<String, dynamic> body = {
         "statut": "EN_ATTENTE",
         "description": description,
-        "type_culture_id": typeCultureId,
+        "type_culture_id": cultureId,
         "parcelle_id": parcelleId,
         "quantite": quantite,
         "prix": prix,
@@ -363,7 +364,7 @@ class PrefinancementService {
 
   Future<AnnoncePrefinancement> updatePrefinancement({
     required String id,
-    required String typeCultureId,
+    required String cultureId,
     required String parcelleId,
     required double quantite,
     required double prix,
@@ -374,7 +375,7 @@ class PrefinancementService {
       final Map<String, dynamic> body = {
         "statut": "EN_ATTENTE",
         "description": description,
-        "type_culture_id": typeCultureId,
+        "type_culture_id": cultureId,
         "parcelle_id": parcelleId,
         "quantite": quantite,
         "prix": prix,

@@ -13,7 +13,7 @@ import 'cultureService.dart';
 import 'userService.dart';
 
 class AnnonceService {
-  final ApiClient api = ApiClient(ApiConfig.annoncesBaseUrl);
+  final ApiClient api = ApiClient(ApiConfig.devAnnoncesVenteBaseUrl);
   final cultureService _cultureService = cultureService();
   static const Duration timeoutDuration = Duration(seconds: 25);
 
@@ -74,14 +74,12 @@ class AnnonceService {
       final uniqueName = "uploads/${_uuid.v4()}.$ext";
       final contentType = _getContentType(ext);
 
-      final response = await supabase.storage
-          .from(bucketName)
-          .uploadBinary(uniqueName, bytes,
-              fileOptions: FileOptions(upsert: true, contentType: contentType));
+      // Succès : uploadBinary renvoie '' ou lève une exception
+      await supabase.storage.from(bucketName).uploadBinary(uniqueName, bytes,
+          fileOptions: const FileOptions(upsert: true));
 
-      // On success, response is the path; on failure, throws exception
-      final url = supabase.storage.from(bucketName).getPublicUrl(response);
-      return url;
+      // Récupération de l’URL publique
+      return supabase.storage.from(bucketName).getPublicUrl(uniqueName);
     } catch (e) {
       print("❌ Upload échoué: $e");
       return null;
@@ -103,82 +101,99 @@ class AnnonceService {
 
   Future<List<AnnonceVente>> _enrichAnnoncesWithCulture(
       List<AnnonceVente> annonces) async {
-    await _cacheCultures();
-    return annonces.map((annonce) {
-      final libelle = _cultureCache?[annonce.typeCultureId] ?? '';
-      return AnnonceVente(
-        id: annonce.id,
-        photo: annonce.photo,
-        statut: annonce.statut,
-        description: annonce.description,
-        prixKg: annonce.prixKg,
-        prixUnite: annonce.prixUnite,
-        quantite: annonce.quantite,
-        quantiteUnite: annonce.quantiteUnite,
-        userNom: annonce.userNom,
-        typeCultureLibelle:
-            libelle.isNotEmpty ? libelle : annonce.typeCultureLibelle,
-        typeCultureId: annonce.typeCultureId,
-        parcelleAdresse: annonce.parcelleAdresse,
-        createdAt: annonce.createdAt,
-        note: annonce.note,
-      );
-    }).toList();
+    // Since backend provides cultureLibelle, no need to enrich
+    return annonces;
   }
 
   /// ---------------- CRUD ANNONCES ----------------
 
-  /// 🔹 Récupérer toutes les annonces
-  Future<List<AnnonceVente>> getAllAnnonces() async {
+  /// 🔹 Récupérer toutes les annonces avec filtres optionnels
+  Future<List<AnnonceVente>> getAllAnnonces({
+    String? userId,
+    String? statut,
+    String? cultureId,
+    String? search,
+    DateTime? dateFrom,
+    DateTime? dateTo,
+    String? type,
+    double? priceMin,
+    double? priceMax,
+    double? quantMin,
+    double? quantMax,
+  }) async {
     try {
-      final response = await api.get('/annonces_vente');
+      final queryParams = <String, String>{};
+      if (userId != null) queryParams['user_id'] = userId;
+      if (statut != null) queryParams['statut'] = statut;
+      if (cultureId != null) queryParams['culture_id'] = cultureId;
+      if (search != null) queryParams['search'] = search;
+      if (dateFrom != null) queryParams['date_from'] = dateFrom.toIso8601String().split('T')[0];
+      if (dateTo != null) queryParams['date_to'] = dateTo.toIso8601String().split('T')[0];
+      if (type != null) queryParams['type'] = type;
+      if (priceMin != null) queryParams['price_min'] = priceMin.toString();
+      if (priceMax != null) queryParams['price_max'] = priceMax.toString();
+      if (quantMin != null) queryParams['quantite_min'] = quantMin.toString();
+      if (quantMax != null) queryParams['quantite_max'] = quantMax.toString();
+
+      final uri = Uri.parse('${ApiConfig.devAnnoncesVenteBaseUrl}/annonces_vente').replace(queryParameters: queryParams);
+      final response = await http.get(uri, headers: await _getHeaders());
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         final annonces = data.map((json) => AnnonceVente.fromJson(json)).toList();
-        print(annonces);
         return await _enrichAnnoncesWithCulture(annonces);
       } else {
         throw _handleError(response);
       }
     } catch (e) {
-     print("erreur");
       throw _handleException(e);
-
     }
   }
 
-  /// 🔹 Créer une annonce (avec Supabase Storage pour l’image)
+  /// ➜  CRÉATION MULTIPART conforme au back
   Future<AnnonceVente> createAnnonce({
     required String userId,
-    required String typeCultureId,
+    required String cultureId,
     required String parcelleId,
     required String statut,
     required String description,
     required double quantite,
+    required String quantiteUnite,
     required double prixKg,
     XFile? photo,
+    String? type,
+    double? prixBordChamp,
   }) async {
     try {
-      String? photoUrl;
-      if (photo != null) {
-        photoUrl = await _uploadToSupabase(photo);
-        if (photoUrl == null) {
-          throw Exception("Échec upload image Supabase");
-        }
+      final token = await _getValidToken();
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('${ApiConfig.devAnnoncesVenteBaseUrl}/annonces_vente'),
+      );
+
+      request.headers['Authorization'] = 'Bearer $token';
+
+      // 1. champs texte
+      request.fields['culture_id'] = cultureId;
+      request.fields['parcelle_id'] = parcelleId;
+      request.fields['statut'] = statut;
+      request.fields['quantite'] = quantite.toStringAsFixed(2);
+      request.fields['unite'] = quantiteUnite;
+      request.fields['prix_kg'] = prixKg.toStringAsFixed(2);
+      request.fields['description'] = description.trim();
+      if (type != null) request.fields['type'] = type;
+      if (prixBordChamp != null) {
+        request.fields['prix_bord_champ'] = prixBordChamp.toStringAsFixed(2);
       }
 
-      final body = {
-        'user_id': userId,
-        'type_culture_id': typeCultureId,
-        'parcelle_id': parcelleId,
-        'statut': statut,
-        'description': description,
-        'quantite': quantite,
-        'prix_kg': prixKg,
-        if (photoUrl != null) 'photo': photoUrl,
-      };
+      // 2. image déjà uploadée → on passe l'URL
+      if (photo != null) {
+        final photoUrl = await _uploadToSupabase(photo);
+        if (photoUrl != null) request.fields['photo'] = photoUrl;
+      }
 
-      final response = await api.post('/annonces_vente', body);
+      final streamed = await request.send().timeout(timeoutDuration);
+      final response = await http.Response.fromStream(streamed);
+
       if (response.statusCode == 201 || response.statusCode == 200) {
         return AnnonceVente.fromJson(jsonDecode(response.body));
       } else {
@@ -237,9 +252,10 @@ class AnnonceService {
     required String id,
     required String statut,
     required String description,
-    required String typeCultureId,
+    required String cultureId,
     required String parcelleId,
     required double quantite,
+    required String quantiteUnite,
     required double prixKg,
     XFile? photo,
   }) async {
@@ -255,9 +271,10 @@ class AnnonceService {
       final body = {
         'statut': statut,
         'description': description,
-        'type_culture_id': typeCultureId,
+        'culture_id': cultureId,
         'parcelle_id': parcelleId,
         'quantite': quantite,
+        'unite': quantiteUnite,
         'prix_kg': prixKg,
         if (photoUrl != null) 'photo': photoUrl,
       };
@@ -266,6 +283,19 @@ class AnnonceService {
       if (response.statusCode == 200) {
         return AnnonceVente.fromJson(jsonDecode(response.body));
       } else {
+        throw _handleError(response);
+      }
+    } catch (e) {
+      throw _handleException(e);
+    }
+  }
+
+  /// 🔹 Décrémenter la quantité d'une annonce
+  Future<void> decrementQuantite(String id, int quantite) async {
+    try {
+      final body = {'quantite': quantite};
+      final response = await api.put('/annonces_vente/$id/decrement', body);
+      if (response.statusCode != 200) {
         throw _handleError(response);
       }
     } catch (e) {
@@ -307,5 +337,55 @@ class AnnonceService {
       return Exception('Erreur de format des données');
     }
     return Exception('Erreur inattendue: ${e.toString()}');
+  }
+
+  /// 🔹 Culture catégorie Rente ou Vivrière
+
+  Future<List<Map<String, dynamic>>> fetchCultures() async {
+    try {
+      final response = await api.get('/cultures'); // <-- votre vraie route
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data
+            .map<Map<String, dynamic>>((e) =>
+                {'id': e['id'].toString(), 'libelle': e['libelle'] ?? ''})
+            .toList();
+      } else {
+        throw _handleError(response);
+      }
+    } catch (e) {
+      // ➜ Jamais null : renvoie la liste de secours
+      return [
+        {'id': 'rente', 'libelle': 'Culture de rente'},
+        {'id': 'vivriere', 'libelle': 'Culture vivrière'},
+      ];
+    }
+  }
+
+  /// 🔹 Récupérer **toutes les cultures** d’une **catégorie** ("rente" ou "vivrière")
+  Future<List<Map<String, dynamic>>> fetchCulturesByCategory(
+      String category) async {
+    try {
+      // ➜ On construit l’URL à la main
+      final url = '/cultures?type=$category';
+      final response = await api.get(url);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data
+            .map<Map<String, dynamic>>((e) => {
+                  'id': e['id'].toString(),
+                  'libelle': e['libelle'] ?? '',
+                  'prix_bord_champ':
+                      (e['prix_bord_champ'] as num?)?.toDouble() ?? 0.0
+                })
+            .toList();
+      } else {
+        throw _handleError(response);
+      }
+    } catch (e) {
+      // ➜ Jamais null : liste vide en cas d’erreur
+      return [];
+    }
   }
 }

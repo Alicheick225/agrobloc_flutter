@@ -18,8 +18,10 @@ class ApiConfig {
       'https://images.yourproductiondomain.com';
 
   // Service-specific base URLs for dev environment
+  static const String devAnnoncesVenteBaseUrl = 'http://192.168.252.199:8082';
   static const String devAnnoncesBaseUrl = 'http://192.168.252.199:8082';
-  static const String devTypesCulturesBaseUrl = 'http://192.168.252.199:8004';
+  static const String devAnnoncesPrefBaseUrl = 'http://192.168.252.199:8082';
+  static const String devCulturesBaseUrl = 'http://192.168.252.199:8004';
   static const String devParcellesBaseUrl = 'http://192.168.252.199:8004';
   static const String devCommandesBaseUrl =
       'http://192.168.252.199:3001/commandes';
@@ -28,7 +30,9 @@ class ApiConfig {
   // Service-specific base URLs for prod environment
   static const String prodAnnoncesBaseUrl =
       'https://api.yourproductiondomain.com';
-  static const String prodTypesCulturesBaseUrl =
+  static const String prodAnnoncesPrefBaseUrl =
+      'https://api.yourproductiondomain.com';
+  static const String prodCulturesBaseUrl =
       'https://api.yourproductiondomain.com';
   static const String prodParcellesBaseUrl =
       'https://api.yourproductiondomain.com';
@@ -50,8 +54,10 @@ class ApiConfig {
   // Get service-specific base URLs
   static String get annoncesBaseUrl =>
       isProduction ? prodAnnoncesBaseUrl : devAnnoncesBaseUrl;
+  static String get annoncesPrefBaseUrl =>
+      isProduction ? prodAnnoncesPrefBaseUrl : devAnnoncesPrefBaseUrl;
   static String get culturesBaseUrl =>
-      isProduction ? prodTypesCulturesBaseUrl : devTypesCulturesBaseUrl;
+      isProduction ? prodCulturesBaseUrl : devCulturesBaseUrl;
   static String get parcellesBaseUrl =>
       isProduction ? prodParcellesBaseUrl : devParcellesBaseUrl;
   static String get commandesBaseUrl =>
