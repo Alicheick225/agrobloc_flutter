@@ -14,7 +14,7 @@ class CommandeService {
     String? modePaiementId,
   }) async {
     final response = await api.post(
-      '/commandes-ventes',
+      '/commandes',
       {
         'annonces_vente_id': annoncesVenteId,
         'quantite': quantite,
@@ -23,7 +23,7 @@ class CommandeService {
       },
     );
 
-    print('📥 [POST] /commandes-ventes -> ${response.statusCode}');
+    print('📥 [POST] /commandes -> ${response.statusCode}');
     print(response.body);
 
     if (response.statusCode == 201 || response.statusCode == 200) {
@@ -40,7 +40,7 @@ class CommandeService {
 
   /// Récupérer toutes les commandes
   Future<List<CommandeModel>> getAllCommandes() async {
-    final response = await api.get('/commandes-ventes');
+    final response = await api.get('/commandes');
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = jsonDecode(response.body);
@@ -59,7 +59,7 @@ class CommandeService {
   /// Récupérer les commandes d’un producteur
   Future<List<CommandeModel>> getProducerOrders(
       {String? status, bool? pending}) async {
-    String query = '/commandes-ventes/producer';
+    String query = '/commandes/producer';
     Map<String, String> queryParams = {};
 
     if (status != null) queryParams['status'] = status;
@@ -106,9 +106,9 @@ class CommandeService {
 
     try {
       // ✅ Ne rajoute pas "commandes/" puisque c'est déjà dans la base URL
-      final response = await api.put('/commandes-ventes/$id/annuler', {});
+      final response = await api.put('/commandes/$id/annuler', {});
 
-      print("📥 [PUT] /commandes-ventes/$id/annuler -> ${response.statusCode}");
+      print("📥 [PUT] /commandes/$id/annuler -> ${response.statusCode}");
       print(response.body);
 
       if (response.statusCode == 200) {

@@ -18,9 +18,10 @@ class ApiConfig {
       'https://images.yourproductiondomain.com';
 
   // Service-specific base URLs for dev environment
+  static const String devAnnoncesVenteBaseUrl = 'http://192.168.252.199:8082';
   static const String devAnnoncesBaseUrl = 'http://192.168.252.199:8081';
-  static const String devTypesCulturesBaseUrl = 'http://192.168.252.199:8000';
-  static const String devParcellesBaseUrl = 'http://192.168.252.199:8000';
+  static const String devTypesCulturesBaseUrl = 'http://192.168.252.199:8004';
+  static const String devParcellesBaseUrl = 'http://192.168.252.199:8004';
   static const String devCommandesBaseUrl =
       'http://192.168.252.199:3001/commandes';
 

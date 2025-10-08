@@ -30,7 +30,8 @@ class BottomBarProducteur extends StatelessWidget {
                 children: [
                   _buildNavItem(Icons.home_outlined, "Accueil", 0),
                   _buildNavItem(Icons.message_outlined, "Messages", 1),
-                  SizedBox(width: 70.w), // Increased space for the floating button
+                  SizedBox(
+                      width: 70.w), // Increased space for the floating button
                   _buildNavItem(Icons.sync_alt_outlined, "Transactions", 2),
                   _buildNavItem(Icons.person_rounded, "Profil", 3),
                 ],
@@ -59,16 +60,19 @@ class BottomBarProducteur extends StatelessWidget {
                 ),
                 child: FloatingActionButton(
                   backgroundColor: const Color(0xFF5d9643),
-                  elevation: 0, // Remove default elevation since we have custom shadow
+                  elevation:
+                      0, // Remove default elevation since we have custom shadow
                   onPressed: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const AnnonceForm(),
+                        builder: (context) => DynamicAnnonceForm(),
                       ),
                     );
                   },
-                  child: Icon(Icons.add, size: 26.r, color: Colors.white), // Slightly larger plus icon
+                  child: Icon(Icons.add,
+                      size: 26.r,
+                      color: Colors.white), // Slightly larger plus icon
                 ),
               ),
             ),
@@ -93,7 +97,8 @@ class BottomBarProducteur extends StatelessWidget {
               width: 40.w,
               height: 30.h,
               decoration: BoxDecoration(
-                color: isSelected ? const Color(0xFF527E3F) : Colors.transparent,
+                color:
+                    isSelected ? const Color(0xFF527E3F) : Colors.transparent,
                 borderRadius: BorderRadius.circular(12.r),
               ),
               child: Icon(
