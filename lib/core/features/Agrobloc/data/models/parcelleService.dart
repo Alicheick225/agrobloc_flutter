@@ -26,7 +26,7 @@ class Parcelle {
       surface: (json['surface'] as num).toDouble(),
       adresse: json['adresse'],
       userId: json['user_id'],
-      userNom: json['user_nom'] ?? 'Inconnu', // récupère le nom de l'utilisateur
+      userNom: json['nom'] ?? 'Inconnu', // récupère le nom de l'utilisateur
     );
   }
 
@@ -38,7 +38,7 @@ class Parcelle {
       'surface': surface,
       'adresse': adresse,
       'user_id': userId,
-      'user_nom': userNom,
+      'nom': userNom,
     };
   }
 }

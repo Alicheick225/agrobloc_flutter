@@ -33,46 +33,54 @@ class AnnoncePrefinancement {
     required this.updatedAt,
   });
 
+  // Helper method to parse double from various types (num or String)
+  static double? _parseDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is num) return value.toDouble();
+    if (value is String) {
+      try {
+        return double.parse(value);
+      } catch (_) {
+        return null;
+      }
+    }
+    return null;
+  }
+
   factory AnnoncePrefinancement.fromJson(Map<String, dynamic> json) {
     print('🔍 AnnoncePrefinancement.fromJson: JSON complet reçu: $json');
 
     // Handle quantity unit conversion
-    double quantiteValue = (json['quantite'] as num?)?.toDouble() ?? 0.0;
-    String quantiteUnite = 'kg';
+    double quantiteValue = _parseDouble(json['quantite']) ?? 0.0;
+    String quantiteUnite = json['unite']?.toString() ?? 'kg';
 
-    // If quantity is large, display in tonnes
-    if (quantiteValue >= 1000) {
-      quantiteUnite = 'T';
-      quantiteValue = quantiteValue / 1000;
-    }
-
-    // Extract nested type_culture data
+    // Extract nested culture data (updated from type_culture to culture)
     String libelle = '';
-    if (json['type_culture'] != null && json['type_culture'] is Map<String, dynamic>) {
-      final typeCulture = json['type_culture'] as Map<String, dynamic>;
-      libelle = typeCulture['libelle']?.toString() ?? '';
-      print('✅ AnnoncePrefinancement.fromJson: Libelle extrait du type_culture imbriqué: "$libelle"');
+    if (json['culture'] != null && json['culture'] is Map<String, dynamic>) {
+      final culture = json['culture'] as Map<String, dynamic>;
+      libelle = culture['libelle']?.toString() ?? '';
+      print('✅ AnnoncePrefinancement.fromJson: Libelle extrait du culture imbriqué: "$libelle"');
     } else {
-      print('⚠️ AnnoncePrefinancement.fromJson: Pas de type_culture imbriqué trouvé');
+      print('⚠️ AnnoncePrefinancement.fromJson: Pas de culture imbriqué trouvé');
     }
 
     // Fallback to direct field if nested data is empty
     if (libelle.isEmpty) {
-      libelle = json['cultureLibelle']?.toString() ?? '';
-      print('🔄 AnnoncePrefinancement.fromJson: Utilisation du fallback cultureLibelle: "$libelle"');
+      libelle = json['libelle']?.toString() ?? '';
+      print('🔄 AnnoncePrefinancement.fromJson: Utilisation du fallback libelle direct: "$libelle"');
     }
 
     print('🔍 AnnoncePrefinancement.fromJson: Libelle final après extraction: "$libelle"');
 
-    // Try multiple possible field names for cultureId
+    // Try multiple possible field names for cultureId (updated from type_culture_id to culture_id and type_culture to culture)
     String cultureId = '';
-    if (json['type_culture_id'] != null) {
-      cultureId = json['type_culture_id'].toString();
+    if (json['culture_id'] != null) {
+      cultureId = json['culture_id'].toString();
     } else if (json['cultureId'] != null) {
       cultureId = json['cultureId'].toString();
-    } else if (json['type_culture'] != null && json['type_culture'] is Map<String, dynamic>) {
-      final typeCulture = json['type_culture'] as Map<String, dynamic>;
-      cultureId = typeCulture['id']?.toString() ?? '';
+    } else if (json['culture'] != null && json['culture'] is Map<String, dynamic>) {
+      final culture = json['culture'] as Map<String, dynamic>;
+      cultureId = culture['id']?.toString() ?? '';
     }
 
     print('🔍 AnnoncePrefinancement.fromJson: cultureId extrait: "$cultureId"');
@@ -94,16 +102,16 @@ class AnnoncePrefinancement {
       id: json['id']?.toString() ?? '',
       statut: json['statut']?.toString() ?? '',
       description: json['description']?.toString() ?? '',
-      montantPref: (json['montant_pref'] as num?)?.toDouble() ?? 0.0,
-      prixKgPref: (json['prix_kg_pref'] as num?)?.toDouble() ?? 0.0,
+      montantPref: _parseDouble(json['montant_pref']) ?? 0.0,
+      prixKgPref: _parseDouble(json['prix_kg_pref']) ?? 0.0,
       quantite: quantiteValue,
       quantiteUnite: quantiteUnite,
-      nom: json['userNom']?.toString() ?? '', // Map userNom to nom
-      libelle: libelle, // Use extracted libelle from nested type_culture
+      nom: json['UserNom']?.toString() ?? json['nom']?.toString() ?? json['userNom']?.toString() ?? '', // Use API field UserNom, with fallbacks
+      libelle: json['CultureLibelle']?.toString() ?? libelle, // Use API field CultureLibelle, fallback to extracted libelle
       cultureId: cultureId, // Use extracted cultureId variable
       parcelleId: parcelleId, // Use extracted parcelleId variable
-      adresse: json['parcelleAdresse']?.toString() ?? '', // Map parcelleAdresse to adresse
-      surface: (json['parcelleSuf'] as num?)?.toDouble() ?? 0.0, // Map parcelleSuf to surface
+      adresse: json['Adresse']?.toString() ?? json['adresse']?.toString() ?? json['parcelleAdresse']?.toString() ?? '', // Use API field ParcelleAdresse, with fallbacks
+      surface: _parseDouble(json['ParcelleSuf']) ?? _parseDouble(json['surface']) ?? _parseDouble(json['parcelleSuf']) ?? 0.0, // Use API field ParcelleSuf, with fallbacks
       createdAt: DateTime.parse(json['created_at']?.toString() ?? DateTime.now().toIso8601String()),
       updatedAt: DateTime.parse(json['updated_at']?.toString() ?? DateTime.now().toIso8601String()),
     );

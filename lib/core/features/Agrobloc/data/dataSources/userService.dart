@@ -210,12 +210,8 @@ class UserService {
         print('⚠️ UserService.getValidToken() - Continuation malgré l\'erreur de test SharedPreferences');
       }
 
-      // Use generic get() method for better reliability instead of getString()
-      final tokenValue = prefs.get("token");
-      accessToken = (tokenValue is String && tokenValue.isNotEmpty) ? tokenValue : null;
-
-      final refreshValue = prefs.get("refresh_token");
-      refreshToken = (refreshValue is String && refreshValue.isNotEmpty) ? refreshValue : null;
+      accessToken = prefs.getString("token");
+      refreshToken = prefs.getString("refresh_token");
 
       print('🔍 UserService.getValidToken() - SharedPreferences OK');
       print('🔍 UserService.getValidToken() - accessToken: ${accessToken != null ? "présent (${accessToken.length} chars)" : "null"}, refreshToken: ${refreshToken != null ? "présent (${refreshToken.length} chars)" : "null"}');

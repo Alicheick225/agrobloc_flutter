@@ -2,9 +2,10 @@ import 'package:agrobloc/core/features/Agrobloc/data/dataSources/supabaseService
 
 final _imageService = SupabaseImageService();
 
-String getImageUrl(String? fileName) {
+String? getImageUrl(String? fileName) {
   if (fileName == null || fileName.isEmpty) {
-    return "https://via.placeholder.com/150";
+    // Return null to indicate no image, let the UI handle the fallback
+    return null;
   }
 
   if (fileName.startsWith("http")) {

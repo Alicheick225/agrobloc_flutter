@@ -9,6 +9,7 @@ class AnnonceVente {
   final String quantiteUnite;
   final String userNom;
   final String cultureLibelle;
+  final String cultureId;
   final String cultureType;
   final String parcelleAdresse;
   final String? createdAt;
@@ -26,6 +27,7 @@ class AnnonceVente {
     required this.quantiteUnite,
     required this.userNom,
     required this.cultureLibelle,
+    required this.cultureId,
     required this.cultureType,
     required this.parcelleAdresse,
     this.createdAt,
@@ -37,19 +39,20 @@ class AnnonceVente {
     return AnnonceVente(
       id: json['id']?.toString() ?? '',
       photo: json['photo'],
-      statut: AnnonceVente.normalizeStatut(json['statut'] ?? ''),
+      statut: (json['statut'] as String?)?.isNotEmpty == true ? json['statut'] : 'Disponible',
       description: json['description'] ?? '',
       prixKg: (json['prix_kg'] as num?)?.toDouble() ?? 0,
-      prixUnite: json['prix_unite'] ?? 'FCFA',
+      prixUnite: json['devise'] ?? json['prix_unite'] ?? 'FCFA',
       quantite: (json['quantite'] as num?)?.toDouble() ?? 0,
-      quantiteUnite: json['quantite_unite'] ?? 'kg',
-      userNom: json['user_nom'] ?? '',
-      cultureLibelle: json['culture_libelle'] ?? '',
-      cultureType: json['culture_type'] ?? 'vivriere',
-      parcelleAdresse: json['parcelle_adresse'] ?? '',
+      quantiteUnite: json['unite'] ?? json['quantite_unite'] ?? 'kg',
+      userNom: json['nom']?.toString() ?? json['user_nom']?.toString() ?? json['UserNom']?.toString() ?? '',
+      cultureLibelle: json['libelle']?.toString() ?? json['culture_libelle']?.toString() ?? json['CultureLibelle']?.toString() ?? '',
+      cultureId: json['culture_id']?.toString() ?? json['cultureId']?.toString() ?? '',
+      cultureType: json['type']?.toString() ?? json['culture_type']?.toString() ?? json['cultureType']?.toString() ?? 'vivriere',
+      parcelleAdresse: json['adresse']?.toString() ?? json['parcelle_adresse']?.toString() ?? json['ParcelleAdresse']?.toString() ?? '',
       createdAt: json['created_at']?.toString(),
       note: (json['note'] as num?)?.toDouble(),
-      culturePrixBordChamp: (json['culture_prix_bord_champ'] as num?)?.toDouble(),
+      culturePrixBordChamp: (json['prix_bord_champ'] as num?)?.toDouble() ?? (json['culture_prix_bord_champ'] as num?)?.toDouble(),
     );
   }
   
@@ -66,12 +69,13 @@ class AnnonceVente {
       'quantite': quantite,
       'quantite_unite': quantiteUnite,
       'user_nom': userNom,
-      'culture_libelle': cultureLibelle,
-      'culture_type': cultureType,
-      'parcelle_adresse': parcelleAdresse,
+      'libelle': cultureLibelle,
+      'culture_id': cultureId,
+      'type': cultureType,
+      'adresse': parcelleAdresse,
       'created_at': createdAt,
       'note': note,
-      'culture_prix_bord_champ': culturePrixBordChamp,
+      'prix_bord_champ': culturePrixBordChamp,
     };
   }
 }

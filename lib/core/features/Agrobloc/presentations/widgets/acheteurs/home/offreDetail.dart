@@ -21,7 +21,7 @@ class OffreDetailPage extends StatefulWidget {
 class _OffreDetailPageState extends State<OffreDetailPage> {
   @override
   Widget build(BuildContext context) {
-    final imageUrl = getImageUrl(widget.recommendation.photo);
+    final imageUrl = getImageUrl(widget.recommendation.photo) ?? 'https://via.placeholder.com/400x200?text=No+Image';
     final product = widget.recommendation.cultureLibelle.isNotEmpty
         ? widget.recommendation.cultureLibelle
         : "Produit inconnu";
@@ -138,7 +138,7 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
                               fontSize: 14),
                         ),
                         TextSpan(
-                          text: "$quantity tonnes",
+                          text: "$quantity ${widget.recommendation.quantiteUnite}",
                           style: const TextStyle(
                               color: Colors.green, fontWeight: FontWeight.w500),
                         ),

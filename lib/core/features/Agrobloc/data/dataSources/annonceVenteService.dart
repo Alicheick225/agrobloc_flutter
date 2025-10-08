@@ -88,21 +88,50 @@ class AnnonceService {
 
   /// ---------------- TYPE CULTURE CACHE ----------------
 
-  Future<void> _cacheCultures() async {
-    if (_cultureCache != null) return;
+  Future<void> _cacheCultures({bool forceReload = false}) async {
+    if (_cultureCache != null && !forceReload) return;
     try {
+      print('🔄 annonceVenteService: Chargement cache cultures...');
       final culture = await _cultureService.getAllCulture();
       _cultureCache = {for (var t in culture) t.id: t.libelle};
+      print('✅ annonceVenteService: Cache cultures chargé avec ${_cultureCache?.length ?? 0} éléments');
     } catch (e) {
       _cultureCache = {};
-      print("⚠ Erreur récupération types cultures: $e");
+      print("⚠ annonceVenteService: Erreur récupération types cultures: $e");
     }
   }
 
   Future<List<AnnonceVente>> _enrichAnnoncesWithCulture(
       List<AnnonceVente> annonces) async {
-    // Since backend provides cultureLibelle, no need to enrich
-    return annonces;
+    await _cacheCultures();
+    return annonces.map((annonce) {
+      final libelle = _cultureCache?[annonce.cultureId] ?? '';
+      final enrichedLibelle = libelle.isNotEmpty ? libelle : annonce.cultureLibelle;
+      print('🔍 annonceVenteService: Enrichissement annonce ${annonce.id} avec cultureLibelle: $enrichedLibelle');
+      return AnnonceVente(
+        id: annonce.id,
+        photo: annonce.photo,
+        statut: annonce.statut,
+        description: annonce.description,
+        prixKg: annonce.prixKg,
+        prixUnite: annonce.prixUnite,
+        quantite: annonce.quantite,
+        quantiteUnite: annonce.quantiteUnite,
+        userNom: annonce.userNom,
+        cultureLibelle: enrichedLibelle,
+        cultureId: annonce.cultureId,
+        cultureType: annonce.cultureType,
+        parcelleAdresse: annonce.parcelleAdresse,
+        createdAt: annonce.createdAt,
+        note: annonce.note,
+        culturePrixBordChamp: annonce.culturePrixBordChamp,
+      );
+    }).toList();
+  }
+
+  /// Force refresh culture cache
+  Future<void> refreshCultureCache() async {
+    await _cacheCultures(forceReload: true);
   }
 
   /// ---------------- CRUD ANNONCES ----------------
@@ -121,6 +150,12 @@ class AnnonceService {
     double? quantMin,
     double? quantMax,
   }) async {
+    // Check authentication before making request
+    if (!UserService().isLoggedIn) {
+      print('⚠️ AnnonceService.getAllAnnonces - User not logged in, returning empty list');
+      return [];
+    }
+
     try {
       final queryParams = <String, String>{};
       if (userId != null) queryParams['user_id'] = userId;
@@ -206,6 +241,11 @@ class AnnonceService {
 
   /// 🔹 Récupérer une annonce par ID
   Future<AnnonceVente> getAnnonceByID(String id) async {
+    // Check authentication before making request
+    if (!UserService().isLoggedIn) {
+      throw Exception('User not logged in');
+    }
+
     try {
       final response = await api.get('/annonces_vente/$id');
       if (response.statusCode == 200) {
@@ -222,6 +262,12 @@ class AnnonceService {
 
   /// 🔹 Récupérer les annonces d’un utilisateur spécifique
   Future<List<AnnonceVente>> getAnnoncesByUserID(String userId) async {
+    // Check authentication before making request
+    if (!UserService().isLoggedIn) {
+      print('⚠️ AnnonceService.getAnnoncesByUserID - User not logged in, returning empty list');
+      return [];
+    }
+
     try {
       final response = await api.get('/annonces_vente/user/$userId');
       if (response.statusCode == 200) {
@@ -239,6 +285,12 @@ class AnnonceService {
 
   /// 🔹 Récupérer uniquement les annonces de l’utilisateur connecté
   Future<List<AnnonceVente>> fetchAnnoncesByUser() async {
+    // Check authentication before making request
+    if (!UserService().isLoggedIn) {
+      print('⚠️ AnnonceService.fetchAnnoncesByUser - User not logged in, returning empty list');
+      return [];
+    }
+
     try {
       final userId = await _getUserId();
       return await getAnnoncesByUserID(userId);
@@ -259,6 +311,11 @@ class AnnonceService {
     required double prixKg,
     XFile? photo,
   }) async {
+    // Check authentication before making request
+    if (!UserService().isLoggedIn) {
+      throw Exception('User not logged in');
+    }
+
     try {
       String? photoUrl;
       if (photo != null) {
@@ -292,6 +349,11 @@ class AnnonceService {
 
   /// 🔹 Décrémenter la quantité d'une annonce
   Future<void> decrementQuantite(String id, int quantite) async {
+    // Check authentication before making request
+    if (!UserService().isLoggedIn) {
+      throw Exception('User not logged in');
+    }
+
     try {
       final body = {'quantite': quantite};
       final response = await api.put('/annonces_vente/$id/decrement', body);
@@ -305,6 +367,11 @@ class AnnonceService {
 
   /// 🔹 Supprimer une annonce
   Future<void> deleteAnnonce(String id) async {
+    // Check authentication before making request
+    if (!UserService().isLoggedIn) {
+      throw Exception('User not logged in');
+    }
+
     try {
       final response = await api.delete('/annonces_vente/$id');
       if (response.statusCode != 200 && response.statusCode != 204) {
@@ -342,6 +409,12 @@ class AnnonceService {
   /// 🔹 Culture catégorie Rente ou Vivrière
 
   Future<List<Map<String, dynamic>>> fetchCultures() async {
+    // Check authentication before making request
+    if (!UserService().isLoggedIn) {
+      print('⚠️ AnnonceService.fetchCultures - User not logged in, returning empty list');
+      return [];
+    }
+
     try {
       final response = await api.get('/cultures'); // <-- votre vraie route
       if (response.statusCode == 200) {
@@ -365,6 +438,12 @@ class AnnonceService {
   /// 🔹 Récupérer **toutes les cultures** d’une **catégorie** ("rente" ou "vivrière")
   Future<List<Map<String, dynamic>>> fetchCulturesByCategory(
       String category) async {
+    // Check authentication before making request
+    if (!UserService().isLoggedIn) {
+      print('⚠️ AnnonceService.fetchCulturesByCategory - User not logged in, returning empty list');
+      return [];
+    }
+
     try {
       // ➜ On construit l’URL à la main
       final url = '/cultures?type=$category';

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/modificationprofil_service.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/modificationprofil_model.dart';
+import 'package:agrobloc/core/utils/image.dart';
 
 class ModifierProfilPage extends StatefulWidget {
   const ModifierProfilPage({super.key});
@@ -291,7 +292,7 @@ class _ModifierProfilPageState extends State<ModifierProfilPage> {
                     CircleAvatar(
                       radius: 50,
                       backgroundImage: _currentUser!.hasProfilePhoto
-                          ? NetworkImage(_currentUser!.photoPlanteur!)
+                          ? NetworkImage(getImageUrl(_currentUser!.photoPlanteur!) ?? 'https://via.placeholder.com/100x100?text=No+Image')
                           : const AssetImage("assets/images/profile_placeholder.png") as ImageProvider,
                     ),
                     const SizedBox(height: 12),

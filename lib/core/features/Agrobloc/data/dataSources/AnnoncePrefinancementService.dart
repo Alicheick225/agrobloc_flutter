@@ -44,36 +44,36 @@ class PrefinancementService {
     }
   }
 
-  /// Enrich AnnoncePrefinancement list with typeCulture libelle from cache
-  Future<List<AnnoncePrefinancement>> _enrichAnnoncesWithTypeCulture(List<AnnoncePrefinancement> annonces) async {
-    print('🔄 PrefinancementService._enrichAnnoncesWithTypeCulture: Début enrichissement pour ${annonces.length} annonces');
+  /// Enrich AnnoncePrefinancement list with culture libelle from cache
+  Future<List<AnnoncePrefinancement>> _enrichAnnoncesWithCulture(List<AnnoncePrefinancement> annonces) async {
+    print('🔄 PrefinancementService._enrichAnnoncesWithCulture: Début enrichissement pour ${annonces.length} annonces');
     try {
       await cacheCultures();
-      print('✅ PrefinancementService._enrichAnnoncesWithTypeCulture: Cache typeCulture chargé avec succès');
-      print('📋 PrefinancementService._enrichAnnoncesWithTypeCulture: Cache contient ${_cultureCache?.length ?? 0} éléments');
+      print('✅ PrefinancementService._enrichAnnoncesWithCulture: Cache culture chargé avec succès');
+      print('📋 PrefinancementService._enrichAnnoncesWithCulture: Cache contient ${_cultureCache?.length ?? 0} éléments');
     } catch (e) {
-      print('⚠️ PrefinancementService._enrichAnnoncesWithTypeCulture: Erreur lors du chargement du cache typeCulture: $e');
-      print('🔄 PrefinancementService._enrichAnnoncesWithTypeCulture: Continuation sans enrichissement typeCulture');
+      print('⚠️ PrefinancementService._enrichAnnoncesWithCulture: Erreur lors du chargement du cache culture: $e');
+      print('🔄 PrefinancementService._enrichAnnoncesWithCulture: Continuation sans enrichissement culture');
       return annonces; // Return original annonces without enrichment
     }
 
     return annonces.map((annonce) {
-      print('🔍 PrefinancementService._enrichAnnoncesWithTypeCulture: Traitement annonce ${annonce.id}');
-      print('🔍 PrefinancementService._enrichAnnoncesWithTypeCulture: cultureId: "${annonce.cultureId}"');
-      print('🔍 PrefinancementService._enrichAnnoncesWithTypeCulture: libelle actuel: "${annonce.libelle}"');
+      print('🔍 PrefinancementService._enrichAnnoncesWithCulture: Traitement annonce ${annonce.id}');
+      print('🔍 PrefinancementService._enrichAnnoncesWithCulture: cultureId: "${annonce.cultureId}"');
+      print('🔍 PrefinancementService._enrichAnnoncesWithCulture: libelle actuel: "${annonce.libelle}"');
 
       final libelle = _cultureCache?[annonce.cultureId] ?? '';
-      print('🔍 PrefinancementService._enrichAnnoncesWithTypeCulture: libelle du cache: "$libelle"');
+      print('🔍 PrefinancementService._enrichAnnoncesWithCulture: libelle du cache: "$libelle"');
 
       final enrichedLibelle = libelle.isNotEmpty ? libelle : annonce.libelle;
-      print('🔍 PrefinancementService._enrichAnnoncesWithTypeCulture: libelle enrichi final: "$enrichedLibelle"');
+      print('🔍 PrefinancementService._enrichAnnoncesWithCulture: libelle enrichi final: "$enrichedLibelle"');
 
       if (libelle.isNotEmpty) {
-        print('✅ PrefinancementService._enrichAnnoncesWithTypeCulture: Enrichissement réussi pour ${annonce.id} - Libelle: $libelle');
+        print('✅ PrefinancementService._enrichAnnoncesWithCulture: Enrichissement réussi pour ${annonce.id} - Libelle: $libelle');
       } else {
-        print('⚠️ PrefinancementService._enrichAnnoncesWithTypeCulture: Pas de libelle trouvé pour cultureId: "${annonce.cultureId}"');
-        print('🔄 PrefinancementService._enrichAnnoncesWithTypeCulture: Utilisation du libelle existant: "${annonce.libelle}"');
-        print('🔍 PrefinancementService._enrichAnnoncesWithTypeCulture: Cache keys: ${_cultureCache?.keys.toList()}');
+        print('⚠️ PrefinancementService._enrichAnnoncesWithCulture: Pas de libelle trouvé pour cultureId: "${annonce.cultureId}"');
+        print('🔄 PrefinancementService._enrichAnnoncesWithCulture: Utilisation du libelle existant: "${annonce.libelle}"');
+        print('🔍 PrefinancementService._enrichAnnoncesWithCulture: Cache keys: ${_cultureCache?.keys.toList()}');
       }
 
       return AnnoncePrefinancement(
@@ -108,7 +108,7 @@ class PrefinancementService {
         final List<dynamic> data = jsonDecode(response.body);
         print('🔍 PrefinancementService.fetchPrefinancements: JSON brut reçu: $data');
         final annonces = data.map((json) => AnnoncePrefinancement.fromJson(json)).toList();
-        return await _enrichAnnoncesWithTypeCulture(annonces);
+        return await _enrichAnnoncesWithCulture(annonces);
       } else if (response.statusCode == 401) {
         // Try with forced refresh
         print("🚨 Token rejeté lors du chargement des préfinancements - tentative de refresh");
@@ -121,7 +121,7 @@ class PrefinancementService {
         if (retryResponse.statusCode == 200) {
           final List<dynamic> data = jsonDecode(retryResponse.body);
           final annonces = data.map((json) => AnnoncePrefinancement.fromJson(json)).toList();
-          return await _enrichAnnoncesWithTypeCulture(annonces);
+          return await _enrichAnnoncesWithCulture(annonces);
         } else {
           throw Exception('Erreur lors du chargement des préfinancements après retry : ${retryResponse.body}');
         }
@@ -166,8 +166,8 @@ class PrefinancementService {
         }).toList();
 
         print('✅ PrefinancementService: ${annonces.length} annonces parsées avec succès');
-        final enriched = await _enrichAnnoncesWithTypeCulture(annonces);
-        print('✅ PrefinancementService: ${enriched.length} annonces enrichies avec typeCulture');
+        final enriched = await _enrichAnnoncesWithCulture(annonces);
+        print('✅ PrefinancementService: ${enriched.length} annonces enrichies avec culture');
         return enriched;
       } else if (response.statusCode == 401) {
         // Try with forced refresh
@@ -198,7 +198,7 @@ class PrefinancementService {
           }).toList();
 
           print('✅ PrefinancementService: ${annonces.length} annonces parsées après retry');
-          final enriched = await _enrichAnnoncesWithTypeCulture(annonces);
+          final enriched = await _enrichAnnoncesWithCulture(annonces);
           print('✅ PrefinancementService: ${enriched.length} annonces enrichies après retry');
           return enriched;
         } else {
@@ -228,7 +228,7 @@ class PrefinancementService {
       if (response.statusCode == 200) {
         final jsonItem = json.decode(response.body);
         final annonce = AnnoncePrefinancement.fromJson(jsonItem);
-        final enriched = await _enrichAnnoncesWithTypeCulture([annonce]);
+        final enriched = await _enrichAnnoncesWithCulture([annonce]);
         return enriched.first;
       } else {
         throw Exception('Erreur lors du chargement du préfinancement : ${response.body}');

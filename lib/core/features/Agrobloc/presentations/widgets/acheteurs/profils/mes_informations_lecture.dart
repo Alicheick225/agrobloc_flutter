@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/profil_service.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/profil_model.dart';
+import 'package:agrobloc/core/utils/image.dart';
 
 class MesInformationsLecture extends StatefulWidget {
   const MesInformationsLecture({super.key});
@@ -184,7 +185,7 @@ class _MesInformationsLectureState extends State<MesInformationsLecture> {
                   CircleAvatar(
                     radius: 50,
                     backgroundImage: _currentUser!.hasProfilePhoto
-                        ? NetworkImage(_currentUser!.photoPlanteur!)
+                        ? NetworkImage(getImageUrl(_currentUser!.photoPlanteur!) ?? 'https://via.placeholder.com/100x100?text=No+Image')
                         : const AssetImage("assets/images/profile_placeholder.png") as ImageProvider,
                     onBackgroundImageError: _currentUser!.hasProfilePhoto
                         ? (exception, stackTrace) {

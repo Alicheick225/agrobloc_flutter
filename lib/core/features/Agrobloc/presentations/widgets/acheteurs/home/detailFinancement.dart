@@ -102,7 +102,7 @@ class FinancementDetailsPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            data.libelle,
+            data.libelle.isNotEmpty ? data.libelle : "N/A",
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
           ),
           const SizedBox(height: 12),

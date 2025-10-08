@@ -211,6 +211,15 @@ class ApiClient {
     final headers = {"Content-Type": "application/json"};
 
     if (withAuth) {
+      // Vérifier d'abord si l'utilisateur est connecté pour éviter les tentatives inutiles
+      final isLoggedIn = UserService().isLoggedIn;
+      if (!isLoggedIn) {
+        print('❌ ApiClient._getHeaders() - Utilisateur non connecté, impossible de récupérer le token');
+        throw AuthenticationException(
+            "Utilisateur non connecté. Veuillez vous connecter pour accéder à cette ressource.",
+            type: 'not_logged_in');
+      }
+
       print(
           '🔄 ApiClient._getHeaders() - Récupération du token pour les headers...');
 

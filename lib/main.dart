@@ -51,8 +51,6 @@ Future<void> main() async {
   // Initialisation UserService
   try {
     final userService = UserService();
-    // Force clear stored user session to require login on every app launch
-    await userService.clearCurrentUser();
     final hasStoredData = await userService.hasStoredUserData();
     debugPrint('🔍 main() - Données utilisateur stockées: $hasStoredData');
 

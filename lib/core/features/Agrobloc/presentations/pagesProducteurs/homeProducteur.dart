@@ -111,11 +111,22 @@ class _HomeProducteurContentState extends State<HomeProducteurContent> {
   bool isLoading = false;
   List<AnnonceAchat> annonces = [];
   final AnnonceAchatService _annonceService = AnnonceAchatService();
+  final UserService _userService = UserService();
 
   @override
   void initState() {
     super.initState();
-    _loadLatestAnnonces();
+    _checkAuthenticationAndLoadData();
+  }
+
+  Future<void> _checkAuthenticationAndLoadData() async {
+    final isAuthenticated = await _userService.isUserAuthenticated();
+    if (isAuthenticated) {
+      _loadLatestAnnonces();
+    } else {
+      // User is not authenticated, don't load data
+      debugPrint('⚠️ HomeProducteurContent - Utilisateur non authentifié, chargement des données annulé');
+    }
   }
 
   @override

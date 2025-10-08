@@ -19,7 +19,7 @@ class RecommendationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl = getImageUrl(recommendation.photo);
+    final imageUrl = getImageUrl(recommendation.photo) ?? 'https://via.placeholder.com/400x200?text=No+Image';
 
     final statutLower = recommendation.statut.toLowerCase();
     final isDisponible = statutLower == "disponible";
@@ -103,8 +103,8 @@ class RecommendationCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           recommendation.cultureLibelle.isNotEmpty
-                            ? "${recommendation.cultureLibelle} ${recommendation.quantite.toStringAsFixed(0)} tonnes"
-                            : "Type de culture non spécifié",
+                            ? "${recommendation.cultureLibelle} ${recommendation.quantite.toStringAsFixed(0)} ${recommendation.quantiteUnite}"
+                            : "Culture non spécifiée",
                           style: AppTextStyles.body.copyWith(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
