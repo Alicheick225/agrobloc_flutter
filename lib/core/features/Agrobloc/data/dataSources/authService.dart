@@ -265,7 +265,13 @@ class AuthService {
             } else if (response.statusCode == 403) {
               throw Exception("Accès refusé lors du refresh - page d'erreur HTML reçue");
             } else if (response.statusCode == 404) {
-              throw Exception("Endpoint de refresh non trouvé - page d'erreur HTML reçue");
+              print('⚠️ AuthService.refreshToken() - Endpoint de refresh non trouvé (404). Le serveur ne supporte pas le refresh automatique.');
+              print('🔄 AuthService.refreshToken() - Continuer sans refresh - l\'utilisateur devra se reconnecter manuellement si nécessaire.');
+              // Instead of throwing, return empty access token to force re-login
+              return {
+                'accessToken': '', // Empty access token to force re-login
+                'refreshToken': refreshToken, // Keep refresh token for future attempts
+              };
             } else {
               throw Exception("Erreur serveur (${response.statusCode}) - page d'erreur HTML reçue");
             }

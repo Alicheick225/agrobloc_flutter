@@ -2,13 +2,13 @@ import 'dart:convert';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
 import 'package:http/http.dart' as http;
 import '../models/annoncePrefinancementModel.dart';
-import 'typeCultureService.dart';
+import 'cultureService.dart';
 
 import 'package:agrobloc/core/utils/api_token.dart';
 
 class PrefinancementService {
   static final String _baseUrl = ApiConfig.annoncesBaseUrl;
-  final TypeCultureService _typeCultureService = TypeCultureService();
+  final cultureService _typeCultureService = cultureService();
   Map<String, String>? _typeCultureCache;
 
   /// Récupère le token valide et construit les headers
@@ -33,7 +33,7 @@ class PrefinancementService {
     }
     print('🔄 PrefinancementService.cacheTypeCultures: Chargement du cache typeCulture...');
     try {
-      final types = await _typeCultureService.getAllTypes();
+      final types = await _typeCultureService.getAllCulture();
       _typeCultureCache = { for (var t in types) t.id : t.libelle };
       print('✅ PrefinancementService.cacheTypeCultures: Cache chargé avec ${_typeCultureCache!.length} éléments');
       print('📋 PrefinancementService.cacheTypeCultures: Contenu du cache: $_typeCultureCache');
@@ -125,7 +125,8 @@ class PrefinancementService {
           throw Exception('Erreur lors du chargement des préfinancements après retry : ${retryResponse.body}');
         }
       } else {
-        throw Exception('Erreur lors du chargement des préfinancements : ${response.body}');
+        throw Exception(
+            'Erreur lors du chargement des préfinancements : ${response.body}');
       }
     } catch (e) {
       throw Exception('Erreur lors du chargement des préfinancements : $e');

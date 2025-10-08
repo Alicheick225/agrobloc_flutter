@@ -3,7 +3,7 @@ import 'package:agrobloc/core/features/Agrobloc/data/dataSources/AnnonceAchat.da
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceAchatModel.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
-import 'package:agrobloc/core/themes/app_text_styles.dart';
+import 'package:agrobloc/core/utils/app_text_styles.dart';
 
 class AnnonceAchatPage extends StatefulWidget {
   const AnnonceAchatPage({super.key});
@@ -242,6 +242,14 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                                                   ),
                                                 ),
                                               ],
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'Acheteur: ${annonce.userNom}',
+                                              style: TextStyle(
+                                                color: Colors.grey[700],
+                                                fontSize: 14,
+                                              ),
                                             ),
                                             const SizedBox(height: 4),
                                             // Date and favorite icon on the same line

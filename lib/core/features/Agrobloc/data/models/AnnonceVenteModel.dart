@@ -32,13 +32,15 @@ class AnnonceVente {
   });
 
   factory AnnonceVente.fromJson(Map<String, dynamic> json) {
-    // Add logging to see the JSON structure
-    print('AnnonceVente.fromJson: $json');
+    // Add logging to see the JSON structure and statut values
+    final originalStatut = json['statut']?.toString() ?? 'Indisponible';
+    final normalizedStatut = originalStatut.toLowerCase();
+    print('📋 AnnonceVente.fromJson - ID: ${json['id']}, Statut original: "$originalStatut" -> normalisé: "$normalizedStatut"');
 
     return AnnonceVente(
       id: json['id']?.toString() ?? '',
       photo: json['photo'],
-      statut: json['statut'] ?? 'Indisponible',
+      statut: normalizedStatut,
       description: json['description'] ?? '',
       prixKg: (json['prix_kg'] as num?)?.toDouble() ?? 0,
       prixUnite: json['prix_unite'] ?? 'FCFA',

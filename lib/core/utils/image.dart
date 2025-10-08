@@ -1,18 +1,34 @@
-import 'package:agrobloc/core/utils/api_token.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/supabaseService.dart';
 
-String getImageUrl(String? photo) {
-  if (photo == null || photo.isEmpty) return "";
-  if (photo.startsWith("http")) return photo;
+final _imageService = SupabaseImageService();
 
-  // ✅ Base URL (change en fonction de ton environnement)
-  //const baseUrl = "http://10.0.2.2:8080"; // ✅ pour Android Emulator
-  final baseUrl = ApiConfig.imageBaseUrl; // ✅ pour un vrai téléphone - now configurable
+String getImageUrl(String? fileName) {
+  if (fileName == null || fileName.isEmpty) {
+    return "https://via.placeholder.com/150";
+  }
 
-  // ✅ Ajoute un "/" si manquant
-  final normalizedPhoto = photo.startsWith("/") ? photo : "/$photo";
-  final url = "$baseUrl$normalizedPhoto";
+  if (fileName.startsWith("http")) {
+    // C'est une URL complète, nettoyer les erreurs communes
+    // Nettoyer plusieurs slashs consécutifs après https:
+    String cleanedUrl = fileName.replaceAll(RegExp(r'https:/+'), 'https://');
+    print("🔗 IMAGE URL (Full URL Cleaned): $cleanedUrl");
+    return cleanedUrl;
+  } else {
+    // C'est un nom de fichier, construire l'URL
+    // 🔥 Nettoyer les doublons de slash
+    String cleanFileName = fileName.replaceAll("//", "/");
 
-  print("🔗 IMAGE URL: $url"); // ✅ Debug
+    // 🔥 Supprimer "/" au tout début
+    if (cleanFileName.startsWith("/")) {
+      cleanFileName = cleanFileName.substring(1);
+    }
 
-  return url;
+    final url = _imageService.supabase
+        .storage
+        .from(_imageService.bucketName)
+        .getPublicUrl(cleanFileName);
+
+    print("🔗 IMAGE URL (Supabase Cleaned): $url");
+    return url;
+  }
 }

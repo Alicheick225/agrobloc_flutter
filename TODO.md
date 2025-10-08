@@ -1,1 +1,3 @@
-- [ ] Update API base URLs in lib/core/utils/api_token.dart to use 10.0.2.2 for emulator connectivity
+- [ ] Improve error handling in CommandeProduitPage catch block to detect "Cette annonce n'existe plus ou a été supprimée" and show user-friendly message
+- [ ] Add a check in _enregistrerCommande to fetch the announcement again before creating the command
+- [ ] If announcement is deleted or not available, show message and navigate back

@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/annonceVenteService.dart';
-import 'package:agrobloc/core/features/Agrobloc/data/dataSources/typeCultureService.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/cultureService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/parcelleService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/parcelleService.dart';
-import 'package:agrobloc/core/features/Agrobloc/data/models/typecultureModel.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/cultureModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/offreVentePage.dart';
 import 'package:flutter/material.dart';
@@ -35,10 +35,10 @@ class _AnnonceFormState extends State<AnnonceForm> {
 
   final picker = ImagePicker();
   final AnnonceService annonceService = AnnonceService();
-  final TypeCultureService typeCultureService = TypeCultureService();
+  final cultureService typeCultureService = cultureService();
   final ParcelleService parcelleService = ParcelleService();
 
-  List<TypeCulture> typeCultures = [];
+  List<Culture> typeCultures = [];
   List<Parcelle> parcelles = [];
 
   bool get isEditing => widget.annonce != null;
@@ -66,12 +66,12 @@ class _AnnonceFormState extends State<AnnonceForm> {
 
   Future<void> _chargerCultures() async {
     try {
-      typeCultures = await typeCultureService.getAllTypes();
+      typeCultures = await typeCultureService.getAllCulture();
       if (selectedCulture != null) {
         // Find the culture that matches ignoring case
         final matchingCulture = typeCultures.firstWhere(
           (c) => c.libelle.toLowerCase() == selectedCulture!.toLowerCase(),
-          orElse: () => TypeCulture(id: '-1', libelle: '', prixBordChamp: 0.0),
+          orElse: () => Culture(id: '-1', libelle: '', type: '', prixBordChamp: 0.0),
         );
         if (matchingCulture.id != '-1') {
           selectedCulture = matchingCulture.libelle;

@@ -3,9 +3,9 @@ import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dar
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/AnnoncePrefinancementService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/parcelleService.dart';
-import 'package:agrobloc/core/features/Agrobloc/data/dataSources/typeCultureService.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/cultureService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/parcelleService.dart';
-import 'package:agrobloc/core/features/Agrobloc/data/models/typecultureModel.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/cultureModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/annoncePrefinancementModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/offreVentePage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,7 +21,7 @@ class PrefinancementForm extends StatefulWidget {
 
 class _PrefinancementFormState extends State<PrefinancementForm> {
   final PrefinancementService service = PrefinancementService();
-  final TypeCultureService typeService = TypeCultureService();
+  final cultureService typeService = cultureService();
   final ParcelleService parcelleService = ParcelleService();
 
   final TextEditingController productionController = TextEditingController();
@@ -29,10 +29,10 @@ class _PrefinancementFormState extends State<PrefinancementForm> {
   final TextEditingController montantController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
 
-  List<TypeCulture> cultures = [];
+  List<Culture> cultures = [];
   List<Parcelle> parcelles = [];
 
-  TypeCulture? culture;
+  Culture? culture;
   Parcelle? parcelle;
   String unite = "Kg"; // Kg ou T
 
@@ -104,7 +104,7 @@ class _PrefinancementFormState extends State<PrefinancementForm> {
 
   Future<void> _chargerData() async {
     try {
-      final c = await typeService.getAllTypes();
+      final c = await typeService.getAllCulture();
       final p = await parcelleService.getAllParcelles();
       setState(() {
         cultures = c;
@@ -120,17 +120,20 @@ class _PrefinancementFormState extends State<PrefinancementForm> {
       );
     }
   }
-// Dans PrefinancementForm.dart
-void _envoyerDemande() async {
-  try {
-    if (culture == null || parcelle == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Veuillez sélectionner une culture et une parcelle")),
-      );
-      return;
-    }
 
-    final userService = UserService();
+// Dans PrefinancementForm.dart
+  void _envoyerDemande() async {
+    try {
+      if (culture == null || parcelle == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content:
+                  Text("Veuillez sélectionner une culture et une parcelle")),
+        );
+        return;
+      }
+
+      final userService = UserService();
 
     // Vérifier l'authentification en chargeant les données utilisateur si nécessaire
     final isAuthenticated = await userService.isUserAuthenticated();
@@ -140,17 +143,17 @@ void _envoyerDemande() async {
 
     final userId = userService.userId!;
 
-    // Quantité
-    double quantite = double.tryParse(productionController.text) ?? 0;
-    if (unite == "T") quantite *= 1000; // Conversion T -> Kg
+      // Quantité
+      double quantite = double.tryParse(productionController.text) ?? 0;
+      if (unite == "T") quantite *= 1000; // Conversion T -> Kg
 
-    // Prix de vente
-    double prix = double.tryParse(prixVenteController.text) ?? 0;
+      // Prix de vente
+      double prix = double.tryParse(prixVenteController.text) ?? 0;
 
-    // Description par défaut
-    final description = descriptionController.text.trim().isEmpty
-        ? "Pas de description"
-        : descriptionController.text.trim();
+      // Description par défaut
+      final description = descriptionController.text.trim().isEmpty
+          ? "Pas de description"
+          : descriptionController.text.trim();
 
     // Création du préfinancement
     final annonce = await service.createPrefinancement(
@@ -377,14 +380,14 @@ void _envoyerDemande() async {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  DropdownButtonFormField<TypeCulture>(
+                  DropdownButtonFormField<Culture>(
                     decoration: const InputDecoration(
                       labelText: "Choix de la culture",
                       border: OutlineInputBorder(),
                     ),
                     value: culture,
                     items: cultures
-                        .map((c) => DropdownMenuItem<TypeCulture>(
+                        .map((c) => DropdownMenuItem<Culture>(
                               value: c,
                               child: Text(c.libelle),
                             ))
@@ -392,8 +395,8 @@ void _envoyerDemande() async {
                     onChanged: (val) => setState(() => culture = val),
                   ),
                   const SizedBox(height: 16),
-
-                  Text("Production estimée", style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text("Production estimée",
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                   Row(
                     children: [
                       Expanded(
@@ -429,7 +432,6 @@ void _envoyerDemande() async {
                     ],
                   ),
                   const SizedBox(height: 16),
-
                   DropdownButtonFormField<Parcelle>(
                     decoration: const InputDecoration(
                       labelText: "Choix de la parcelle",
@@ -450,11 +452,11 @@ void _envoyerDemande() async {
 
                   _buildNumberField("Prix de vente", prixVenteController, "FCFA"),
                   const SizedBox(height: 16),
-
-                  _buildNumberField("Montant à préfinancer", montantController, "FCFA"),
+                  _buildNumberField(
+                      "Montant à préfinancer", montantController, "FCFA"),
                   const SizedBox(height: 16),
-
-                  Text("Description", style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text("Description",
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                   TextField(
                     controller: descriptionController,
                     maxLines: 3,
@@ -464,7 +466,6 @@ void _envoyerDemande() async {
                     ),
                   ),
                   const SizedBox(height: 24),
-
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -488,7 +489,8 @@ void _envoyerDemande() async {
     );
   }
 
-  Widget _buildNumberField(String title, TextEditingController controller, String unit) {
+  Widget _buildNumberField(
+      String title, TextEditingController controller, String unit) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

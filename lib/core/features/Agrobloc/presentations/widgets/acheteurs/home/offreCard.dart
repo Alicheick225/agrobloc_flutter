@@ -3,7 +3,7 @@ import 'package:agrobloc/core/utils/image.dart';
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
-import 'package:agrobloc/core/themes/app_text_styles.dart';
+import 'package:agrobloc/core/utils/app_text_styles.dart';
 
 class OffreCard extends StatelessWidget {
   final AnnonceVente data;
@@ -13,7 +13,6 @@ class OffreCard extends StatelessWidget {
   final AnnonceVente? recommendation;
   final String? acheteurId; // ID de l'acheteur pour les transactions
 
-
   const OffreCard({
     super.key,
     required this.data,
@@ -21,7 +20,7 @@ class OffreCard extends StatelessWidget {
     this.onFavoriteToggle,
     this.isLiked = false,
     this.recommendation,
-    this.acheteurId, // ID de l'acheteur pour les transactions
+    this.acheteurId,
   });
 
   @override
@@ -47,21 +46,20 @@ class OffreCard extends StatelessWidget {
       onTap: onTap ??
           () {
             Navigator.push(
-            context,
-        MaterialPageRoute(
-          builder: (context) => OffreDetailPage(
-            recommendation: data, 
-            acheteurId: acheteurId,  // On passe l'objet AnnonceVente
-          ),
-        ),
-      );
+              context,
+              MaterialPageRoute(
+                builder: (context) => OffreDetailPage(
+                  recommendation: data,
+                  acheteurId: acheteurId,
+                ),
+              ),
+            );
           },
-     child: Container(
-          height: 320, // ⬆️ Passé de 250 à 320 pour plus d'espace
-          constraints: const BoxConstraints(
-            maxWidth: double.infinity,
-          ),
-
+      child: Container(
+        height: 320,
+        constraints: const BoxConstraints(
+          maxWidth: double.infinity,
+        ),
         margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
@@ -159,8 +157,8 @@ class OffreCard extends StatelessWidget {
                   // ✅ TYPE + QUANTITÉ
                   Text(
                     data.typeCultureLibelle.isNotEmpty
-                      ? "${data.typeCultureLibelle} ${data.quantite.toStringAsFixed(0)} tonnes"
-                      : "Type de culture non spécifié",
+                        ? "${data.typeCultureLibelle} ${data.quantite.toStringAsFixed(0)} tonnes"
+                        : "Type de culture non spécifié",
                     style: AppTextStyles.body.copyWith(fontSize: 11),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -184,7 +182,6 @@ class OffreCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                 
                 ],
               ),
             ),

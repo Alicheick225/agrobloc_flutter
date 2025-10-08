@@ -53,6 +53,7 @@ class OrderTrackingWidget extends StatelessWidget {
   }
 
   /* ------------------- Méthodes privées ------------------- */
+  
   Widget _buildStatusTimeline(BuildContext context) {
     final currentOrderStatus = _convertToOrderStatus(commande.statut);
 

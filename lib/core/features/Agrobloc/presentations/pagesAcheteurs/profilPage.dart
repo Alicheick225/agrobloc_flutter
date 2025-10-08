@@ -1,12 +1,12 @@
+
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/order%20tracking/sequestre.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/authentificationModel.dart';
-
-// Import de la vraie page AvisPage que vous avez développée
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/profils/avisPage.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/profils/mes_informations_lecture.dart';
 
 
 class ProfilPage extends StatefulWidget {
@@ -22,7 +22,18 @@ class _ProfilPageState extends State<ProfilPage> {
   @override
   void initState() {
     super.initState();
-    user = UserService().currentUser;
+    _loadUser();
+  }
+
+  void _loadUser() {
+    UserService().loadUser().then((_) {
+      // Vérifiez si le widget est monté avant d'appeler setState
+      if (mounted) {
+        setState(() {
+          user = UserService().currentUser;
+        });
+      }
+    });
   }
 
   // Méthode pour gérer la navigation selon l'option choisie
@@ -32,7 +43,7 @@ class _ProfilPageState extends State<ProfilPage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const MesInformationsPage(),
+            builder: (context) => const MesInformationsLecture(),
           ),
         );
         break;
@@ -44,8 +55,7 @@ class _ProfilPageState extends State<ProfilPage> {
           ),
         );
         break;
-      case "avis":
-        // Correction : Naviguer vers la classe AvisPage complète
+      case "Avis": // Corrigé le 'avis' en 'Avis'
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -108,7 +118,7 @@ class _ProfilPageState extends State<ProfilPage> {
                 // Logique de déconnexion
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.clear();
-                
+
                 Navigator.of(context).pop(); // Fermer le dialogue
                 Navigator.pushNamedAndRemoveUntil(
                   context,
@@ -150,7 +160,8 @@ class _ProfilPageState extends State<ProfilPage> {
           // ==== HEADER ====
           Container(
             color: AppColors.primaryGreen,
-            padding: const EdgeInsets.only(top: 40, left: 8, right: 8, bottom: 16),
+            padding:
+                const EdgeInsets.only(top: 40, left: 8, right: 8, bottom: 16),
             child: Row(
               children: [
                 IconButton(
@@ -175,7 +186,8 @@ class _ProfilPageState extends State<ProfilPage> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const CompteSequestrePage()),
+                      MaterialPageRoute(
+                          builder: (context) => const CompteSequestrePage()),
                     );
                   },
                 ),
@@ -192,9 +204,12 @@ class _ProfilPageState extends State<ProfilPage> {
                   children: [
                     CircleAvatar(
                       radius: 45,
-                      backgroundColor: const Color(0xFF4CAF50), // Primary green color
+                      backgroundColor:
+                          const Color(0xFF4CAF50), // Primary green color
                       child: Text(
-                        user?.nom.isNotEmpty == true ? user!.nom[0].toUpperCase() : '?',
+                        user?.nom.isNotEmpty == true
+                            ? user!.nom[0].toUpperCase()
+                            : '?',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 24,
@@ -208,7 +223,8 @@ class _ProfilPageState extends State<ProfilPage> {
                       child: CircleAvatar(
                         radius: 16,
                         backgroundColor: Colors.white,
-                        child: Icon(Icons.camera_alt, size: 18, color: AppColors.primaryGreen),
+                        child: Icon(Icons.camera_alt,
+                            size: 18, color: AppColors.primaryGreen),
                       ),
                     ),
                   ],
@@ -216,10 +232,11 @@ class _ProfilPageState extends State<ProfilPage> {
                 const SizedBox(height: 10),
                 Text(
                   user?.nom ?? "Nom d'utilisateur",
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  user?.profilId ?? "Profil non défini",
+                  _getProfileType(user?.profilId) ?? "Profil non défini",
                   style: const TextStyle(color: Colors.grey),
                 ),
                 const SizedBox(height: 10),
@@ -229,8 +246,10 @@ class _ProfilPageState extends State<ProfilPage> {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryGreen,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6)),
                   ),
                   child: const Text(
                     "Modifier mon profil",
@@ -247,11 +266,13 @@ class _ProfilPageState extends State<ProfilPage> {
               children: [
                 _buildOptionItem(Icons.article_outlined, "Mes informations"),
                 _buildOptionItem(Icons.favorite_border, "Mes favoris"),
-                _buildOptionItem(Icons.thumb_up_off_alt, "avis"),
+                _buildOptionItem(Icons.thumb_up_off_alt, "Avis"), // Corrigé le 'avis' en 'Avis'
                 _buildOptionItem(Icons.history, "Historique transactions"),
                 _buildOptionItem(Icons.payments_outlined, "Moyens de paiement"),
-                _buildOptionItem(Icons.description_outlined, "Conditions d'utilisation et politique de confidentialité"),
-                _buildOptionItem(Icons.logout, "Se déconnecter", color: Colors.red),
+                _buildOptionItem(Icons.description_outlined,
+                    "Conditions d'utilisation et politique de confidentialité"),
+                _buildOptionItem(Icons.logout, "Se déconnecter",
+                    color: Colors.red),
               ],
             ),
           ),
@@ -264,106 +285,59 @@ class _ProfilPageState extends State<ProfilPage> {
     return ListTile(
       leading: Icon(icon, color: color ?? Colors.black87),
       title: Text(title, style: TextStyle(color: color ?? Colors.black)),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+      trailing:
+          const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
       onTap: () => _handleOptionTap(title),
     );
   }
 }
 
-// Pages de destination simplifiées. Vous devez les supprimer et les remplacer par vos vraies pages.
-
-class MesInformationsPage extends StatelessWidget {
-  const MesInformationsPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mes Informations'),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
-      ),
-      body: const Center(
-        child: Text('Page Mes Informations'),
-      ),
-    );
-  }
-}
-
+// Pages de destination simplifiées. Ces classes sont souvent définies dans leurs propres fichiers
 class MesFavorisPage extends StatelessWidget {
   const MesFavorisPage({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mes Favoris'),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
-      ),
-      body: const Center(
-        child: Text('Page Mes Favoris'),
-      ),
+      appBar: AppBar(title: const Text('Mes Favoris'), backgroundColor: AppColors.primaryGreen, foregroundColor: Colors.white),
+      body: const Center(child: Text('Page Mes Favoris')),
     );
   }
 }
 
 class HistoriqueTransactionsPage extends StatelessWidget {
   const HistoriqueTransactionsPage({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Historique des Transactions'),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
-      ),
-      body: const Center(
-        child: Text('Page Historique des Transactions'),
-      ),
+      appBar: AppBar(title: const Text('Historique des Transactions'), backgroundColor: AppColors.primaryGreen, foregroundColor: Colors.white),
+      body: const Center(child: Text('Page Historique des Transactions')),
     );
   }
 }
 
 class MoyensPaiementPage extends StatelessWidget {
   const MoyensPaiementPage({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Moyens de Paiement'),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
-      ),
-      body: const Center(
-        child: Text('Page Moyens de Paiement'),
-      ),
+      appBar: AppBar(title: const Text('Moyens de Paiement'), backgroundColor: AppColors.primaryGreen, foregroundColor: Colors.white),
+      body: const Center(child: Text('Page Moyens de Paiement')),
     );
   }
 }
 
 class ConditionsPage extends StatelessWidget {
   const ConditionsPage({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Conditions d\'utilisation'),
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: Colors.white,
-      ),
+      appBar: AppBar(title: const Text('Conditions d\'utilisation'), backgroundColor: AppColors.primaryGreen, foregroundColor: Colors.white),
       body: const SingleChildScrollView(
         padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Conditions d\'utilisation et Politique de confidentialité',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
+            Text('Conditions d\'utilisation et Politique de confidentialité', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             SizedBox(height: 16),
             Text('Contenu des conditions d\'utilisation...'),
           ],

@@ -1,8 +1,11 @@
+// lib/core/features/Agrobloc/presentations/widgets/connexion/login.dart
+
 import 'package:flutter/material.dart';
-import 'forgot_password.dart';
-import 'widgetAuth.dart';
-import 'register.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/authService.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/connexion/forgot_password.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/connexion/register.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/connexion/widgetAuth.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
 
 /// Page de connexion permettant à l'utilisateur de se connecter avec son profil
 class LoginPage extends StatefulWidget {
@@ -40,6 +43,7 @@ class _LoginPageState extends State<LoginPage> {
   late String internalProfile;
 
   final AuthService _authService = AuthService();
+  final UserService _userService = UserService();
 
   bool get isPrefillEmail {
     if (widget.prefillIdentifiant == null) return false;
@@ -65,6 +69,14 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  @override
+  void dispose() {
+    emailController.dispose();
+    phoneController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
   void _togglePasswordVisibility() {
     setState(() {
       _obscurePassword = !_obscurePassword;
@@ -81,29 +93,35 @@ class _LoginPageState extends State<LoginPage> {
           ? emailController.text.trim()
           : phoneController.text.trim();
 
+      // 🌟 Utilisation de l'AuthService pour la connexion
       final user = await _authService.login(identifier, passwordController.text, rememberMe: _rememberMe);
 
-      // Redirection selon profil
+      // 🌟 Utilisation de l'UserService pour le stockage local et la redirection
+      await _userService.storeUser(user, rememberMe: _rememberMe);
+
+      // 🌟 Redirection basée sur le profil (en utilisant les routes nommées)
       switch (user.profilId) {
-        case '7b74a4f6-67b6-474a-9bf5-d63e04d2a804':
-          Navigator.pushReplacementNamed(context, '/homePage');
+        case '7b74a4f6-67b6-474a-9bf5-d63e04d2a804': // Cooperative
+        case '35a3c32a-17f8-4771-a0d8-9295b1bc5917': // Acheteur
+          if (mounted) {
+            Navigator.pushReplacementNamed(context, '/homePage');
+          }
           break;
-        case 'f23423d4-ca9e-409b-b3fb-26126ab66581':
-          Navigator.pushReplacementNamed(context, '/homeProducteur');
+        case 'f23423d4-ca9e-409b-b3fb-26126ab66581': // Producteur
+          if (mounted) {
+            Navigator.pushReplacementNamed(context, '/homeProducteur');
+          }
           break;
         default:
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Profil utilisateur inconnu : ${user.profilId}")),
-          );
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Profil utilisateur inconnu : ${user.profilId}")),
+            );
+          }
       }
     } catch (e) {
-      // Amélioration de l'affichage des erreurs
       String errorMessage = 'Erreur de connexion';
-      
-      // Extraire le message d'erreur spécifique de l'exception
       final errorString = e.toString();
-      
-      // Éviter la concaténation multiple de "Erreur de connexion"
       if (errorString.contains('Erreur de connexion:')) {
         errorMessage = errorString.replaceFirst('Exception: ', '');
       } else if (errorString.contains('Erreur d\'authentification:')) {
@@ -111,18 +129,21 @@ class _LoginPageState extends State<LoginPage> {
       } else {
         errorMessage = 'Erreur de connexion: ${errorString.replaceFirst('Exception: ', '')}';
       }
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMessage),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 5),
-        ),
-      );
-      
-      print('❌ Erreur de connexion détaillée: $e');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+      debugPrint('❌ Erreur de connexion détaillée: $e');
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 

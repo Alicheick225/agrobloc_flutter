@@ -1,37 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/commandesProduit.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/annonceVenteService.dart';
+import 'package:agrobloc/core/utils/image.dart'; // ✅ pour getImageUrl
 
-class OffreDetailPage extends StatelessWidget {
+class OffreDetailPage extends StatefulWidget {
   final AnnonceVente recommendation;
-  final String? acheteurId; // 👈 à ajouter
+  final String? acheteurId;
 
   const OffreDetailPage({
     super.key,
-    this.acheteurId, // 👈 à initialiser
+    this.acheteurId,
     required this.recommendation,
   });
 
   @override
-  Widget build(BuildContext context) {
-    final image = recommendation.photo ?? "";
-    final product = recommendation.typeCultureLibelle.isNotEmpty
-        ? recommendation.typeCultureLibelle
-        : "Produit inconnu";
-    final description = recommendation.description.isNotEmpty
-        ? recommendation.description
-        : "Aucune description disponible";
-    final price = recommendation.prixKg;
-    final quantity = recommendation.quantite;
-    final location = recommendation.parcelleAdresse.isNotEmpty
-        ? recommendation.parcelleAdresse
-        : "Non renseignée";
-    final statut = (recommendation.statut).toLowerCase();
-    final nomVendeur = recommendation.userNom.isNotEmpty
-        ? recommendation.userNom
-        : "Nom inconnu";
+  State<OffreDetailPage> createState() => _OffreDetailPageState();
+}
 
-    final note = recommendation.note?.toDouble() ?? 0.0;
+class _OffreDetailPageState extends State<OffreDetailPage> {
+  @override
+  Widget build(BuildContext context) {
+    final imageUrl = getImageUrl(widget.recommendation.photo);
+    final product = widget.recommendation.typeCultureLibelle.isNotEmpty
+        ? widget.recommendation.typeCultureLibelle
+        : "Produit inconnu";
+    final description = widget.recommendation.description.isNotEmpty
+        ? widget.recommendation.description
+        : "Aucune description disponible";
+    final price = widget.recommendation.prixKg;
+    final quantity = widget.recommendation.quantite;
+    final location = widget.recommendation.parcelleAdresse.isNotEmpty
+        ? widget.recommendation.parcelleAdresse
+        : "Non renseignée";
+    final statut = (widget.recommendation.statut).toLowerCase();
+    final nomVendeur = widget.recommendation.userNom.isNotEmpty
+        ? widget.recommendation.userNom
+        : "Nom inconnu";
+    final note = widget.recommendation.note?.toDouble() ?? 0.0;
 
     return Scaffold(
       body: Column(
@@ -39,24 +45,14 @@ class OffreDetailPage extends StatelessWidget {
           /// ✅ IMAGE + BOUTONS
           Stack(
             children: [
-              (image.isNotEmpty &&
-                      (image.startsWith('http') || image.startsWith('https')))
-                  ? Image.network(
-                      image,
-                      width: double.infinity,
-                      height: 280,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          _imageErrorWidget(),
-                    )
-                  : Image.network(
-                      "http://192.168.252.199:8080$image",
-                      width: double.infinity,
-                      height: 280,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          _imageErrorWidget(),
-                    ),
+              Image.network(
+                imageUrl,
+                width: double.infinity,
+                height: 280,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) =>
+                    _imageErrorWidget(),
+              ),
 
               /// ✅ Bouton retour
               Positioned(
@@ -189,6 +185,7 @@ class OffreDetailPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
 
+                  /// ✅ Note
                   Row(
                     children: [
                       ...List.generate(5, (index) {
@@ -233,32 +230,61 @@ class OffreDetailPage extends StatelessWidget {
                       Expanded(
                         flex: 2,
                         child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => CommandeProduitPage(
-                                    nomProduit: product,
-                                    imageProduit: image.isNotEmpty
-                                        ? (image.startsWith('http')
-                                            ? image
-                                            : "http://192.168.252.199:8080$image")
-                                        : "",
-                                    prixUnitaire: price.toDouble(),
-                                    stockDisponible: quantity.toDouble(), annonce: recommendation,
+                          onPressed: statut == "disponible" ? () async {
+                            // ✅ Vérification en temps réel de l'état de l'annonce
+                            try {
+                              print('🔍 Vérification en temps réel de l\'annonce ${widget.recommendation.id}...');
+                              final annonceService = AnnonceService();
+                              final annonceActualisee = await annonceService.getAnnonceByID(widget.recommendation.id);
 
+                              if (annonceActualisee.statut.toLowerCase() != "disponible") {
+                                // L'annonce n'est plus disponible
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text("Cette annonce n'est plus disponible (statut: ${annonceActualisee.statut})"),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+                                return;
+                              }
+
+                              // L'annonce est toujours disponible, procéder à la commande
+                              if (mounted) {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => CommandeProduitPage(
+                                        nomProduit: product,
+                                        imageProduit: imageUrl,
+                                        prixUnitaire: price.toDouble(),
+                                        stockDisponible: quantity.toDouble(),
+                                        annonce: annonceActualisee, // Utiliser les données actualisées
+                                      ),
+                                    ));
+                              }
+                            } catch (e) {
+                              print('❌ Erreur vérification annonce: $e');
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text("Erreur lors de la vérification de l'annonce: $e"),
+                                    backgroundColor: Colors.red,
                                   ),
-                                ));
-                          },
+                                );
+                              }
+                            }
+                          } : null, // Désactiver si non disponible
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
+                            backgroundColor: statut == "disponible" ? Colors.green : Colors.grey,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
                             padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
-                          child: const Text(
-                            "Passer une commande",
+                          child: Text(
+                            statut == "disponible" ? "Passer une commande" : "Non disponible",
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,

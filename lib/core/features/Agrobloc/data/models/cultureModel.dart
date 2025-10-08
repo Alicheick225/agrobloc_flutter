@@ -1,18 +1,21 @@
-class TypeCulture {
+class Culture {
   final String id;
   final String libelle;
+  final String type;
   final double prixBordChamp;
 
-  TypeCulture({
+  Culture({
     required this.id,
     required this.libelle,
+    required this.type,
     required this.prixBordChamp,
   });
 
-  factory TypeCulture.fromJson(Map<String, dynamic> json) {
-    return TypeCulture(
+  factory Culture.fromJson(Map<String, dynamic> json) {
+    return Culture(
       id: json['id'] as String,
       libelle: json['libelle'] as String,
+      type: json['type'] as String,
       prixBordChamp: (json['prix_bord_champ'] as num).toDouble(),
     );
   }
@@ -21,6 +24,7 @@ class TypeCulture {
     return {
       'id': id,
       'libelle': libelle,
+      'type': type,
       'prix_bord_champ': prixBordChamp,
     };
   }
