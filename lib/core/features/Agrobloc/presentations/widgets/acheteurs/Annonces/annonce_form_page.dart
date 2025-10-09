@@ -4,6 +4,8 @@ import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceAchatModel.da
 import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'formRenteAchat.dart';
+import 'formVivrierAchat.dart';
 
 class AnnonceFormPage extends StatefulWidget {
   final AnnonceAchat? annonceToEdit;
@@ -31,6 +33,9 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
   bool _isLoading = false;
   bool _isEditMode = false;
 
+  List<Map<String, dynamic>> _typesProduits = [];
+  String? _typeProduit;
+
   // Color scheme
   final Color primaryColor = const Color(0xFF2E7D32);
   final Color secondaryColor = const Color(0xFF4CAF50);
@@ -44,6 +49,7 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
     super.initState();
     _isEditMode = widget.annonceToEdit != null;
     _fetchCultures();
+    _loadTypesProduits();
     if (_isEditMode) {
       _populateForm();
     }
@@ -77,6 +83,15 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
         _selectedCultureLibelle = matchingCulture['libelle'];
       });
     }
+  }
+
+  Future<void> _loadTypesProduits() async {
+    setState(() {
+      _typesProduits = [
+        {'id': 'rente', 'libelle': 'Culture de rente'},
+        {'id': 'vivriere', 'libelle': 'Culture vivrière'},
+      ];
+    });
   }
 
   Future<void> _fetchCultures() async {
@@ -521,6 +536,77 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
     );
   }
 
+  Widget _buildTypeProduitDropdown() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Type de culture',
+            style: TextStyle(
+              color: primaryColor,
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
+          Container(
+            margin: const EdgeInsets.only(top: 4),
+            height: 2,
+            width: 40,
+            color: primaryColor,
+          ),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            decoration: InputDecoration(
+              hintText: 'Sélectionner une culture',
+              hintStyle: TextStyle(color: Colors.grey[400]),
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.zero,
+            ),
+            value: _typeProduit,
+            items: [
+              const DropdownMenuItem(
+                value: null,
+                child: Text('Sélectionner une culture'),
+              ),
+              ..._typesProduits.map((type) {
+                return DropdownMenuItem<String>(
+                  value: type['id'].toString(),
+                  child: Text(
+                    type['libelle'],
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                );
+              }),
+            ],
+            onChanged: _isLoading
+                ? null
+                : (value) {
+                    setState(() {
+                      _typeProduit = value;
+                    });
+                  },
+            validator: (value) =>
+                value == null ? 'Sélectionnez une culture' : null,
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -549,53 +635,63 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
             )
           : Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _buildCultureDropdown(),
-                      const SizedBox(height: 20),
-                      _buildQuantityInput(),
-                      const SizedBox(height: 20),
-                      _buildPrixInput(),
-                      const SizedBox(height: 20),
-                      _buildDescriptionInput(),
-                      const SizedBox(height: 20),
-                      // _buildStatusDropdown(),
-                      // const SizedBox(height: 32),
-                      OutlinedButton(
-                        onPressed: _isLoading ? null : _submitForm,
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: primaryColor),
-                          foregroundColor: primaryColor,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : Text(
-                                _isEditMode ? 'Modifier une offre' : 'Proposer une offre d\'achat',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+              child: _isEditMode
+                  ? Form(
+                      key: _formKey,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _buildCultureDropdown(),
+                            const SizedBox(height: 20),
+                            _buildQuantityInput(),
+                            const SizedBox(height: 20),
+                            _buildPrixInput(),
+                            const SizedBox(height: 20),
+                            _buildDescriptionInput(),
+                            const SizedBox(height: 20),
+                            OutlinedButton(
+                              onPressed: _isLoading ? null : _submitForm,
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(color: primaryColor),
+                                foregroundColor: primaryColor,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
+                              child: _isLoading
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : Text(
+                                      'Modifier une offre',
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
+                    )
+                  : SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildTypeProduitDropdown(),
+                          const SizedBox(height: 20),
+                          if (_typeProduit == 'rente') FormRenteAchat(),
+                          if (_typeProduit == 'vivriere') FormVivrierAchat(),
+                        ],
+                      ),
+                    ),
             ),
     );
   }
