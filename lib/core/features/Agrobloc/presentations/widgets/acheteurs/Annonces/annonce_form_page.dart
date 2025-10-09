@@ -48,11 +48,11 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
   void initState() {
     super.initState();
     _isEditMode = widget.annonceToEdit != null;
-    _fetchCultures();
     _loadTypesProduits();
     if (_isEditMode) {
       _populateForm();
     }
+    _fetchCultures();
   }
 
   void _populateForm() {
@@ -74,13 +74,22 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
   void _setCultureFromId(String cultureId) {
     final matchingCulture = _cultures.firstWhere(
       (c) => c['id'].toString() == cultureId,
-      orElse: () => {'id': '', 'libelle': ''},
+      orElse: () => {'id': '', 'libelle': '', 'type': ''},
     );
 
     if (matchingCulture['id'] != '') {
       setState(() {
         _selectedCultureId = matchingCulture['id'].toString();
         _selectedCultureLibelle = matchingCulture['libelle'];
+        // Set typeProduit based on culture type
+        if (matchingCulture['type'] != null) {
+          String type = matchingCulture['type'].toString().toLowerCase();
+          // Normalize type to match dropdown ids
+          if (type == 'vivrière') {
+            type = 'vivriere';
+          }
+          _typeProduit = type;
+        }
       });
     }
   }
@@ -99,7 +108,15 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
       _isLoading = true;
     });
     try {
-      final cultures = await _service.fetchCultures();
+      final allCultures = await _service.fetchCultures();
+
+      // Filter cultures based on typeProduit if set
+      List<Map<String, dynamic>> cultures;
+      if (_typeProduit != null && _typeProduit!.isNotEmpty) {
+        cultures = allCultures.where((c) => c['type']?.toString().toLowerCase() == _typeProduit).toList();
+      } else {
+        cultures = allCultures;
+      }
 
       // Remove duplicates by id
       final uniqueCultures = <String, Map<String, dynamic>>{};
@@ -115,10 +132,20 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
             (_selectedCultureId == null || _selectedCultureId!.isEmpty)) {
           final existingCulture = _cultures.firstWhere(
             (c) => c['libelle'] == widget.annonceToEdit?.cultureLibelle,
-            orElse: () => {'id': '', 'libelle': ''},
+            orElse: () => {'id': '', 'libelle': '', 'type': ''},
           );
           if (existingCulture['id'] != '') {
             _selectedCultureId = existingCulture['id'].toString();
+            _selectedCultureLibelle = existingCulture['libelle'];
+            // Set typeProduit based on culture type
+            if (existingCulture['type'] != null) {
+              String type = existingCulture['type'].toString().toLowerCase();
+              // Normalize type to match dropdown ids
+              if (type == 'vivrière') {
+                type = 'vivriere';
+              }
+              _typeProduit = type;
+            }
           }
         }
       });
@@ -254,7 +281,7 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
               HapticFeedback.lightImpact();
             },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -293,6 +320,7 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
                 contentPadding: EdgeInsets.zero,
               ),
               value: _selectedCultureId,
+              menuMaxHeight: 200.0, // Limite la hauteur à environ 5 éléments et active le scroll
               items: [
                 const DropdownMenuItem(
                   value: null,
@@ -334,7 +362,7 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
 
   Widget _buildQuantityInput() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -369,12 +397,12 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
               Text(
                 _quantity.toStringAsFixed(0),
                 style: TextStyle(
-                  fontSize: 26,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Colors.grey[700],
                 ),
               ),
-              const SizedBox(width: 60),
+              const SizedBox(width: 40),
               ToggleButtons(
                 borderColor: primaryColor,
                 selectedBorderColor: primaryColor,
@@ -420,7 +448,7 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
 
   Widget _buildDescriptionInput() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -452,7 +480,7 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
           ),
           TextFormField(
             controller: _descriptionController,
-            maxLines: 4,
+            maxLines: 3,
             decoration: InputDecoration(
               hintText:
                   'Faites une brève description de ce que vous voulez ...',
@@ -475,7 +503,7 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
 
   Widget _buildPrixInput() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -538,7 +566,7 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
 
   Widget _buildTypeProduitDropdown() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -597,6 +625,9 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
                 : (value) {
                     setState(() {
                       _typeProduit = value;
+                      // When typeProduit changes, reload cultures accordingly
+                      _fetchCultures();
+                      _selectedCultureId = null;
                     });
                   },
             validator: (value) =>
@@ -642,20 +673,22 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
+                            _buildTypeProduitDropdown(),
+                            const SizedBox(height: 10),
                             _buildCultureDropdown(),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 10),
                             _buildQuantityInput(),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 10),
                             _buildPrixInput(),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 10),
                             _buildDescriptionInput(),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 10),
                             OutlinedButton(
                               onPressed: _isLoading ? null : _submitForm,
                               style: OutlinedButton.styleFrom(
                                 side: BorderSide(color: primaryColor),
                                 foregroundColor: primaryColor,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),

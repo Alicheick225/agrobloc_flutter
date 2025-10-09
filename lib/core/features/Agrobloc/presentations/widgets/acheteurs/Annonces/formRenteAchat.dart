@@ -115,7 +115,7 @@ class _FormRenteAchatState extends State<FormRenteAchat> {
               HapticFeedback.lightImpact();
             },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -154,6 +154,7 @@ class _FormRenteAchatState extends State<FormRenteAchat> {
                 contentPadding: EdgeInsets.zero,
               ),
               value: _selectedCultureId,
+              menuMaxHeight: 200.0, // Limite la hauteur à environ 5 éléments et active le scroll
               items: [
                 const DropdownMenuItem(
                   value: null,
@@ -191,7 +192,7 @@ class _FormRenteAchatState extends State<FormRenteAchat> {
 
   Widget _buildPrixInput() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -248,7 +249,7 @@ class _FormRenteAchatState extends State<FormRenteAchat> {
 
   Widget _buildQuantityInput() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -283,12 +284,12 @@ class _FormRenteAchatState extends State<FormRenteAchat> {
               Text(
                 _quantity.toStringAsFixed(0),
                 style: TextStyle(
-                  fontSize: 26,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Colors.grey[700],
                 ),
               ),
-              const SizedBox(width: 60),
+              const SizedBox(width: 40),
               ToggleButtons(
                 borderColor: primaryColor,
                 selectedBorderColor: primaryColor,
@@ -334,7 +335,7 @@ class _FormRenteAchatState extends State<FormRenteAchat> {
 
   Widget _buildDescriptionInput() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -366,7 +367,7 @@ class _FormRenteAchatState extends State<FormRenteAchat> {
           ),
           TextFormField(
             controller: _descriptionController,
-            maxLines: 4,
+            maxLines: 3,
             decoration: InputDecoration(
               hintText:
                   'Faites une brève description de ce que vous voulez ...',
@@ -393,19 +394,19 @@ class _FormRenteAchatState extends State<FormRenteAchat> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildCultureDropdown(),
-          const SizedBox(height: 20),
+          const SizedBox(height: 12),
           _buildPrixInput(),
-          const SizedBox(height: 20),
+          const SizedBox(height: 12),
           _buildQuantityInput(),
-          const SizedBox(height: 20),
+          const SizedBox(height: 12),
           _buildDescriptionInput(),
-          const SizedBox(height: 20),
+          const SizedBox(height: 12),
           OutlinedButton(
             onPressed: _isLoading ? null : _submit,
             style: OutlinedButton.styleFrom(
               side: BorderSide(color: primaryColor),
               foregroundColor: primaryColor,
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: const EdgeInsets.symmetric(vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),

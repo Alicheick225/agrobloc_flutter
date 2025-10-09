@@ -386,6 +386,7 @@ class _PrefinancementFormState extends State<PrefinancementForm> {
                       border: OutlineInputBorder(),
                     ),
                     value: culture,
+                    menuMaxHeight: 200.0, // Limite la hauteur à environ 5 éléments et active le scroll
                     items: cultures
                         .map((c) => DropdownMenuItem<Culture>(
                               value: c,
@@ -438,6 +439,7 @@ class _PrefinancementFormState extends State<PrefinancementForm> {
                       border: OutlineInputBorder(),
                     ),
                     value: parcelle,
+                    menuMaxHeight: 200.0, // Limite la hauteur à environ 5 éléments et active le scroll
                     items: parcelles
                         .map((p) => DropdownMenuItem<Parcelle>(
                               value: p,

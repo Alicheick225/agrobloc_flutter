@@ -165,9 +165,10 @@ class _CultureRenteFormState extends State<CultureRenteForm> {
               border:
                   OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
               contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             ),
             value: _selectedCulture,
+            menuMaxHeight: 200.0, // Limite la hauteur à environ 5 éléments et active le scroll
             items: _cultures
                 .map((c) => DropdownMenuItem<Culture>(
                       value: c,
@@ -183,14 +184,14 @@ class _CultureRenteFormState extends State<CultureRenteForm> {
             },
             validator: (c) => c == null ? "Choisissez une culture" : null,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           DropdownButtonFormField<Map<String, dynamic>>(
             decoration: InputDecoration(
               labelText: "Parcelle",
               border:
                   OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
               contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             ),
             value: _selectedParcelle,
             items: _parcelles
@@ -202,7 +203,7 @@ class _CultureRenteFormState extends State<CultureRenteForm> {
             onChanged: (p) => setState(() => _selectedParcelle = p),
             validator: (p) => p == null ? "Choisissez une parcelle" : null,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           // CHAMP QUANTITÉ
           TextFormField(
             controller: _quantiteController,
@@ -211,14 +212,14 @@ class _CultureRenteFormState extends State<CultureRenteForm> {
               border:
                   OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
               contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               // SUPPRIMÉ : suffixIcon avec icône poubelle
             ),
             keyboardType: TextInputType.number,
             validator: (v) =>
                 v == null || v.isEmpty ? "Indiquez la quantité" : null,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           TextFormField(
             controller: _prixController,
             readOnly: true,
@@ -227,12 +228,12 @@ class _CultureRenteFormState extends State<CultureRenteForm> {
               border:
                   OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
               contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             ),
             validator: (_) =>
                 _prixController.text == '0' ? "Prix non disponible" : null,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           GestureDetector(
             onTap: _pickImage,
             child: Container(
@@ -258,7 +259,7 @@ class _CultureRenteFormState extends State<CultureRenteForm> {
                     ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           // CHAMP DESCRIPTION
           TextFormField(
             controller: _descriptionController,
@@ -267,21 +268,21 @@ class _CultureRenteFormState extends State<CultureRenteForm> {
               border:
                   OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
               contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               // SUPPRIMÉ : suffixIcon avec icône poubelle
             ),
-            maxLines: 3,
+            maxLines: 2,
             validator: (v) =>
                 v == null || v.isEmpty ? "Indiquez une description" : null,
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 12),
           Center(
             child: ElevatedButton(
               onPressed: _submit,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryGreen,
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(6)),
               ),

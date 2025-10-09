@@ -165,17 +165,18 @@ class _CultureVivriereFormState extends State<CultureVivriereForm> {
                 labelText: "Sélectionnez une culture vivrière",
                 border: OutlineInputBorder(),
                 contentPadding:
-                    EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                    EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               ),
             ),
-            popupProps: const PopupProps.menu(
+            popupProps: PopupProps.menu(
               showSearchBox: true,
+              constraints: BoxConstraints(maxHeight: 200), // Limite la hauteur à environ 5 éléments et active le scroll
               searchFieldProps: TextFieldProps(
                 decoration: InputDecoration(hintText: "Rechercher..."),
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
           /// 💰 Prix manuel
           TextFormField(
@@ -185,13 +186,13 @@ class _CultureVivriereFormState extends State<CultureVivriereForm> {
               border:
                   OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
               contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             ),
             keyboardType: TextInputType.number,
             validator: (v) =>
                 v == null || v.isEmpty ? "Indiquez le prix" : null,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
           /// ⚖️ Quantité
           TextFormField(
@@ -201,13 +202,13 @@ class _CultureVivriereFormState extends State<CultureVivriereForm> {
               border:
                   OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
               contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             ),
             keyboardType: TextInputType.number,
             validator: (v) =>
                 v == null || v.isEmpty ? "Indiquez la quantité" : null,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
           /// 🖼️ Image
           GestureDetector(
@@ -235,7 +236,7 @@ class _CultureVivriereFormState extends State<CultureVivriereForm> {
                     ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
           /// 📝 Description
           TextFormField(
@@ -245,13 +246,13 @@ class _CultureVivriereFormState extends State<CultureVivriereForm> {
               border:
                   OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
               contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             ),
-            maxLines: 3,
+            maxLines: 2,
             validator: (v) =>
                 v == null || v.isEmpty ? "Indiquez une description" : null,
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 12),
 
           /// 🚀 Bouton de publication
           Center(
@@ -260,7 +261,7 @@ class _CultureVivriereFormState extends State<CultureVivriereForm> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryGreen,
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(6)),
               ),
