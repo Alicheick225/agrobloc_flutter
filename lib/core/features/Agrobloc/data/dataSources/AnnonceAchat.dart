@@ -5,12 +5,13 @@ import 'package:http/http.dart' as http;
 
 import '../models/AnnonceAchatModel.dart';
 import '../dataSources/userService.dart';
+import '../dataSources/cultureService.dart';
 import 'package:agrobloc/core/utils/api_token.dart';
 
 class AnnonceAchatService {
   // Endpoints
   static final String _baseUrl = '${ApiConfig.annoncesBaseUrl}/annonces_achat';
-  static final String _culturesUrl = '${ApiConfig.typesCulturesBaseUrl}/api/types-cultures';
+  final cultureService _cultureService = cultureService();
 
   /// Récupère le token valide et construit les headers
   Future<Map<String, String>> _getHeaders() async {
@@ -40,13 +41,13 @@ class AnnonceAchatService {
   /// Récupère toutes les annonces (optionnellement filtrées)
   Future<List<AnnonceAchat>> fetchAnnonces({
     String? statut,
-    String? typeCultureId,
+    String? CultureId,
   }) async {
     try {
       final headers = await _getHeaders();
       final uri = _buildUri(_baseUrl, {
         'statut': statut,
-        'type_culture_id': typeCultureId,
+        'culture_id': CultureId,
       });
 
       final response =
@@ -96,41 +97,12 @@ class AnnonceAchatService {
   }
 
   /// Récupère la liste des types de cultures
-  static final List<Map<String, dynamic>> _defaultCultures = [
-    {'id': '1', 'libelle': 'Maïs'},
-    {'id': '2', 'libelle': 'Riz'},
-    {'id': '3', 'libelle': 'Blé'},
-    {'id': '4', 'libelle': 'Manioc'},
-    {'id': '5', 'libelle': 'Sorgho'},
-    {'id': '6', 'libelle': 'Mil'},
-    {'id': '7', 'libelle': 'Arachide'},
-    {'id': '8', 'libelle': 'Coton'},
-    {'id': '9', 'libelle': 'Café'},
-    {'id': '10', 'libelle': 'Cacao'},
-    {'id': '11', 'libelle': 'Hévéa'},
-    {'id': '12', 'libelle': 'Palmier à huile'},
-    {'id': '13', 'libelle': 'Anacarde'},
-    {'id': '14', 'libelle': 'Mangue'},
-    {'id': '15', 'libelle': 'Banane'},
-  ];
-
   Future<List<Map<String, dynamic>>> fetchCultures() async {
     try {
-      final headers = await _getHeaders();
-      final response = await http.get(Uri.parse(_culturesUrl), headers: headers).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        final List<dynamic> body = json.decode(response.body);
-        return body
-            .map<Map<String, dynamic>>((item) => {'id': item['id'].toString(), 'libelle': item['libelle'] ?? ''})
-            .toList();
-      } else if (response.statusCode == 401) {
-        throw Exception('Utilisateur non authentifié');
-      } else {
-        return _defaultCultures;
-      }
+      final cultures = await _cultureService.getAllCulture();
+      return cultures.map((c) => {'id': c.id, 'libelle': c.libelle, 'type': c.type}).toList();
     } catch (e) {
-      return _defaultCultures;
+      throw Exception('Erreur lors de la récupération des cultures: $e');
     }
   }
 
@@ -161,7 +133,7 @@ class AnnonceAchatService {
   Future<AnnonceAchat> createAnnonceAchat({
     required String statut,
     required String description,
-    required String typeCultureId,
+    required String cultureId,
     required double quantite,
     required double prix,
   }) async {
@@ -173,7 +145,7 @@ class AnnonceAchatService {
         body: jsonEncode({
           'statut': statut,
           'description': description,
-          'type_culture_id': typeCultureId,
+          'type_culture_id': cultureId,
           'quantite': quantite,
           'prix_kg': prix,
         }),
@@ -196,7 +168,7 @@ class AnnonceAchatService {
     required String id,
     required String statut,
     required String description,
-    required String typeCultureId,
+    required String cultureId,
     required double quantite,
     required double prix,
   }) async {
@@ -209,7 +181,7 @@ class AnnonceAchatService {
         body: jsonEncode({
           'statut': statut,
           'description': description,
-          'type_culture_id': typeCultureId,
+          'type_culture_id': cultureId,
           'quantite': quantite,
           'prix_kg': prix,
         }),

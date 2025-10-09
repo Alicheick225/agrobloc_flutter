@@ -169,23 +169,12 @@ class AvisCard extends StatelessWidget {
                 color: Colors.grey[200],
                 border: Border.all(color: Colors.grey[300]!),
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  "https://via.placeholder.com/80x80/4CAF50/FFFFFF?text=Produit",
-                  width: 80,
-                  height: 80,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: AppColors.primaryGreen.withOpacity(0.1),
-                      child: const Icon(
-                        Icons.agriculture,
-                        color: AppColors.primaryGreen,
-                        size: 32,
-                      ),
-                    );
-                  },
+              child: Container(
+                color: AppColors.primaryGreen.withOpacity(0.1),
+                child: const Icon(
+                  Icons.agriculture,
+                  color: AppColors.primaryGreen,
+                  size: 32,
                 ),
               ),
             ),

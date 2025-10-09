@@ -9,13 +9,14 @@ environment:
   
 
 dependencies:
-  flutter: 
+  flutter:
     sdk: flutter
   dropdown_search: ^6.0.2
 
   # 📍 Localisation GPS + Adresse
   geolocator: ^14.0.1
   geocoding: ^3.0.0
+  google_maps_flutter: ^2.10.0
   web_socket_channel: ^3.0.2
 
   # 🔑 Auth

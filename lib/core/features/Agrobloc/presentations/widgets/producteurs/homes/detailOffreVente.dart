@@ -39,7 +39,7 @@ class DetailOffreVente extends StatelessWidget {
               style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: const Color(0xFF4CAF50)),
             ),
             SizedBox(height: 12.h),
-            Text('Culture: ${annonce.typeCultureLibelle}', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
+            Text('Culture: ${annonce.cultureLibelle}', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Text('Quantité: ${annonce.formattedQuantity}', style: TextStyle(fontSize: 16.sp)),
             const SizedBox(height: 8),

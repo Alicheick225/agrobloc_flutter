@@ -6,6 +6,7 @@ import 'package:agrobloc/core/features/Agrobloc/presentations/pagesProducteurs/t
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/navBarProducteur.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/AnnonceAchat.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceAchatModel.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 // Importez le fichier MessagePage.dart
@@ -18,7 +19,9 @@ void main() {
 }
 
 class HomeProducteur extends StatefulWidget {
-  const HomeProducteur({super.key});
+  final String? profile;
+
+  const HomeProducteur({super.key, this.profile});
 
   @override
   State<HomeProducteur> createState() => _HomeProducteurState();
@@ -27,18 +30,37 @@ class HomeProducteur extends StatefulWidget {
 class _HomeProducteurState extends State<HomeProducteur> {
   late int _selectedIndex;
   late List<Widget> pages;
+  final UserService _userService = UserService();
+  String _currentUserId = '';
+  bool _isInitialized = false;
 
   @override
   void initState() {
     super.initState();
     _selectedIndex = 0;
-    // Mise à jour de la liste 'pages' avec les pages réelles
+    // Initialize with default pages first
     pages = [
       const HomeProducteurContent(),
-      const MessagesPage(currentUserId: 'your_user_id_here'),
-      const TransactionProducteur(child: Text("Transactions")),
+      const MessagesPage(currentUserId: ''), // Temporary empty ID
+      const TransactionProducteur(),
       const ProfilPage(),
     ];
+    _loadCurrentUser();
+  }
+
+  Future<void> _loadCurrentUser() async {
+    await _userService.ensureUserLoaded();
+    setState(() {
+      _currentUserId = _userService.userId ?? '';
+      _isInitialized = true;
+      // Mise à jour de la liste 'pages' avec les pages réelles
+      pages = [
+        const HomeProducteurContent(),
+        MessagesPage(currentUserId: _currentUserId),
+        const TransactionProducteur(),
+        const ProfilPage(),
+      ];
+    });
   }
 
   void _onNavBarTap(int index) {
@@ -47,7 +69,7 @@ class _HomeProducteurState extends State<HomeProducteur> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const TransactionProducteur(child: Text("Transactions")),
+          builder: (context) => const TransactionProducteur(),
         ),
       );
     } else {
@@ -89,11 +111,22 @@ class _HomeProducteurContentState extends State<HomeProducteurContent> {
   bool isLoading = false;
   List<AnnonceAchat> annonces = [];
   final AnnonceAchatService _annonceService = AnnonceAchatService();
+  final UserService _userService = UserService();
 
   @override
   void initState() {
     super.initState();
-    _loadLatestAnnonces();
+    _checkAuthenticationAndLoadData();
+  }
+
+  Future<void> _checkAuthenticationAndLoadData() async {
+    final isAuthenticated = await _userService.isUserAuthenticated();
+    if (isAuthenticated) {
+      _loadLatestAnnonces();
+    } else {
+      // User is not authenticated, don't load data
+      debugPrint('⚠️ HomeProducteurContent - Utilisateur non authentifié, chargement des données annulé');
+    }
   }
 
   @override
@@ -408,7 +441,7 @@ class _HomeProducteurContentState extends State<HomeProducteurContent> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  annonce.typeCultureLibelle,
+                  annonce.cultureLibelle,
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.bold,

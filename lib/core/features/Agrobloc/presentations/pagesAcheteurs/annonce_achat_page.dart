@@ -241,12 +241,12 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            annonce.typeCultureLibelle.isNotEmpty 
-                                              ? annonce.typeCultureLibelle
+                                            annonce.cultureLibelle.isNotEmpty 
+                                              ? annonce.cultureLibelle
                                               : 'Type de culture non spécifié',
                                             style: AppTextStyles.heading.copyWith(
                                               fontSize: 16,
-                                              color: annonce.typeCultureLibelle.isNotEmpty
+                                              color: annonce.cultureLibelle.isNotEmpty
                                                 ? AppColors.primaryGreen
                                                 : Colors.grey,
                                             ),

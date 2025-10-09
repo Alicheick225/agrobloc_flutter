@@ -41,28 +41,34 @@ extension CommandeStatusExt on CommandeStatus {
 class CommandeModel {
   final String id;
   final String annoncesVenteId;
+  final String? annoncesAchatId;
   final String acheteurId;
   final double quantite;
   final double prixTotal;
   final String modePaiementId;
   final CommandeStatus statut;
   final DateTime createdAt;
-  final String typeCulture;
+  final String typeCommande;
+  final String Culture;
   final String nomCulture;
   final String? photoPlanteur;
+  final String profile;
 
   CommandeModel({
     required this.id,
     required this.annoncesVenteId,
+    this.annoncesAchatId,
     required this.acheteurId,
     required this.quantite,
     required this.prixTotal,
     required this.modePaiementId,
     required this.statut,
     required this.createdAt,
-    required this.typeCulture,
+    required this.typeCommande,
+    required this.Culture,
     required this.nomCulture,
     this.photoPlanteur,
+    required this.profile,
   });
 
   factory CommandeModel.fromJson(Map<String, dynamic> json) {
@@ -70,32 +76,38 @@ class CommandeModel {
     return CommandeModel(
       id: json['id']?.toString() ?? '',
       annoncesVenteId: json['annonces_vente_id'] ?? '',
+      annoncesAchatId: json['annonces_achat_id'] as String?,
       acheteurId: json['acheteur_id'] ?? '',
       quantite: double.tryParse(json['quantite']?.toString() ?? '0') ?? 0.0,
       prixTotal: double.tryParse(json['prix_total']?.toString() ?? '0') ?? 0.0,
       modePaiementId: json['mode_paiement_id'] ?? '',
       statut: CommandeStatusExtension.fromString(json['statut'] ?? ''),
       createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
-      typeCulture: json['type_culture'] ?? '',
-      nomCulture: json['nom_culture']?.toString() ??
-          json['type_culture']?.toString() ??
+      typeCommande: json['type_commande'] ?? '',
+      Culture: json['type'] ?? '',
+      nomCulture: json['libelle']?.toString() ??
+          json['libelle']?.toString() ??
           'Culture inconnue',
       photoPlanteur: json['photo_planteur']?.toString(),
+      profile: json['profile'] ?? '',
     );
   }
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'annonces_vente_id': annoncesVenteId,
+        'annonces_achat_id': annoncesAchatId,
         'acheteur_id': acheteurId,
         'quantite': quantite,
         'prix_total': prixTotal,
         'mode_paiement_id': modePaiementId,
         'statut': statut.name,
         'created_at': createdAt.toIso8601String(),
-        'type_culture': typeCulture,
-        'nom_culture': nomCulture,
+        'type_commande': typeCommande,
+        'type': Culture,
+        'libelle': nomCulture,
         'photo_planteur': photoPlanteur,
+        'profile': profile,
       };
 
 // ✅ Getters pour différents formats d'affichage du nom

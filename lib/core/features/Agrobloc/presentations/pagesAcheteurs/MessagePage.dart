@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:agrobloc/core/features/Agrobloc/data/dataSources/MessagingService.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/ConversationViewModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/home/discussionPage.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/MessageModel.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
@@ -17,7 +17,7 @@ class MessagesPage extends StatefulWidget {
 }
 
 class _MessagesPageState extends State<MessagesPage> {
-  final MessagingService _messagingService = MessagingService();
+  final ConversationViewModel _conversationViewModel = ConversationViewModel();
   late Future<List<Conversation>> _futureConversations;
   List<Conversation> _conversations = [];
   bool _isLoading = true;
@@ -32,7 +32,7 @@ class _MessagesPageState extends State<MessagesPage> {
   void _loadConversations() {
     setState(() {
       _isLoading = true;
-      _futureConversations = _messagingService.getConversations(widget.currentUserId);
+      _futureConversations = _conversationViewModel.getConversations(widget.currentUserId);
     });
   }
 
@@ -241,8 +241,6 @@ class _MessagesPageState extends State<MessagesPage> {
               );
             }
 
-            setState(() => _isLoading = false);
-
             return ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: filteredConversations.length,
@@ -255,6 +253,7 @@ class _MessagesPageState extends State<MessagesPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'acheteur_new_message',
         onPressed: () {
           _showNewMessageDialog(context);
         },

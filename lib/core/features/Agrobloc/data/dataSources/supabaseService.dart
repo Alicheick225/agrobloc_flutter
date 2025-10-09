@@ -7,27 +7,38 @@ class SupabaseImageService {
   final String bucketName = "agrobloc"; // 👉 Ton bucket Supabase
   final _uuid = const Uuid();
 
+  String _getContentType(String ext) {
+    switch (ext.toLowerCase()) {
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      default:
+        return 'application/octet-stream';
+    }
+  }
+
   /// 📤 Upload une image
   Future<String?> uploadImage(Uint8List fileBytes, String originalName) async {
     try {
       // Génère un nom unique (UUID + extension)
-      final ext = originalName.split('.').last;
+      final ext = originalName.split('.').last.toLowerCase();
       final uniqueName = "uploads/${_uuid.v4()}.$ext";
+      final contentType = _getContentType(ext);
 
       final response = await supabase.storage
           .from(bucketName)
           .uploadBinary(uniqueName, fileBytes,
-              fileOptions: const FileOptions(upsert: true));
+              fileOptions: FileOptions(upsert: true, contentType: contentType));
 
-      // Si succès → response == ""
-      if (response.isEmpty) {
-        final publicUrl =
-            supabase.storage.from(bucketName).getPublicUrl(uniqueName);
-        print("✅ Upload réussi: $publicUrl");
-        return publicUrl;
-      } else {
-        throw Exception("Erreur upload: $response");
-      }
+      // On success, response is the path; on failure, throws exception
+      final publicUrl =
+          supabase.storage.from(bucketName).getPublicUrl(response);
+      print("✅ Upload réussi: $publicUrl");
+      return publicUrl;
     } catch (e) {
       print("❌ Upload échoué: $e");
       return null;

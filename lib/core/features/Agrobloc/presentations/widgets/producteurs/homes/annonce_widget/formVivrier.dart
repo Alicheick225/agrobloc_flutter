@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
-import 'package:agrobloc/core/features/Agrobloc/data/models/typecultureModel.dart';
-import 'package:agrobloc/core/features/Agrobloc/data/dataSources/typeCultureService.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/cultureModel.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/cultureService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/annonceVenteService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
 
@@ -28,8 +28,8 @@ class _CultureVivriereFormState extends State<CultureVivriereForm> {
   final TextEditingController _quantiteController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
-  List<TypeCulture> _cultures = [];
-  TypeCulture? _selectedCulture;
+  List<Culture> _cultures = [];
+  Culture? _selectedCulture;
   File? _image;
   bool _isLoading = false;
 
@@ -41,9 +41,9 @@ class _CultureVivriereFormState extends State<CultureVivriereForm> {
 
   Future<void> _loadCultures() async {
     try {
-      final all = await TypeCultureService().getAllTypes();
+      final all = await cultureService().getAllCulture();
       final vivrieres =
-          all.where((c) => c.type?.toLowerCase() == 'vivrière').toList();
+          all.where((c) => c?.type?.toLowerCase() == 'vivrière').toList();
       setState(() => _cultures = vivrieres);
       print(
           '🌾 cultures vivrières chargées : ${vivrieres.map((e) => e.libelle).toList()}');
@@ -70,7 +70,7 @@ class _CultureVivriereFormState extends State<CultureVivriereForm> {
   }
 
   // ---------- VALIDATION CROISÉE ----------
-  TypeCulture? _findCulture(String libelle) {
+  Culture? _findCulture(String libelle) {
     final normalised = libelle.trim().toLowerCase();
     return _cultures
         .where((c) => c.libelle.toLowerCase() == normalised)
@@ -108,11 +108,12 @@ class _CultureVivriereFormState extends State<CultureVivriereForm> {
 
       await AnnonceService().createAnnonce(
         userId: userId,
-        typeCultureId: _selectedCulture!.id,
+        cultureId: _selectedCulture!.id,
         parcelleId: '',
         statut: "Disponible",
         description: _descriptionController.text.trim(),
         quantite: quantite,
+        quantiteUnite: "kg",
         prixKg: prix,
         photo: XFile(_image!.path),
         type: "vivriere",
@@ -151,7 +152,7 @@ class _CultureVivriereFormState extends State<CultureVivriereForm> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           /// 🌾 Sélection de la culture vivrière
-          DropdownSearch<TypeCulture>(
+          DropdownSearch<Culture>(
             items: (filter, loadProps) async => _cultures, // liste déjà filtrée
             itemAsString: (c) => c.libelle,
             selectedItem: _selectedCulture,

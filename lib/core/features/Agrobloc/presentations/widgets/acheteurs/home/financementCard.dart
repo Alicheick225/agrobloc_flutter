@@ -59,7 +59,7 @@ class FinancementCard extends StatelessWidget {
           children: [
             // Titre principal
             Text(
-              'Préfinancement demandé - Culture de ${data.libelle ?? "N/A"}',
+              'Préfinancement demandé - Culture de ${data.libelle.isNotEmpty ? data.libelle : "N/A"}',
               style: const TextStyle(
                 color: Colors.green,
                 fontWeight: FontWeight.bold,
@@ -77,14 +77,14 @@ class FinancementCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        data.nom ?? "Nom non disponible",
+                        data.nom.isNotEmpty ? data.nom : "Nom non disponible",
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                         ),
                       ),
                       Text(
-                        data.adresse ?? "Adresse non renseignée",
+                        data.adresse.isNotEmpty ? data.adresse : "Adresse non renseignée",
                         style: const TextStyle(
                           color: Colors.grey,
                           fontSize: 12,

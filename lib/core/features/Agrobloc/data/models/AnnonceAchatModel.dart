@@ -6,8 +6,8 @@ class AnnonceAchat {
   final double prix;     // en FCFA
   final String userId; // peut rester vide si l'API ne l'envoie pas
   final String userNom;
-  final String typeCultureLibelle;
-  final String typeCultureId; // peut rester vide si l'API ne l'envoie pas
+  final String cultureLibelle;
+  final String cultureId; // peut rester vide si l'API ne l'envoie pas
   final String? unite; // unité originale de l'API (kg ou T)
   final String createdAt; // date de création
 
@@ -19,8 +19,8 @@ class AnnonceAchat {
     required this.prix,
     required this.userId,
     required this.userNom,
-    required this.typeCultureLibelle,
-    required this.typeCultureId,
+    required this.cultureLibelle,
+    required this.cultureId,
     this.unite,
     required this.createdAt,
   });
@@ -43,8 +43,8 @@ class AnnonceAchat {
       prix: (json['prix_kg'] as num?)?.toDouble() ?? 0.0,
       userId: json['user_id']?.toString() ?? '',            // reste vide si absent
       userNom: json['nom']?.toString() ?? '',               // directement depuis JSON
-      typeCultureLibelle: json['libelle']?.toString() ?? '', // directement depuis JSON
-      typeCultureId: json['type_culture_id']?.toString() ?? '', // reste vide si absent
+      cultureLibelle: json['libelle']?.toString() ?? '', // directement depuis JSON
+      cultureId: json['type_culture_id']?.toString() ?? '', // reste vide si absent
       unite: unite,
       createdAt: json['created_at']?.toString() ?? '',      // date de création
     );
@@ -59,8 +59,8 @@ class AnnonceAchat {
       'prix_kg': prix,
       'user_id': userId,
       'nom': userNom,
-      'type_culture_id': typeCultureId,
-      'libelle': typeCultureLibelle,
+      'type_culture_id': cultureId,
+      'libelle': cultureLibelle,
       'unite': unite ?? 'KG',
       'created_at': createdAt,
     };
@@ -74,8 +74,8 @@ class AnnonceAchat {
     double? prix,
     String? userId,
     String? userNom,
-    String? typeCultureLibelle,
-    String? typeCultureId,
+    String? cultureLibelle,
+    String? cultureId,
     String? unite,
     String? createdAt,
   }) {
@@ -87,8 +87,8 @@ class AnnonceAchat {
       prix: prix ?? this.prix,
       userId: userId ?? this.userId,
       userNom: userNom ?? this.userNom,
-      typeCultureLibelle: typeCultureLibelle ?? this.typeCultureLibelle,
-      typeCultureId: typeCultureId ?? this.typeCultureId,
+      cultureLibelle: cultureLibelle ?? this.cultureLibelle,
+      cultureId: cultureId ?? this.cultureId,
       unite: unite ?? this.unite,
       createdAt: createdAt ?? this.createdAt,
     );
@@ -105,8 +105,8 @@ class AnnonceAchat {
           quantite == other.quantite &&
           userId == other.userId &&
           userNom == other.userNom &&
-          typeCultureLibelle == other.typeCultureLibelle &&
-          typeCultureId == other.typeCultureId &&
+          cultureLibelle == other.cultureLibelle &&
+          cultureId == other.cultureId &&
           unite == other.unite && // Include unite in equality check
           createdAt == other.createdAt; // Include createdAt in equality check
 
@@ -118,8 +118,8 @@ class AnnonceAchat {
       quantite.hashCode ^
       userId.hashCode ^
       userNom.hashCode ^
-      typeCultureLibelle.hashCode ^
-      typeCultureId.hashCode ^
+      cultureLibelle.hashCode ^
+      cultureId.hashCode ^
       (unite?.hashCode ?? 0) ^ // Include unite in hashCode
       createdAt.hashCode; // Include createdAt in hashCode
 

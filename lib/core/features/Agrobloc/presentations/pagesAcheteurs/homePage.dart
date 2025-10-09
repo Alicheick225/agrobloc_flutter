@@ -16,6 +16,7 @@ import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/pagesAcheteurs/transactionPage.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/pagesAcheteurs/annonce_achat_page.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/pagesAcheteurs/profilPage.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
 
 class HomePage extends StatefulWidget {
   final String acheteurId;
@@ -37,11 +38,23 @@ class _HomePageState extends State<HomePage> {
   List<AnnonceVente> paginatedAnnonces = [];
 
   bool isLoading = true;
+  final UserService _userService = UserService();
 
   @override
   void initState() {
     super.initState();
-    _loadAllData();
+    _checkAuthenticationAndLoadData();
+  }
+
+  Future<void> _checkAuthenticationAndLoadData() async {
+    final isAuthenticated = await _userService.isUserAuthenticated();
+    if (isAuthenticated) {
+      _loadAllData();
+    } else {
+      // User is not authenticated, don't load data
+      debugPrint('⚠️ HomePage - Utilisateur non authentifié, chargement des données annulé');
+      setState(() => isLoading = false);
+    }
   }
 
   Future<void> _loadAllData() async {

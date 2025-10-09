@@ -10,7 +10,9 @@ import 'package:agrobloc/core/features/Agrobloc/data/dataSources/annonceVenteSer
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
 
 class TransactionProducteur extends StatefulWidget {
-  const TransactionProducteur({super.key, required Text child});
+  final String? profile;
+
+  const TransactionProducteur({super.key, this.profile});
 
   @override
   State<TransactionProducteur> createState() => _TransactionProducteurState();

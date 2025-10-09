@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:agrobloc/core/features/Agrobloc/data/dataSources/MessagingService.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/ConversationViewModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/home/discussionPage.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/MessageModel.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
@@ -17,7 +17,7 @@ class MessagesPage extends StatefulWidget {
 }
 
 class _MessagesPageState extends State<MessagesPage> {
-  final MessagingService _messagingService = MessagingService();
+  final ConversationViewModel _conversationViewModel = ConversationViewModel();
   late Future<List<Conversation>> _futureConversations;
   List<Conversation> _conversations = [];
   bool _isLoading = true;
@@ -29,18 +29,21 @@ class _MessagesPageState extends State<MessagesPage> {
     _loadConversations();
   }
 
+  // Charge les conversations de l'utilisateur courant
   void _loadConversations() {
     setState(() {
       _isLoading = true;
-      _futureConversations = _messagingService.getConversations(widget.currentUserId);
+      _futureConversations = _conversationViewModel.getConversations(widget.currentUserId);
     });
   }
 
+  // Rafraîchit la liste des conversations
   Future<void> _onRefresh() async {
     _loadConversations();
     await _futureConversations;
   }
 
+  // Ouvre la page de discussion pour une conversation donnée
   void _openChat(Conversation conversation) async {
     final result = await Navigator.push<bool>(
       context,
@@ -51,6 +54,7 @@ class _MessagesPageState extends State<MessagesPage> {
           recipientName: conversation.name,
           currentUserId: widget.currentUserId,
           isOnline: false, // Vous pouvez ajouter cette info dans votre modèle Conversation
+          recipientAvatar: conversation.avatarUrl, // Ajout de l'avatar si disponible
         ),
       ),
     );
@@ -61,12 +65,14 @@ class _MessagesPageState extends State<MessagesPage> {
     }
   }
 
+  // Met à jour la requête de recherche
   void _searchConversations(String query) {
     setState(() {
       _searchQuery = query;
     });
   }
 
+  // Filtre les conversations selon la recherche
   List<Conversation> _getFilteredConversations() {
     if (_searchQuery.isEmpty) {
       return _conversations;
@@ -77,6 +83,7 @@ class _MessagesPageState extends State<MessagesPage> {
     }).toList();
   }
 
+  // Récupère les initiales du nom pour l'avatar si pas d'image
   String _getInitials(String name) {
     if (name.isEmpty) return '?';
     final words = name.split(' ');
@@ -86,15 +93,14 @@ class _MessagesPageState extends State<MessagesPage> {
     return name[0].toUpperCase();
   }
 
+  // Récupère l'heure du dernier message (à améliorer avec timestamp réel)
   String _getTimeFromMessage(String lastMessage) {
-    // Pour l'instant, retourne une heure par défaut
-    // Vous pouvez modifier votre modèle Conversation pour inclure le timestamp
     return DateTime.now().hour.toString().padLeft(2, '0') + ':' +
            DateTime.now().minute.toString().padLeft(2, '0');
   }
 
+  // Détermine la couleur du tag selon le contenu du message
   Color _getTagColor(String message) {
-    // Logic pour déterminer la couleur du tag basée sur le contenu du message
     if (message.toLowerCase().contains('offre') || message.toLowerCase().contains('disponible')) {
       return Colors.green;
     } else if (message.toLowerCase().contains('transaction') || message.toLowerCase().contains('achat')) {
@@ -105,6 +111,7 @@ class _MessagesPageState extends State<MessagesPage> {
     return Colors.grey;
   }
 
+  // Texte du tag selon le contenu du message
   String _getTagText(String message) {
     if (message.toLowerCase().contains('offre') || message.toLowerCase().contains('disponible')) {
       return 'Nouvelle offre';
@@ -241,8 +248,6 @@ class _MessagesPageState extends State<MessagesPage> {
               );
             }
 
-            setState(() => _isLoading = false);
-
             return ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: filteredConversations.length,
@@ -255,6 +260,7 @@ class _MessagesPageState extends State<MessagesPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'producteur_new_message',
         onPressed: () {
           _showNewMessageDialog(context);
         },
@@ -264,6 +270,7 @@ class _MessagesPageState extends State<MessagesPage> {
     );
   }
 
+  // Widget pour afficher un élément de conversation dans la liste
   Widget _buildMessageItem(Conversation conversation) {
     final tagColor = _getTagColor(conversation.lastMessage);
     final tagText = _getTagText(conversation.lastMessage);
@@ -290,24 +297,32 @@ class _MessagesPageState extends State<MessagesPage> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Avatar
+            // Avatar : image si disponible, sinon initiales
             Container(
               width: 50,
               height: 50,
               decoration: BoxDecoration(
                 color: AppColors.primaryGreen.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(25),
+                image: conversation.avatarUrl != null && conversation.avatarUrl!.isNotEmpty
+                    ? DecorationImage(
+                        image: NetworkImage(conversation.avatarUrl!),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
               ),
-              child: Center(
-                child: Text(
-                  _getInitials(conversation.name),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.primaryGreen,
-                  ),
-                ),
-              ),
+              child: conversation.avatarUrl == null || conversation.avatarUrl!.isEmpty
+                  ? Center(
+                      child: Text(
+                        _getInitials(conversation.name),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primaryGreen,
+                        ),
+                      ),
+                    )
+                  : null,
             ),
             
             const SizedBox(width: 12),
@@ -397,30 +412,25 @@ class _MessagesPageState extends State<MessagesPage> {
     );
   }
 
+  // Affiche une boîte de dialogue pour un nouveau message (fonctionnalité en développement)
   void _showNewMessageDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+    // Remplacer la boîte de dialogue par une navigation vers une nouvelle page de discussion
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChatPage(
+          conversationId: 'new', // ID fictif pour nouvelle conversation
+          recipientId: '', // ID vide car pas encore choisi
+          recipientName: 'Nouvelle conversation',
+          currentUserId: widget.currentUserId,
+          isOnline: false,
         ),
-        title: const Text('Nouveau Message'),
-        content: const Text('Fonctionnalité en développement...'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'OK',
-              style: TextStyle(color: AppColors.primaryGreen),
-            ),
-          ),
-        ],
       ),
     );
   }
 }
 
-// Delegate pour la recherche
+// Delegate pour la recherche de conversations
 class ConversationSearchDelegate extends SearchDelegate<Conversation?> {
   final List<Conversation> conversations;
   final Function(Conversation) onConversationSelected;

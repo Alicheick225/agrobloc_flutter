@@ -19,20 +19,26 @@ class ApiConfig {
 
   // Service-specific base URLs for dev environment
   static const String devAnnoncesVenteBaseUrl = 'http://192.168.252.199:8082';
-  static const String devAnnoncesBaseUrl = 'http://192.168.252.199:8081';
-  static const String devTypesCulturesBaseUrl = 'http://192.168.252.199:8004';
+  static const String devAnnoncesBaseUrl = 'http://192.168.252.199:8082';
+  static const String devAnnoncesPrefBaseUrl = 'http://192.168.252.199:8082';
+  static const String devCulturesBaseUrl = 'http://192.168.252.199:8004';
   static const String devParcellesBaseUrl = 'http://192.168.252.199:8004';
   static const String devCommandesBaseUrl =
       'http://192.168.252.199:3001/commandes';
+  static const String devMessagerieBaseUrl = 'http://192.168.252.183:8087';
 
   // Service-specific base URLs for prod environment
   static const String prodAnnoncesBaseUrl =
       'https://api.yourproductiondomain.com';
-  static const String prodTypesCulturesBaseUrl =
+  static const String prodAnnoncesPrefBaseUrl =
+      'https://api.yourproductiondomain.com';
+  static const String prodCulturesBaseUrl =
       'https://api.yourproductiondomain.com';
   static const String prodParcellesBaseUrl =
       'https://api.yourproductiondomain.com';
   static const String prodCommandesBaseUrl =
+      'https://api.yourproductiondomain.com';
+  static const String prodMessagerieBaseUrl =
       'https://api.yourproductiondomain.com';
 
   // Current environment: change this to switch environments
@@ -48,12 +54,16 @@ class ApiConfig {
   // Get service-specific base URLs
   static String get annoncesBaseUrl =>
       isProduction ? prodAnnoncesBaseUrl : devAnnoncesBaseUrl;
-  static String get typesCulturesBaseUrl =>
-      isProduction ? prodTypesCulturesBaseUrl : devTypesCulturesBaseUrl;
+  static String get annoncesPrefBaseUrl =>
+      isProduction ? prodAnnoncesPrefBaseUrl : devAnnoncesPrefBaseUrl;
+  static String get culturesBaseUrl =>
+      isProduction ? prodCulturesBaseUrl : devCulturesBaseUrl;
   static String get parcellesBaseUrl =>
       isProduction ? prodParcellesBaseUrl : devParcellesBaseUrl;
   static String get commandesBaseUrl =>
       isProduction ? prodCommandesBaseUrl : devCommandesBaseUrl;
+  static String get messagerieBaseUrl =>
+      isProduction ? prodMessagerieBaseUrl : devMessagerieBaseUrl;
 }
 
 /// Classes d'exception spécifiques pour les erreurs d'authentification
@@ -201,6 +211,15 @@ class ApiClient {
     final headers = {"Content-Type": "application/json"};
 
     if (withAuth) {
+      // Vérifier d'abord si l'utilisateur est connecté pour éviter les tentatives inutiles
+      final isLoggedIn = UserService().isLoggedIn;
+      if (!isLoggedIn) {
+        print('❌ ApiClient._getHeaders() - Utilisateur non connecté, impossible de récupérer le token');
+        throw AuthenticationException(
+            "Utilisateur non connecté. Veuillez vous connecter pour accéder à cette ressource.",
+            type: 'not_logged_in');
+      }
+
       print(
           '🔄 ApiClient._getHeaders() - Récupération du token pour les headers...');
 

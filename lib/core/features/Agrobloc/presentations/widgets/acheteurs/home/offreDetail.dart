@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/commandesProduit.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/annonceVenteService.dart';
 import 'package:agrobloc/core/utils/image.dart'; // ✅ pour getImageUrl
 
-class OffreDetailPage extends StatelessWidget {
+class OffreDetailPage extends StatefulWidget {
   final AnnonceVente recommendation;
   final String? acheteurId;
 
@@ -14,24 +15,29 @@ class OffreDetailPage extends StatelessWidget {
   });
 
   @override
+  State<OffreDetailPage> createState() => _OffreDetailPageState();
+}
+
+class _OffreDetailPageState extends State<OffreDetailPage> {
+  @override
   Widget build(BuildContext context) {
-    final imageUrl = getImageUrl(recommendation.photo);
-    final product = recommendation.typeCultureLibelle.isNotEmpty
-        ? recommendation.typeCultureLibelle
+    final imageUrl = getImageUrl(widget.recommendation.photo) ?? 'https://via.placeholder.com/400x200?text=No+Image';
+    final product = widget.recommendation.cultureLibelle.isNotEmpty
+        ? widget.recommendation.cultureLibelle
         : "Produit inconnu";
-    final description = recommendation.description.isNotEmpty
-        ? recommendation.description
+    final description = widget.recommendation.description.isNotEmpty
+        ? widget.recommendation.description
         : "Aucune description disponible";
-    final price = recommendation.prixKg;
-    final quantity = recommendation.quantite;
-    final location = recommendation.parcelleAdresse.isNotEmpty
-        ? recommendation.parcelleAdresse
+    final price = widget.recommendation.prixKg;
+    final quantity = widget.recommendation.quantite;
+    final location = widget.recommendation.parcelleAdresse.isNotEmpty
+        ? widget.recommendation.parcelleAdresse
         : "Non renseignée";
-    final statut = (recommendation.statut).toLowerCase();
-    final nomVendeur = recommendation.userNom.isNotEmpty
-        ? recommendation.userNom
+    final statut = (widget.recommendation.statut).toLowerCase();
+    final nomVendeur = widget.recommendation.userNom.isNotEmpty
+        ? widget.recommendation.userNom
         : "Nom inconnu";
-    final note = recommendation.note?.toDouble() ?? 0.0;
+    final note = widget.recommendation.note?.toDouble() ?? 0.0;
 
     return Scaffold(
       body: Column(
@@ -132,7 +138,7 @@ class OffreDetailPage extends StatelessWidget {
                               fontSize: 14),
                         ),
                         TextSpan(
-                          text: "$quantity tonnes",
+                          text: "$quantity ${widget.recommendation.quantiteUnite}",
                           style: const TextStyle(
                               color: Colors.green, fontWeight: FontWeight.w500),
                         ),
@@ -224,28 +230,81 @@ class OffreDetailPage extends StatelessWidget {
                       Expanded(
                         flex: 2,
                         child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => CommandeProduitPage(
-                                    nomProduit: product,
-                                    imageProduit: imageUrl,
-                                    prixUnitaire: price.toDouble(),
-                                    stockDisponible: quantity.toDouble(),
-                                    annonce: recommendation,
+                          onPressed: statut == "disponible" ? () async {
+                            // ✅ Vérification en temps réel de l'état de l'annonce
+                            try {
+                              print('🔍 Vérification en temps réel de l\'annonce ${widget.recommendation.id}...');
+                              final annonceService = AnnonceService();
+                              final annonceActualisee = await annonceService.getAnnonceByID(widget.recommendation.id);
+
+                              if (annonceActualisee.statut.toLowerCase() != "disponible") {
+                                // L'annonce n'est plus disponible
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text("Cette annonce n'est plus disponible (statut: ${annonceActualisee.statut})"),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+                                return;
+                              }
+
+                              // L'annonce est toujours disponible, procéder à la commande
+                              if (mounted) {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => CommandeProduitPage(
+                                        nomProduit: product,
+                                        imageProduit: imageUrl,
+                                        prixUnitaire: price.toDouble(),
+                                        stockDisponible: quantity.toDouble(),
+                                        annonce: annonceActualisee, // Utiliser les données actualisées
+                                      ),
+                                    ));
+                              }
+                            } catch (e) {
+                              print('❌ Erreur vérification annonce: $e');
+                              if (mounted) {
+                                String errorMessage = "Erreur lors de la vérification de l'annonce";
+
+                                // Vérifier si c'est une erreur d'authentification
+                                if (e.toString().contains('User not logged in') ||
+                                    e.toString().contains('Token') ||
+                                    e.toString().contains('authentification')) {
+                                  errorMessage = "Vous devez être connecté pour passer une commande. Veuillez vous reconnecter.";
+                                } else {
+                                  errorMessage = "Erreur lors de la vérification de l'annonce. Veuillez réessayer.";
+                                }
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(errorMessage),
+                                    backgroundColor: Colors.red,
+                                    duration: const Duration(seconds: 4),
+                                    action: SnackBarAction(
+                                      label: 'Se connecter',
+                                      textColor: Colors.white,
+                                      onPressed: () {
+                                        // Rediriger vers la page de connexion
+                                        Navigator.pushNamed(context, '/login');
+                                      },
+                                    ),
                                   ),
-                                ));
-                          },
+                                );
+                              }
+                            }
+                          } : null, // Désactiver si non disponible
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
+                            backgroundColor: statut == "disponible" ? Colors.green : Colors.grey,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
                             padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
-                          child: const Text(
-                            "Passer une commande",
+                          child: Text(
+                            statut == "disponible" ? "Passer une commande" : "Non disponible",
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,

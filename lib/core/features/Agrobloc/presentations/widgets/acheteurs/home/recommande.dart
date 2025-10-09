@@ -19,7 +19,7 @@ class RecommendationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl = getImageUrl(recommendation.photo);
+    final imageUrl = getImageUrl(recommendation.photo) ?? 'https://via.placeholder.com/400x200?text=No+Image';
 
     final statutLower = recommendation.statut.toLowerCase();
     final isDisponible = statutLower == "disponible";
@@ -101,16 +101,54 @@ class RecommendationCard extends StatelessWidget {
                   Row(
                     children: [
                       Expanded(
-                        child: Text(
-                          recommendation.typeCultureLibelle.isNotEmpty
-                              ? "${recommendation.typeCultureLibelle} ${recommendation.quantite.toStringAsFixed(0)} tonnes"
-                              : "Type de culture non spécifié",
-                          style: AppTextStyles.body.copyWith(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        child: recommendation.cultureLibelle.isNotEmpty
+                            ? Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    recommendation.cultureLibelle,
+                                    style: AppTextStyles.body.copyWith(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  RichText(
+                                    text: TextSpan(
+                                      children: [
+                                        TextSpan(
+                                          text: "Stock : ",
+                                          style: AppTextStyles.body.copyWith(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.normal,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                        TextSpan(
+                                          text: "${recommendation.quantite.toStringAsFixed(0)} ${recommendation.quantiteUnite}",
+                                          style: AppTextStyles.body.copyWith(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.green,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              )
+                            : Text(
+                                "Culture non spécifiée",
+                                style: AppTextStyles.body.copyWith(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
                       ),
                       const Icon(Icons.favorite_border,
                           size: 18, color: Colors.black45),
@@ -127,14 +165,14 @@ class RecommendationCard extends StatelessWidget {
                   Row(
                     children: [
                       const Icon(Icons.location_on,
-                          size: 11, color: Colors.grey),
+                          size: 11, color: Color.fromARGB(255, 92, 92, 92)),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           recommendation.parcelleAdresse,
                           style: AppTextStyles.body.copyWith(
                             fontSize: 10,
-                            color: Colors.grey,
+                            color: const Color.fromARGB(255, 92, 92, 92),
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),

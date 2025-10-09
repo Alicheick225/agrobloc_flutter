@@ -25,7 +25,7 @@ class OffreCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl = getImageUrl(data.photo);
+    final imageUrl = getImageUrl(data.photo) ?? 'https://via.placeholder.com/400x200?text=No+Image';
     final statutLower = data.statut.toLowerCase();
     final isDisponible = statutLower == "disponible";
     final isEnCours = statutLower == "en cours";
@@ -156,9 +156,9 @@ class OffreCard extends StatelessWidget {
 
                   // ✅ TYPE + QUANTITÉ
                   Text(
-                    data.typeCultureLibelle.isNotEmpty
-                        ? "${data.typeCultureLibelle} ${data.quantite.toStringAsFixed(0)} tonnes"
-                        : "Type de culture non spécifié",
+                    data.cultureLibelle.isNotEmpty
+                        ? "${data.cultureLibelle} ${data.quantite.toStringAsFixed(0)} ${data.quantiteUnite}"
+                        : "Culture non spécifié",
                     style: AppTextStyles.body.copyWith(fontSize: 11),
                     overflow: TextOverflow.ellipsis,
                   ),

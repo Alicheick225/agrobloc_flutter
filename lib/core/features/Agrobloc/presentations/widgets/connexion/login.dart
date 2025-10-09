@@ -239,8 +239,8 @@ class _LoginPageState extends State<LoginPage> {
                       validator: (value) => (value == null || value.isEmpty) ? 'Veuillez saisir un mot de passe' : null,
                     ),
                     const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
@@ -248,9 +248,12 @@ class _LoginPageState extends State<LoginPage> {
                             const Text("Se souvenir de moi"),
                           ],
                         ),
-                        TextButton(
-                          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ForgotPasswordPage())),
-                          child: const Text("mot de passe oublié ?", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ForgotPasswordPage())),
+                            child: const Text("mot de passe oublié ?", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                          ),
                         ),
                       ],
                     ),

@@ -5,7 +5,7 @@ import 'package:agrobloc/core/utils/api_token.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/MessageModel.dart';
 
 class MessagingService {
-  static const String _baseUrl = "http://192.168.252.183:8088";
+  static const String _baseUrl = "http://192.168.252.183:8087";
 
   /// Récupère le token depuis SharedPreferences
   Future<String> _getAuthToken() async {

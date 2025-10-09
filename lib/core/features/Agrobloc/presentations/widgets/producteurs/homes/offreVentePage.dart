@@ -133,7 +133,7 @@ class _OffreVentePageState extends State<OffreVentePage> {
       print('✅ OffreVentePage: ${annonces.length} annonces chargées');
       for (var annonce in annonces) {
         print('Annonce ID: ${annonce.id}');
-        print('Type Culture Libelle: ${annonce.typeCultureLibelle}');
+        print('Culture Libelle: ${annonce.cultureLibelle}');
         print('Created At: ${annonce.createdAt}');
         print('---');
       }
@@ -170,19 +170,17 @@ class _OffreVentePageState extends State<OffreVentePage> {
         throw Exception('Utilisateur non connecté. Veuillez vous reconnecter.');
       }
 
-      print(
-          '📡 OffreVentePage: Appel de fetchPrefinancementsByUser avec userId: $currentUserId');
-      final prefinancements = await _prefinancementService
-          .fetchPrefinancementsByUser(currentUserId)
-          .timeout(const Duration(seconds: 20));
-      print(
-          '✅ OffreVentePage: ${prefinancements.length} préfinancements reçus du service');
+      print('📡 OffreVentePage: Appel de fetchPrefinancementsByUser avec userId: $currentUserId');
+      final prefinancements = await _prefinancementService.fetchPrefinancementsByUser(currentUserId).timeout(const Duration(seconds: 20));
+      print('✅ OffreVentePage: ${prefinancements.length} préfinancements reçus du service');
+
+      // Forcer le rechargement du cache des types de culture pour garantir la mise à jour des libellés
+      await _prefinancementService.cacheCultures(forceReload: true);
 
       // Debug: Log details of each prefinancement
       for (int i = 0; i < prefinancements.length; i++) {
         final p = prefinancements[i];
-        print(
-            '📋 Prefinancement $i: ID=${p.id}, Statut=${p.statut}, TypeCulture=${p.libelle}, Quantite=${p.quantite} ${p.quantiteUnite}');
+        print('📋 Prefinancement $i: ID=${p.id}, Statut=${p.statut}, TypeCulture=${p.libelle}, cultureLibelle=${p.cultureLibelle}, cultureId=${p.cultureId}, Quantite=${p.quantite} ${p.quantiteUnite}');
       }
 
       if (!mounted) {
@@ -242,7 +240,7 @@ class _OffreVentePageState extends State<OffreVentePage> {
     final lowerQuery = query.toLowerCase();
     setState(() {
       _filteredAnnonces = _annonces.where((annonce) {
-        final libelle = annonce.typeCultureLibelle ?? '';
+        final libelle = annonce.cultureLibelle ?? '';
         final statut = annonce.statut ?? '';
         return libelle.toLowerCase().contains(lowerQuery) ||
             statut.toLowerCase().contains(lowerQuery);
@@ -473,19 +471,19 @@ class _OffreVentePageState extends State<OffreVentePage> {
                                               children: [
                                                 Expanded(
                                                   child: Text(
-                                                    (item.typeCultureLibelle !=
+                                                    (item.cultureLibelle !=
                                                                 null &&
-                                                            item.typeCultureLibelle!
+                                                            item.cultureLibelle!
                                                                 .isNotEmpty)
                                                         ? item
-                                                            .typeCultureLibelle!
+                                                            .cultureLibelle!
                                                         : 'Culture non spécifié',
                                                     style: AppTextStyles.heading
                                                         .copyWith(
                                                       fontSize: 16,
-                                                      color: (item.typeCultureLibelle !=
+                                                      color: (item.cultureLibelle !=
                                                                   null &&
-                                                              item.typeCultureLibelle!
+                                                              item.cultureLibelle!
                                                                   .isNotEmpty)
                                                           ? AppColors
                                                               .primaryGreen
@@ -677,19 +675,19 @@ class _OffreVentePageState extends State<OffreVentePage> {
                                               children: [
                                                 Expanded(
                                                   child: Text(
-                                                    (item.typeCultureLibelle !=
+                                                    (item.cultureLibelle !=
                                                                 null &&
-                                                            item.typeCultureLibelle!
+                                                            item.cultureLibelle!
                                                                 .isNotEmpty)
                                                         ? item
-                                                            .typeCultureLibelle!
+                                                            .cultureLibelle!
                                                         : 'Type de culture non spécifié',
                                                     style: AppTextStyles.heading
                                                         .copyWith(
                                                       fontSize: 16,
-                                                      color: (item.typeCultureLibelle !=
+                                                      color: (item.cultureLibelle !=
                                                                   null &&
-                                                              item.typeCultureLibelle!
+                                                              item.cultureLibelle!
                                                                   .isNotEmpty)
                                                           ? AppColors
                                                               .primaryGreen

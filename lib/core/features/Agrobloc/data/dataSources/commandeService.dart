@@ -8,33 +8,82 @@ class CommandeService {
 
   /// Enregistrer une commande
   Future<CommandeModel> enregistrerCommande({
-    required String annoncesVenteId,
+    required String annonceId,
     required double quantite,
     required String unite,
     String? modePaiementId,
+    String typeCommande = 'Annonce vente',
   }) async {
+    // Validations client-side
+    if (typeCommande.isEmpty || quantite <= 0 || unite.isEmpty) {
+      throw Exception('Champs obligatoires manquants.');
+    }
+
+    if (typeCommande == 'Annonce vente' && annonceId.isEmpty) {
+      throw Exception('annonces_vente_id requis pour type_commande Annonce vente.');
+    }
+
+    if (typeCommande == 'Annonce achat' && annonceId.isEmpty) {
+      throw Exception('annonces_achat_id requis pour type_commande Annonce achat.');
+    }
+
+    if (!['Annonce vente', 'Annonce achat'].contains(typeCommande)) {
+      throw Exception('type_commande invalide.');
+    }
+
+    print('🛒 Tentative de création de commande - Annonce ID: $annonceId, Quantité: $quantite $unite');
+
     final response = await api.post(
       '/commandes',
       {
-        'annonces_vente_id': annoncesVenteId,
+        'type_commande': typeCommande,
+        'annonces_vente_id': typeCommande == 'Annonce vente' ? annonceId : null,
+        'annonces_achat_id': typeCommande == 'Annonce achat' ? annonceId : null,
         'quantite': quantite,
         'unite': unite,
-        'types_paiement_id': modePaiementId,
+        'mode_paiement_id': modePaiementId,
       },
     );
 
-    print('📥 [POST] /commandes -> ${response.statusCode}');
-    print(response.body);
+    print('📥 [POST] /commandes-> ${response.statusCode}');
+    print('📄 Réponse: ${response.body}');
 
     if (response.statusCode == 201 || response.statusCode == 200) {
       final Map<String, dynamic> data = jsonDecode(response.body);
       if (!data.containsKey('commande')) {
         throw Exception("Clé 'commande' manquante dans la réponse");
       }
+      print('✅ Commande créée avec succès - ID: ${data['commande']['id']}');
       return CommandeModel.fromJson(data['commande']);
     } else {
-      throw Exception(
-          jsonDecode(response.body)['message'] ?? 'Erreur inconnue');
+      // Améliorer la gestion des erreurs pour différencier les cas
+      String errorMessage = 'Erreur inconnue lors de la création de commande';
+      try {
+        final errorData = jsonDecode(response.body);
+        errorMessage = errorData['message'] ?? errorData['error'] ?? response.body;
+      } catch (e) {
+        errorMessage = response.body;
+      }
+
+      // Messages d'erreur spécifiques selon le code HTTP et le contenu
+      if (response.statusCode == 404) {
+        if (errorMessage.toLowerCase().contains('annonce') && errorMessage.toLowerCase().contains('trouv')) {
+          errorMessage = "Cette annonce n'existe plus ou a été supprimée";
+        } else {
+          errorMessage = "Annonce introuvable - elle a peut-être été supprimée";
+        }
+      } else if (response.statusCode == 400) {
+        if (errorMessage.toLowerCase().contains('disponible') || errorMessage.toLowerCase().contains('statut')) {
+          errorMessage = "Cette annonce n'est plus disponible pour commande";
+        } else if (errorMessage.toLowerCase().contains('quantite') || errorMessage.toLowerCase().contains('stock')) {
+          errorMessage = "Quantité insuffisante en stock pour cette annonce";
+        }
+      } else if (response.statusCode == 409) {
+        errorMessage = "Cette annonce a déjà été commandée ou n'est plus disponible";
+      }
+
+      print('❌ Erreur création commande: $errorMessage (Code: ${response.statusCode})');
+      throw Exception(errorMessage);
     }
   }
 
@@ -60,6 +109,7 @@ class CommandeService {
   Future<List<CommandeModel>> getProducerOrders(
       {String? status, bool? pending}) async {
     String query = '/commandes/producer';
+
     Map<String, String> queryParams = {};
 
     if (status != null) queryParams['status'] = status;
@@ -107,7 +157,9 @@ class CommandeService {
     try {
       // ✅ Ne rajoute pas "commandes/" puisque c'est déjà dans la base URL
       final response = await api.put('/commandes/$id/annuler', {});
+     
 
+      print("📥 [PUT] /commandes/$id/annuler -> ${response.statusCode}");
       print("📥 [PUT] /commandes/$id/annuler -> ${response.statusCode}");
       print(response.body);
 

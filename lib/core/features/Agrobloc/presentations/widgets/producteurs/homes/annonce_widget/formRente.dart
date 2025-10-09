@@ -1,9 +1,10 @@
 import 'dart:io';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/cultureService.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
-import 'package:agrobloc/core/features/Agrobloc/data/models/typecultureModel.dart';
-import 'package:agrobloc/core/features/Agrobloc/data/dataSources/typeCultureService.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/models/cultureModel.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/cultureService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/annonceVenteService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/parcelleService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
@@ -26,9 +27,9 @@ class _CultureRenteFormState extends State<CultureRenteForm> {
   final TextEditingController _quantiteController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
-  List<TypeCulture> _cultures = [];
+  List<Culture> _cultures = [];
   List<Map<String, dynamic>> _parcelles = [];
-  TypeCulture? _selectedCulture;
+  Culture? _selectedCulture;
   Map<String, dynamic>? _selectedParcelle;
 
   @override
@@ -40,7 +41,7 @@ class _CultureRenteFormState extends State<CultureRenteForm> {
 
   Future<void> _loadCultures() async {
     try {
-      final allCultures = await TypeCultureService().getAllTypes();
+      final allCultures = await cultureService().getAllCulture();
       final cultures =
           allCultures.where((c) => c.type?.toLowerCase() == 'rente').toList();
       setState(() => _cultures = cultures);
@@ -118,11 +119,12 @@ class _CultureRenteFormState extends State<CultureRenteForm> {
       // appel service MULTIPART
       await AnnonceService().createAnnonce(
         userId: userId,
-        typeCultureId: cultureId,
+        cultureId: cultureId,
         parcelleId: parcelleId,
         statut: "Disponible",
         description: _descriptionController.text.trim(),
         quantite: double.tryParse(_quantiteController.text) ?? 0,
+        quantiteUnite: "kg",
         prixKg: double.parse(_prixController.text),
         photo: photoFile,
         type: "de rente",
@@ -157,7 +159,7 @@ class _CultureRenteFormState extends State<CultureRenteForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          DropdownButtonFormField<TypeCulture>(
+          DropdownButtonFormField<Culture>(
             decoration: InputDecoration(
               labelText: "Nom de la culture",
               border:
@@ -167,7 +169,7 @@ class _CultureRenteFormState extends State<CultureRenteForm> {
             ),
             value: _selectedCulture,
             items: _cultures
-                .map((c) => DropdownMenuItem<TypeCulture>(
+                .map((c) => DropdownMenuItem<Culture>(
                       value: c,
                       child: Text(c.libelle),
                     ))

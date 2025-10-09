@@ -2,11 +2,33 @@ import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/pagesAcheteurs/MessagePage.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/home/notification_livraison_page.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/home/discussionPage.dart';
+import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
 
-class SearchBarWidget extends StatelessWidget {
+class SearchBarWidget extends StatefulWidget {
   final ValueChanged<String>? onChanged;
 
   const SearchBarWidget({super.key, this.onChanged});
+
+  @override
+  State<SearchBarWidget> createState() => _SearchBarWidgetState();
+}
+
+class _SearchBarWidgetState extends State<SearchBarWidget> {
+  final UserService _userService = UserService();
+  String _currentUserId = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrentUser();
+  }
+
+  Future<void> _loadCurrentUser() async {
+    await _userService.ensureUserLoaded();
+    setState(() {
+      _currentUserId = _userService.userId ?? '';
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +49,7 @@ class SearchBarWidget extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: TextField(
-                    onChanged: onChanged,
+                    onChanged: widget.onChanged,
                     decoration: const InputDecoration(
                       hintText: 'Recherchez selon vos besoins...',
                       border: InputBorder.none,
@@ -68,8 +90,7 @@ class SearchBarWidget extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                // Remplacez 'currentUserId' par l'ID de l'utilisateur actuel
-                builder: (_) => const MessagesPage(currentUserId: 'votre_user_id'),
+                builder: (_) => MessagesPage(currentUserId: _currentUserId),
               ),
             );
           },

@@ -212,7 +212,7 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                                                         style: TextStyle(color: Colors.grey[700]),
                                                       ),
                                                       TextSpan(
-                                                        text: '${annonce.typeCultureLibelle}',
+                                                        text: '${annonce.cultureLibelle}',
                                                         style: const TextStyle(
                                                           color: Color(0xFF4CAF50),
                                                           fontSize: 18,
@@ -242,6 +242,14 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                                                   ),
                                                 ),
                                               ],
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'Acheteur: ${annonce.userNom}',
+                                              style: TextStyle(
+                                                color: Colors.grey[700],
+                                                fontSize: 14,
+                                              ),
                                             ),
                                             const SizedBox(height: 4),
                                             // Date and favorite icon on the same line

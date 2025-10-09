@@ -283,36 +283,46 @@ class Conversation {
   });
 
   factory Conversation.fromJson(Map<String, dynamic> json) {
+    // Handle the API response format with participants and messages arrays
+    final participants = json['participants'] as List<dynamic>? ?? [];
+    final messages = json['messages'] as List<dynamic>? ?? [];
+
+    String name = 'Conversation';
+    String receiverId = '';
+    String lastMessage = '';
+    DateTime? lastMessageTime;
+
+    // Extract participant info
+    if (participants.isNotEmpty) {
+      final participant = participants[0] as Map<String, dynamic>;
+      name = participant['name']?.toString() ?? 'Utilisateur';
+      receiverId = participant['id']?.toString() ?? '';
+    }
+
+    // Extract last message info
+    if (messages.isNotEmpty) {
+      final message = messages[0] as Map<String, dynamic>;
+      lastMessage = message['content']?.toString() ?? '';
+      lastMessageTime = Message._parseTimestamp(message['created_at'] ?? message['updated_at']);
+    } else {
+      // Fallback to conversation timestamps
+      lastMessageTime = json['updated_at'] != null
+        ? Message._parseTimestamp(json['updated_at'])
+        : (json['created_at'] != null
+            ? Message._parseTimestamp(json['created_at'])
+            : null);
+    }
+
     return Conversation(
-      id: json['conversation_id']?.toString() ?? 
-          json['id']?.toString() ?? 
-          json['_id']?.toString() ?? '',
-      name: json['name']?.toString() ?? 
-            json['recipient_name']?.toString() ?? 
-            json['title']?.toString() ?? 
-            'Conversation',
-      lastMessage: json['content']?.toString() ?? 
-                   json['last_message']?.toString() ?? 
-                   json['lastMessage']?.toString() ?? '',
-      receiverId: json['recipient_id']?.toString() ?? 
-                  json['receiverId']?.toString() ?? 
-                  json['other_user_id']?.toString() ?? '',
-      lastMessageTime: json['last_message_time'] != null 
-        ? Message._parseTimestamp(json['last_message_time'])
-        : (json['updated_at'] != null 
-            ? Message._parseTimestamp(json['updated_at'])
-            : (json['created_at'] != null 
-                ? Message._parseTimestamp(json['created_at'])
-                : null)),
-      avatarUrl: json['avatar_url']?.toString() ?? 
-                 json['profile_picture']?.toString(),
-      unreadCount: json['unread_count'] as int? ?? 
-                   json['unreadCount'] as int? ?? 0,
-      isOnline: json['is_online'] as bool? ?? 
-                json['isOnline'] as bool? ?? false,
-      participants: (json['participants'] as List<dynamic>?)
-          ?.map((e) => e.toString())
-          .toList() ?? [],
+      id: json['id']?.toString() ?? '',
+      name: name,
+      lastMessage: lastMessage,
+      receiverId: receiverId,
+      lastMessageTime: lastMessageTime,
+      avatarUrl: null, // Not provided in this API format
+      unreadCount: 0, // Not provided in this API format
+      isOnline: false, // Not provided in this API format
+      participants: participants.map((p) => (p as Map<String, dynamic>)['id']?.toString() ?? '').toList(),
     );
   }
 

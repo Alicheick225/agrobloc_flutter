@@ -43,10 +43,18 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _loadChatMessages() {
+    // Don't load messages for new conversations
+    if (widget.conversationId == 'new' || widget.conversationId.isEmpty) {
+      setState(() {
+        _futureMessages = Future.value([]);
+      });
+      return;
+    }
+
     setState(() {
-      _futureMessages = _messageService.getMessages(
+      _futureMessages = _messageService.getConversationMessages(
+        widget.conversationId,
         widget.currentUserId,
-        widget.recipientId,
       );
     });
   }
@@ -72,22 +80,40 @@ class _ChatPageState extends State<ChatPage> {
     final messageText = _messageController.text.trim();
     if (messageText.isEmpty || _isSending) return;
 
+    // Validate senderId before sending
+    if (widget.currentUserId.isEmpty || widget.currentUserId == 'your_user_id_here') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erreur: ID de l\'expéditeur invalide')),
+      );
+      return;
+    }
+
     setState(() => _isSending = true);
 
     try {
+      // Si l'ID de conversation est "new", créer d'abord une nouvelle conversation
+      String conversationId = widget.conversationId;
+      if (conversationId == 'new' || conversationId.isEmpty) {
+        final newConversation = await _messageService.createConversation(
+          widget.currentUserId,
+          widget.recipientId,
+        );
+        conversationId = newConversation.id.toString();
+      }
+
       // Utilise Message.create() au lieu du constructeur normal
       final messageToSend = Message.create(
         senderId: widget.currentUserId,
         receiverId: widget.recipientId,
         content: messageText,
-        conversationId: widget.conversationId,
+        conversationId: conversationId,
       );
 
       _messageController.clear();
       
       final sentMessage = await _messageService.sendMessage(
         messageToSend, 
-        conversationId: widget.conversationId
+        conversationId: conversationId
       );
 
       setState(() {
@@ -96,7 +122,18 @@ class _ChatPageState extends State<ChatPage> {
       _scrollToBottom();
       
     } catch (e) {
-      _showErrorSnackBar('Erreur lors de l\'envoi: $e');
+      // Gestion améliorée des erreurs avec affichage clair
+      String errorMessage = 'Erreur lors de l\'envoi du message.';
+      if (e.toString().contains('Invalid conversation ID')) {
+        errorMessage = 'ID de conversation invalide. Veuillez réessayer.';
+      } else if (e.toString().contains('Token d\'autorisation')) {
+        errorMessage = 'Problème d\'authentification. Veuillez vous reconnecter.';
+      } else if (e.toString().contains('404')) {
+        errorMessage = 'Conversation non trouvée. Veuillez réessayer.';
+      } else if (e.toString().contains('SocketException')) {
+        errorMessage = 'Erreur réseau. Vérifiez votre connexion.';
+      }
+      _showErrorSnackBar(errorMessage);
     } finally {
       setState(() => _isSending = false);
     }

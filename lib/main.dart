@@ -51,8 +51,6 @@ Future<void> main() async {
   // Initialisation UserService
   try {
     final userService = UserService();
-    // Force clear stored user session to require login on every app launch
-    await userService.clearCurrentUser();
     final hasStoredData = await userService.hasStoredUserData();
     debugPrint('🔍 main() - Données utilisateur stockées: $hasStoredData');
 
@@ -225,6 +223,7 @@ class _MyAppState extends State<MyApp> {
         '/homePage': (context) => const HomePage(acheteurId: 'acheteur'),
         '/homeProducteur': (context) => const HomeProducteur(),
         '/login': (context) => const LoginPage(profile: 'producteur'),
+        '/loginProducteur': (context) => const LoginPage(profile: 'producteur'),
         '/detailOffreVente': (context) {
           final args =
               ModalRoute.of(context)!.settings.arguments as AnnonceAchat;
