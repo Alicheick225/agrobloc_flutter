@@ -159,6 +159,7 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
           description: _descriptionController.text.trim(),
           cultureId: _selectedCultureId!,
           quantite: quantityInKg,
+          unite: _quantityUnit,
           prix: _prix,
           statut: 'active',
         );
@@ -173,6 +174,7 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
           description: _descriptionController.text.trim(),
           cultureId: _selectedCultureId!,
           quantite: quantityInKg,
+          unite: _quantityUnit,
           prix: _prix,
           statut: 'active',
         );

@@ -33,7 +33,11 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
   Future<void> _loadAnnonces() async {
     try {
       setState(() => _isLoading = true);
-      final annonces = await _service.fetchAnnoncesByUser();
+      final currentUserId = _userService.userId;
+      if (currentUserId == null || currentUserId.isEmpty) {
+        throw Exception('Utilisateur non connecté');
+      }
+      final annonces = await _service.fetchAnnonces(userId: currentUserId);
 
       if (!mounted) return;
       setState(() {
@@ -51,7 +55,7 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur: ${e.toString()}'),
-          backgroundColor: AppColors.primaryGreen,
+          backgroundColor: Colors.red,
         ),
       );
     }
@@ -143,52 +147,7 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
     if (confirmed == true) await _deleteAnnonce(annonce);
   }
 
-  // Méthode pour formater la date avec format relatif
-  String _formatDate(String dateString) {
-    if (dateString.isEmpty) return '';
-    
-    try {
-      final parts = dateString.split(' ');
-      if (parts.isEmpty) return dateString;
-      
-      final dateParts = parts[0].split('-');
-      if (dateParts.length != 3) return dateString;
-      
-      final year = int.tryParse(dateParts[0]) ?? 0;
-      final month = int.tryParse(dateParts[1]) ?? 0;
-      final day = int.tryParse(dateParts[2]) ?? 0;
-      
-      if (year == 0 || month == 0 || day == 0) return dateString;
-      
-      final date = DateTime(year, month, day);
-      final now = DateTime.now();
-      final today = DateTime(now.year, now.month, now.day);
-      final yesterday = DateTime(now.year, now.month, now.day - 1);
-      final dateOnly = DateTime(date.year, date.month, date.day);
-      
-      final difference = today.difference(dateOnly).inDays;
-      
-      if (dateOnly == today) {
-        return 'Aujourd\'hui';
-      } else if (dateOnly == yesterday) {
-        return 'Hier';
-      } else if (difference < 7) {
-        return 'Il y a $difference ${difference == 1 ? 'jour' : 'jours'}';
-      } else if (difference < 28) {
-        final weeks = (difference / 7).floor();
-        return 'Il y a $weeks ${weeks == 1 ? 'semaine' : 'semaines'}';
-      } else {
-        // Format complet: "11 Août 2025"
-        final monthNames = [
-          'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-          'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
-        ];
-        return '$day ${monthNames[month - 1]} $year';
-      }
-    } catch (e) {
-      return dateString;
-    }
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -247,7 +206,7 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                                             style: AppTextStyles.heading.copyWith(
                                               fontSize: 16,
                                               color: annonce.cultureLibelle.isNotEmpty
-                                                ? AppColors.primaryGreen
+                                                ? const Color.fromARGB(255, 7, 7, 7)
                                                 : Colors.grey,
                                             ),
                                           ),
@@ -256,7 +215,7 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                                             TextSpan(
                                               children: [
                                                 TextSpan(
-                                                  text: 'Quantité: ',
+                                                  text: 'Stock: ',
                                                   style: TextStyle(color: Colors.grey[700]),
                                                 ),
                                                 TextSpan(
@@ -274,13 +233,13 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                                             TextSpan(
                                               children: [
                                                 TextSpan(
-                                                  text: 'Prix / kg: ',
+                                                 
                                                   style: TextStyle(color: Colors.grey[700]),
                                                 ),
                                                 TextSpan(
-                                                  text: annonce.formattedPrice,
+                                                  text: '${annonce.formattedPrice}/Kg',
                                                   style: const TextStyle(
-                                                    color: Color.fromARGB(255, 55, 55, 55),
+                                                    color: AppColors.primaryGreen,
                                                     fontWeight: FontWeight.bold,
                                                   ),
                                                 ),
@@ -288,38 +247,13 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                                             ),
                                           ),
                                           const SizedBox(height: 4),
-                                          // Statut et Date sur la même ligne
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text.rich(
-                                                TextSpan(
-                                                  children: [
-                                                    TextSpan(
-                                                      text: 'Statut: ',
-                                                      style: TextStyle(color: Colors.grey[700]),
-                                                    ),
-                                                    TextSpan(
-                                                      text: annonce.statut,
-                                                      style: TextStyle(
-                                                        color: isValidated
-                                                            ? Colors.green
-                                                            : const Color.fromARGB(255, 99, 169, 248),
-                                                        fontWeight: FontWeight.w500,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              // Date alignée à droite
-                                              Text(
-                                                _formatDate(annonce.createdAt),
-                                                style: TextStyle(
-                                                  color: Colors.grey[600],
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                            ],
+                                          // Date de création
+                                          Text(
+                                            'il y a ${_service.formatDate(annonce.createdAt)}',
+                                            style: TextStyle(
+                                              color: Colors.grey[600],
+                                              fontSize: 14,
+                                            ),
                                           ),
                                         ],
                                       ),
