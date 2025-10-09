@@ -698,5 +698,33 @@ class UserService {
     print('✅ UserService.logoutUser() - Déconnexion réussie');
   }
 
-  Future<void> storeUser(AuthentificationModel user, {required bool rememberMe}) async {}
+  /// Stockage de l'utilisateur après connexion (appelé depuis LoginPage)
+  Future<void> storeUser(AuthentificationModel user, {required bool rememberMe}) async {
+    print('🔄 UserService.storeUser() - Début du stockage utilisateur: ${user.nom} (${user.profilId})');
+
+    // Récupérer les tokens depuis l'instance actuelle (déjà définis par AuthService.login)
+    final currentToken = _token;
+    final refreshToken = await _getRefreshTokenFromStorage();
+
+    if (currentToken == null || currentToken.isEmpty) {
+      print('❌ UserService.storeUser() - Aucun token disponible pour le stockage');
+      throw Exception('Tokens manquants - connexion requise');
+    }
+
+    // Utiliser setCurrentUser pour un stockage cohérent
+    await setCurrentUser(user, currentToken, refreshToken ?? '');
+
+    print('✅ UserService.storeUser() - Utilisateur stocké avec succès: ${user.nom}');
+  }
+
+  /// Récupère le refresh token depuis le stockage
+  Future<String?> _getRefreshTokenFromStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString('refresh_token');
+    } catch (e) {
+      print('❌ UserService._getRefreshTokenFromStorage() - Erreur: $e');
+      return null;
+    }
+  }
 }

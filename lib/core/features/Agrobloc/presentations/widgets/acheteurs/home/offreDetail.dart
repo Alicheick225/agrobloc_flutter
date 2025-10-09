@@ -267,10 +267,30 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
                             } catch (e) {
                               print('❌ Erreur vérification annonce: $e');
                               if (mounted) {
+                                String errorMessage = "Erreur lors de la vérification de l'annonce";
+
+                                // Vérifier si c'est une erreur d'authentification
+                                if (e.toString().contains('User not logged in') ||
+                                    e.toString().contains('Token') ||
+                                    e.toString().contains('authentification')) {
+                                  errorMessage = "Vous devez être connecté pour passer une commande. Veuillez vous reconnecter.";
+                                } else {
+                                  errorMessage = "Erreur lors de la vérification de l'annonce. Veuillez réessayer.";
+                                }
+
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text("Erreur lors de la vérification de l'annonce: $e"),
+                                    content: Text(errorMessage),
                                     backgroundColor: Colors.red,
+                                    duration: const Duration(seconds: 4),
+                                    action: SnackBarAction(
+                                      label: 'Se connecter',
+                                      textColor: Colors.white,
+                                      onPressed: () {
+                                        // Rediriger vers la page de connexion
+                                        Navigator.pushNamed(context, '/login');
+                                      },
+                                    ),
                                   ),
                                 );
                               }

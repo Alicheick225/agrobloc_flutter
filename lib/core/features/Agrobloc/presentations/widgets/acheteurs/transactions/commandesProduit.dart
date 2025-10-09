@@ -66,18 +66,44 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
     } catch (e) {
       print('❌ Erreur vérification annonce avant commande: $e');
       if (!mounted) return;
+
+      String errorMessage = "Erreur lors de la vérification de l'annonce";
+      bool shouldNavigateBack = false;
+
       if (e.toString().contains("404") || e.toString().contains("n'existe plus")) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Cette annonce n'existe plus ou a été supprimée. Elle n'est plus disponible pour commande.")),
-        );
-        // Navigate back after showing the message
+        errorMessage = "Cette annonce n'existe plus ou a été supprimée. Elle n'est plus disponible pour commande.";
+        shouldNavigateBack = true;
+      } else if (e.toString().contains('User not logged in') ||
+                 e.toString().contains('Token') ||
+                 e.toString().contains('authentification')) {
+        errorMessage = "Vous devez être connecté pour passer une commande. Veuillez vous reconnecter.";
+      } else {
+        errorMessage = "Erreur lors de la vérification de l'annonce. Veuillez réessayer.";
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 4),
+          action: (e.toString().contains('User not logged in') ||
+                   e.toString().contains('Token') ||
+                   e.toString().contains('authentification'))
+              ? SnackBarAction(
+                  label: 'Se connecter',
+                  textColor: Colors.white,
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/login');
+                  },
+                )
+              : null,
+        ),
+      );
+
+      if (shouldNavigateBack) {
         Future.delayed(const Duration(seconds: 2), () {
           if (mounted) Navigator.pop(context);
         });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Erreur lors de la vérification de l'annonce: $e")),
-        );
       }
       return;
     }
