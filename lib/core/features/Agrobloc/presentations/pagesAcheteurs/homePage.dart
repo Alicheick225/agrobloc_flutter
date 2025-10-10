@@ -186,14 +186,14 @@ class _HomePageState extends State<HomePage> {
                     }
                   },
                   child: const Text(
-                    "Suivant >",
+                    "Suivant ->",
                     style: TextStyle(
                         color: Colors.green, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 6),
             SizedBox(
               height: 200,
               child: paginatedAnnonces.isEmpty
@@ -214,7 +214,7 @@ class _HomePageState extends State<HomePage> {
                       },
                     ),
             ),
-            const SizedBox(height: 45),
+            const SizedBox(height: 30),
             Text("Recommandé", style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 5),
             Column(

@@ -1,5 +1,6 @@
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/AnnoncePrefinancementService.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/home/detailFinancement.dart';
+import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/annoncePrefinancementModel.dart';
 
@@ -13,7 +14,7 @@ class ListePrefinancementsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Préfinancements"),
-        backgroundColor: Colors.green,
+        backgroundColor: AppColors.primaryGreen,
       ),
       body: FutureBuilder<List<AnnoncePrefinancement>>(
         future: service.fetchPrefinancements(),
@@ -49,7 +50,7 @@ class FinancementCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+      margin: const EdgeInsets.symmetric(vertical: 4, ),
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
@@ -59,9 +60,9 @@ class FinancementCard extends StatelessWidget {
           children: [
             // Titre principal
             Text(
-              'Préfinancement demandé - Culture de ${data.libelle.isNotEmpty ? data.libelle : "N/A"}',
+              'Culture de ${data.libelle.isNotEmpty ? data.libelle : "N/A"}',
               style: const TextStyle(
-                color: Colors.green,
+                color: AppColors.primaryGreen,
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),
@@ -83,71 +84,47 @@ class FinancementCard extends StatelessWidget {
                           fontSize: 14,
                         ),
                       ),
-                      Text(
-                        data.adresse.isNotEmpty ? data.adresse : "Adresse non renseignée",
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
-                        ),
-                      ),
+                     
                     ],
                   ),
                 ),
-                InkWell(
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Voir profil...")),
-                    );
-                  },
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: const [
-                      Icon(Icons.remove_red_eye_outlined, color: Colors.green),
-                      SizedBox(width: 4),
-                      Text(
-                        "Voir profil",
-                        style: TextStyle(color: Colors.green, fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ),
+               
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 6),
 
             // Détails du financement
             _buildRow("Superficie :", "${data.surface ?? 0} ha"),
-            _buildRow("Quantité estimée :", "${data.quantite ?? 0} kg"),
-            _buildRow("Prix préférentiel :", "${data.prixKgPref ?? 0} FCFA/kg"),
+            //_buildRow("Quantité estimée :", "${data.quantite ?? 0} kg"),
+            //_buildRow("Prix préférentiel :", "${data.prixKgPref ?? 0} FCFA/kg"),
             _buildRow(
                 "Montant à préfinancer :", "${data.montantPref ?? 0} FCFA"),
-            const SizedBox(height: 16),
-
-            // Bouton Voir plus
-            Center(
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => FinancementDetailsPage(data: data),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  const Icon(Icons.location_on, color: Colors.grey, size: 16),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      data.adresse ?? 'Adresse non disponible',
+                      style: const TextStyle(fontSize: 13),
                     ),
-                  );
-                },
-                child: const Text(
-                  "Voir plus",
-                  style: TextStyle(fontSize: 14),
-                ),
+                  ),
+                ],
               ),
             ),
+            const SizedBox(height: 8),
+            Text(
+                  ' ${_service.formatDate(data.createdAt)}',
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 14,
+              ),
+            ),
+
+            // Bouton Voir plus
+         
           ],
         ),
       ),
@@ -163,7 +140,7 @@ class FinancementCard extends StatelessWidget {
             TextSpan(
               text: "$label ",
               style: const TextStyle(
-                color: Colors.black,
+                color: Color.fromARGB(255, 69, 68, 68),
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
               ),
@@ -179,5 +156,43 @@ class FinancementCard extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _service {
+  static String formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    final minutes = difference.inMinutes;
+    final hours = difference.inHours;
+    final days = difference.inDays;
+
+    if (minutes < 1) {
+      return 'à l\'instant';
+    } else if (minutes < 60) {
+      return 'il y a $minutes ${minutes == 1 ? 'minute' : 'minutes'}';
+    } else if (hours < 24) {
+      return 'il y a $hours ${hours == 1 ? 'heure' : 'heures'}';
+    } else if (days == 1) {
+      return 'hier';
+    } else if (days < 7) {
+      return 'il y a $days ${days == 1 ? 'jour' : 'jours'}';
+    } else if (days < 14) {
+      return 'il y a 1 semaine';
+    } else if (days < 28) {
+      final weeks = (days / 7).floor();
+      return 'Il y a $weeks semaines';
+    } else {
+      // Format complet: "11 Août 2025"
+      final monthNames = [
+        'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+        'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+      ];
+      final day = date.day;
+      final month = date.month;
+      final year = date.year;
+      return '$day ${monthNames[month - 1]} $year';
+    }
   }
 }
