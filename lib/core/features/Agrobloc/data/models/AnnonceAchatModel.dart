@@ -29,8 +29,8 @@ class AnnonceAchat {
     // Gestion de la conversion d'unités
     double quantiteValue = (json['quantite'] as num?)?.toDouble() ?? 0.0;
     final String unite = json['unite']?.toString()?.toUpperCase() ?? 'KG';
-    
-    // Conversion des tonnes en kg si nécessaire
+
+    // Conversion des tonnes en kg si nécessaire pour stockage interne
     if (unite == 'T') {
       quantiteValue *= 1000;
     }
@@ -42,9 +42,9 @@ class AnnonceAchat {
       quantite: quantiteValue,
       prix: (json['prix_kg'] as num?)?.toDouble() ?? 0.0,
       userId: json['user_id']?.toString() ?? '',            // reste vide si absent
-      userNom: json['nom']?.toString() ?? '',               // directement depuis JSON
-      cultureLibelle: json['libelle']?.toString() ?? '', // directement depuis JSON
-      cultureId: json['type_culture_id']?.toString() ?? '', // reste vide si absent
+      userNom: json['nom']?.toString() ?? '',               // selon réponse API
+      cultureLibelle: json['libelle']?.toString() ?? '',    // selon réponse API
+      cultureId: json['culture_id']?.toString() ?? '',      // reste vide si absent
       unite: unite,
       createdAt: json['created_at']?.toString() ?? '',      // date de création
     );

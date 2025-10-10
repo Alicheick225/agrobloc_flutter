@@ -103,7 +103,7 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
 
   /// Get background color for avatar - using the primary green color of the site
   Color _getAvatarBackgroundColor(String firstLetter) {
-    return const Color(0xFF4CAF50); // Primary green color used in the app
+    return AppColors.primaryGreen; // Primary green color used in the app
   }
 
   // Méthode pour formater la date avec format relatif
@@ -134,7 +134,7 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
       if (dateOnly == today) {
         return 'Aujourd\'hui';
       } else if (dateOnly == yesterday) {
-        return 'Hier';
+        return 'Il y a 1 jour';
       } else if (difference < 7) {
         return 'Il y a $difference ${difference == 1 ? 'jour' : 'jours'}';
       } else if (difference < 28) {
@@ -214,7 +214,7 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                                                       TextSpan(
                                                         text: '${annonce.cultureLibelle}',
                                                         style: const TextStyle(
-                                                          color: Color(0xFF4CAF50),
+                                                          color: AppColors.primaryGreen,
                                                           fontSize: 18,
                                                           fontWeight: FontWeight.bold,
                                                         ),
@@ -241,17 +241,37 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                                                     ],
                                                   ),
                                                 ),
+                                                
                                               ],
                                             ),
                                             const SizedBox(height: 4),
-                                            Text(
-                                              'Acheteur: ${annonce.userNom}',
-                                              style: TextStyle(
-                                                color: Colors.grey[700],
-                                                fontSize: 14,
-                                              ),
+                                            Text.rich(
+                                            TextSpan(
+                                              children: [
+                                                TextSpan(
+                                                  text: 'Acheteur: ',
+                                                  style: TextStyle(color: Colors.grey[700]),
+                                                ),
+                                                TextSpan(
+                                                  text: annonce.userNom,
+                                                  style: const TextStyle(
+                                                    color: Color.fromARGB(255, 55, 55, 55),
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
-                                            const SizedBox(height: 4),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                              ' ${annonce.prix}/ Kg',
+                                              style: TextStyle(
+                                                color: AppColors.primaryGreen,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                              ),
+                                          ),
+                                            const SizedBox(height: 2),
                                             // Date and favorite icon on the same line
                                             Row(
                                               children: [
@@ -266,7 +286,7 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                                                 IconButton(
                                                   icon: const Icon(
                                                     Icons.favorite_border,
-                                                    color: Color(0xFF4CAF50),
+                                                    color: AppColors.primaryGreen,
                                                     size: 20,
                                                   ),
                                                   onPressed: () {

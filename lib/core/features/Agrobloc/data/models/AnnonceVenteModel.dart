@@ -11,6 +11,7 @@ class AnnonceVente {
   final String cultureLibelle;
   final String cultureId;
   final String cultureType;
+  final String parcelleId;
   final String parcelleAdresse;
   final String? createdAt;
   final double? note;
@@ -29,6 +30,7 @@ class AnnonceVente {
     required this.cultureLibelle,
     required this.cultureId,
     required this.cultureType,
+    required this.parcelleId,
     required this.parcelleAdresse,
     this.createdAt,
     this.note,
@@ -36,6 +38,17 @@ class AnnonceVente {
   });
 
   factory AnnonceVente.fromJson(Map<String, dynamic> json) {
+    // Extract parcelleId
+    String parcelleId = '';
+    if (json['parcelle_id'] != null) {
+      parcelleId = json['parcelle_id'].toString();
+    } else if (json['parcelleId'] != null) {
+      parcelleId = json['parcelleId'].toString();
+    } else if (json['parcelle'] != null && json['parcelle'] is Map<String, dynamic>) {
+      final parcelle = json['parcelle'] as Map<String, dynamic>;
+      parcelleId = parcelle['id']?.toString() ?? '';
+    }
+
     return AnnonceVente(
       id: json['id']?.toString() ?? '',
       photo: json['photo'],
@@ -49,6 +62,7 @@ class AnnonceVente {
       cultureLibelle: json['libelle']?.toString() ?? json['culture_libelle']?.toString() ?? json['CultureLibelle']?.toString() ?? '',
       cultureId: json['culture_id']?.toString() ?? json['cultureId']?.toString() ?? '',
       cultureType: json['type']?.toString() ?? json['culture_type']?.toString() ?? json['cultureType']?.toString() ?? 'vivriere',
+      parcelleId: parcelleId,
       parcelleAdresse: json['adresse']?.toString() ?? json['parcelle_adresse']?.toString() ?? json['ParcelleAdresse']?.toString() ?? '',
       createdAt: json['created_at']?.toString(),
       note: (json['note'] as num?)?.toDouble(),
@@ -72,6 +86,7 @@ class AnnonceVente {
       'libelle': cultureLibelle,
       'culture_id': cultureId,
       'type': cultureType,
+      'parcelle_id': parcelleId,
       'adresse': parcelleAdresse,
       'created_at': createdAt,
       'note': note,

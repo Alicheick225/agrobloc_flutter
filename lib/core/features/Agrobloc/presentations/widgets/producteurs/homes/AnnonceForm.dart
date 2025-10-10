@@ -45,7 +45,8 @@ class _DynamicAnnonceFormState extends State<DynamicAnnonceForm> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: AppColors.primaryGreen,
-        title: const Text("Nouvelle annonce"),
+        foregroundColor: const Color.fromARGB(255, 255, 255, 255),
+        title: const Text("Faire une annonce"),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

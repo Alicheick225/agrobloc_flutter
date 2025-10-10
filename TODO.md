@@ -78,3 +78,23 @@ The Flutter app throws "Exception: User not logged in" when attempting real-time
 - `lib/core/features/Agrobloc/data/dataSources/userService.dart` - Implemented storeUser method
 - `lib/core/features/Agrobloc/presentations/widgets/acheteurs/home/offreDetail.dart` - Improved error handling
 - `lib/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/commandesProduit.dart` - Improved error handling
+
+## TODO: Update AnnonceAchat Service to Match New Go API
+
+### Issue Description
+The Go backend API for annonces_achat has been updated with new filters, endpoints, and request/response structures. The Dart service needs to be synchronized to match these changes.
+
+### Tasks to Complete
+
+- [x] Update AnnonceAchatModel.dart fromJson to use correct JSON keys (user_nom, culture_libelle, quantite_unite)
+- [x] Update fetchAnnonces method to include all new filters (user_id, search, date_from, date_to, type, price_min, price_max, quantite_min, quantite_max)
+- [x] Add fetchAnnoncesByCultureType method for /annonces_achat/cultures endpoint
+- [x] Add decrementQuantite method for POST /annonces_achat/:id/decrement
+- [x] Update createAnnonceAchat and updateAnnonceAchat to use 'culture_id' and 'unite' in requests
+- [ ] Test all updated methods with the backend API
+- [ ] Verify UI components handle new response fields correctly
+- [x] Fix callers of createAnnonceAchat and updateAnnonceAchat to provide 'unite' parameter
+
+### Files Modified
+- `lib/core/features/Agrobloc/data/models/AnnonceAchatModel.dart` - Updated fromJson for new API keys
+- `lib/core/features/Agrobloc/data/dataSources/AnnonceAchat.dart` - Added new methods and updated fetchAnnonces

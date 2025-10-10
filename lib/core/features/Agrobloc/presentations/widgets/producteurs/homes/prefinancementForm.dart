@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
 import 'package:flutter/material.dart';
+import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/AnnoncePrefinancementService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/parcelleService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/cultureService.dart';
@@ -30,11 +31,15 @@ class _PrefinancementFormState extends State<PrefinancementForm> {
   final TextEditingController descriptionController = TextEditingController();
 
   List<Culture> cultures = [];
+  List<Culture> _allCultures = [];
   List<Parcelle> parcelles = [];
 
   Culture? culture;
   Parcelle? parcelle;
   String unite = "Kg"; // Kg ou T
+  String? _typeProduit; // Type de culture: 'rente' ou 'vivriere'
+
+  List<Map<String, dynamic>> _typesProduits = [];
 
   bool get isEditing => widget.prefinancement != null;
 
@@ -44,6 +49,10 @@ class _PrefinancementFormState extends State<PrefinancementForm> {
   @override
   void initState() {
     super.initState();
+    _typesProduits = [
+      {'id': 'rente', 'libelle': 'Culture de rente'},
+      {'id': 'vivriere', 'libelle': 'Culture vivrière'},
+    ];
     _chargerData();
 
     if (widget.prefinancement != null) {
@@ -76,15 +85,29 @@ class _PrefinancementFormState extends State<PrefinancementForm> {
       unite = "Kg";
     }
 
-    // Set culture based on cultureId (try id first, then libelle)
+    // Set typeProduit based on culture type (need to find culture first)
+    Culture? foundCulture;
     try {
-      culture = cultures.firstWhere((c) => c.id == prefinancement.cultureId);
+      foundCulture = _allCultures.firstWhere((c) => c.id == prefinancement.cultureId);
     } catch (e) {
       try {
-        culture = cultures.firstWhere((c) => c.libelle == prefinancement.cultureId);
+        foundCulture = _allCultures.firstWhere((c) => c.libelle == prefinancement.libelle);
       } catch (e) {
-        culture = null;
+        foundCulture = null;
       }
+    }
+
+    if (foundCulture != null) {
+      _typeProduit = (foundCulture.type ?? '').toLowerCase() == 'vivrière' ? 'vivriere' : (foundCulture.type ?? '').toLowerCase();
+      culture = foundCulture;
+      // Reload cultures filtered by type
+      cultures = _allCultures.where((c) {
+        String normalizedType = (c.type ?? '').toLowerCase() == 'vivrière' ? 'vivriere' : (c.type ?? '').toLowerCase();
+        return normalizedType == _typeProduit;
+      }).toList();
+    } else {
+      culture = null;
+      _typeProduit = null;
     }
 
     // Set parcelle based on parcelleId (try id first, then adresse)
@@ -104,10 +127,18 @@ class _PrefinancementFormState extends State<PrefinancementForm> {
 
   Future<void> _chargerData() async {
     try {
-      final c = await typeService.getAllCulture();
+      final allCultures = await typeService.getAllCulture();
       final p = await parcelleService.getAllParcelles();
       setState(() {
-        cultures = c;
+        _allCultures = allCultures;
+        if (_typeProduit != null) {
+          cultures = allCultures.where((c) {
+            String normalizedType = (c.type ?? '').toLowerCase() == 'vivrière' ? 'vivriere' : (c.type ?? '').toLowerCase();
+            return normalizedType == _typeProduit;
+          }).toList();
+        } else {
+          cultures = [];
+        }
         parcelles = p;
       });
       // Populate fields after data is loaded if editing
@@ -373,78 +404,258 @@ class _PrefinancementFormState extends State<PrefinancementForm> {
         backgroundColor: Colors.white,
         elevation: 0,
       ),
-      body: cultures.isEmpty || parcelles.isEmpty
+      body: _allCultures.isEmpty || parcelles.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  DropdownButtonFormField<Culture>(
-                    decoration: const InputDecoration(
-                      labelText: "Choix de la culture",
-                      border: OutlineInputBorder(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.1),
+                          spreadRadius: 1,
+                          blurRadius: 5,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    value: culture,
-                    items: cultures
-                        .map((c) => DropdownMenuItem<Culture>(
-                              value: c,
-                              child: Text(c.libelle),
-                            ))
-                        .toList(),
-                    onChanged: (val) => setState(() => culture = val),
-                  ),
-                  const SizedBox(height: 16),
-                  Text("Production estimée",
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: productionController,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
-                            hintText: "10",
-                            border: OutlineInputBorder(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Type de culture',
+                          style: TextStyle(
+                            color: AppColors.primaryGreen,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      ToggleButtons(
-                        isSelected: [unite == "Kg", unite == "T"],
-                        onPressed: (index) {
-                          setState(() {
-                            unite = index == 0 ? "Kg" : "T";
-                          });
-                        },
-                        borderRadius: BorderRadius.circular(8),
-                        children: const [
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 12),
-                            child: Text("Kg"),
+                        Container(
+                          margin: const EdgeInsets.only(top: 4),
+                          height: 2,
+                          width: 40,
+                          color: AppColors.primaryGreen,
+                        ),
+                        const SizedBox(height: 8),
+                        DropdownButtonFormField<String>(
+                          decoration: InputDecoration(
+                            hintText: 'Sélectionner un type',
+                            hintStyle: TextStyle(color: Colors.grey[400]),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.zero,
                           ),
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 12),
-                            child: Text("T"),
-                          ),
-                        ],
-                      ),
-                    ],
+                          value: _typeProduit,
+                          menuMaxHeight: 200.0,
+                          items: _typesProduits
+                              .map((type) => DropdownMenuItem<String>(
+                                    value: type['id'],
+                                    child: Text(type['libelle']),
+                                  ))
+                              .toList(),
+                          onChanged: (val) {
+                            setState(() {
+                              _typeProduit = val;
+                              culture = null; // Reset culture when type changes
+                            });
+                            _chargerData(); // Reload cultures filtered by type
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 16),
-                  DropdownButtonFormField<Parcelle>(
-                    decoration: const InputDecoration(
-                      labelText: "Choix de la parcelle",
-                      border: OutlineInputBorder(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.1),
+                          spreadRadius: 1,
+                          blurRadius: 5,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    value: parcelle,
-                    items: parcelles
-                        .map((p) => DropdownMenuItem<Parcelle>(
-                              value: p,
-                              child: Text(p.libelle),
-                            ))
-                        .toList(),
-                    onChanged: (val) => setState(() => parcelle = val),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Choix de la culture',
+                          style: TextStyle(
+                            color: AppColors.primaryGreen,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.only(top: 4),
+                          height: 2,
+                          width: 40,
+                          color: AppColors.primaryGreen,
+                        ),
+                        const SizedBox(height: 8),
+                        DropdownButtonFormField<Culture>(
+                          decoration: InputDecoration(
+                            hintText: 'Sélectionner une culture',
+                            hintStyle: TextStyle(color: Colors.grey[400]),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          value: culture,
+                          menuMaxHeight: 200.0,
+                          items: cultures.isNotEmpty
+                              ? cultures
+                                  .map((c) => DropdownMenuItem<Culture>(
+                                        value: c,
+                                        child: Text(c.libelle ?? ''),
+                                      ))
+                                  .toList()
+                              : null,
+                          onChanged: cultures.isNotEmpty
+                              ? (val) {
+                                  setState(() => culture = val);
+                                }
+                              : null,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.1),
+                          spreadRadius: 1,
+                          blurRadius: 5,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Production estimée',
+                          style: TextStyle(
+                            color: AppColors.primaryGreen,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.only(top: 4),
+                          height: 2,
+                          width: 40,
+                          color: AppColors.primaryGreen,
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: productionController,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  hintText: "10",
+                                  border: InputBorder.none,
+                                  contentPadding: const EdgeInsets.all(8),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            ToggleButtons(
+                              isSelected: [unite == "Kg", unite == "T"],
+                              onPressed: (index) {
+                                setState(() {
+                                  unite = index == 0 ? "Kg" : "T";
+                                });
+                              },
+                              borderColor: AppColors.primaryGreen,
+                              selectedBorderColor: AppColors.primaryGreen,
+                              borderRadius: BorderRadius.circular(8),
+                              selectedColor: Colors.white,
+                              fillColor: AppColors.primaryGreen,
+                              color: AppColors.primaryGreen,
+                              children: const [
+                                Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 12),
+                                  child: Text("Kg"),
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 12),
+                                  child: Text("T"),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.1),
+                          spreadRadius: 1,
+                          blurRadius: 5,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Choix de la parcelle',
+                          style: TextStyle(
+                            color: AppColors.primaryGreen,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.only(top: 4),
+                          height: 2,
+                          width: 40,
+                          color: AppColors.primaryGreen,
+                        ),
+                        const SizedBox(height: 8),
+                        DropdownButtonFormField<Parcelle>(
+                          decoration: InputDecoration(
+                            hintText: 'Sélectionner une parcelle',
+                            hintStyle: TextStyle(color: Colors.grey[400]),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          value: parcelle,
+                          menuMaxHeight: 200.0,
+                          items: parcelles
+                              .map((p) => DropdownMenuItem<Parcelle>(
+                                    value: p,
+                                    child: Text(p.libelle),
+                                  ))
+                              .toList(),
+                          onChanged: (val) => setState(() => parcelle = val),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 16),
 
@@ -455,31 +666,66 @@ class _PrefinancementFormState extends State<PrefinancementForm> {
                   _buildNumberField(
                       "Montant à préfinancer", montantController, "FCFA"),
                   const SizedBox(height: 16),
-                  Text("Description",
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  TextField(
-                    controller: descriptionController,
-                    maxLines: 3,
-                    decoration: const InputDecoration(
-                      hintText: "Donnez les détails de votre demande",
-                      border: OutlineInputBorder(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.1),
+                          spreadRadius: 1,
+                          blurRadius: 5,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Description',
+                          style: TextStyle(
+                            color: AppColors.primaryGreen,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.only(top: 4),
+                          height: 2,
+                          width: 40,
+                          color: AppColors.primaryGreen,
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: descriptionController,
+                          maxLines: 3,
+                          decoration: InputDecoration(
+                            hintText: "Donnez les détails de votre demande",
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.all(8),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton(
+                    child: OutlinedButton(
                       onPressed: isEditing ? _updateDemande : _envoyerDemande,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: AppColors.primaryGreen),
+                        foregroundColor: AppColors.primaryGreen,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                       child: Text(
                         isEditing ? "Modifier la demande de préfinancement" : "Faire une demande de préfinancement",
-                        style: const TextStyle(fontSize: 16, color: Colors.white),
+                        style: const TextStyle(fontSize: 16),
                       ),
                     ),
                   ),
@@ -491,33 +737,63 @@ class _PrefinancementFormState extends State<PrefinancementForm> {
 
   Widget _buildNumberField(
       String title, TextEditingController controller, String unit) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: controller,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              color: AppColors.primaryGreen,
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
+          Container(
+            margin: const EdgeInsets.only(top: 4),
+            height: 2,
+            width: 40,
+            color: AppColors.primaryGreen,
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.all(8),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: 10),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.green),
-                borderRadius: BorderRadius.circular(8),
+              const SizedBox(width: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.primaryGreen),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(unit, style: TextStyle(color: AppColors.primaryGreen)),
               ),
-              child: Text(unit, style: const TextStyle(color: Colors.green)),
-            ),
-          ],
-        ),
-      ],
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

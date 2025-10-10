@@ -4,6 +4,8 @@ import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceAchatModel.da
 import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'formRenteAchat.dart';
+import 'formVivrierAchat.dart';
 
 class AnnonceFormPage extends StatefulWidget {
   final AnnonceAchat? annonceToEdit;
@@ -31,6 +33,9 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
   bool _isLoading = false;
   bool _isEditMode = false;
 
+  List<Map<String, dynamic>> _typesProduits = [];
+  String? _typeProduit;
+
   // Color scheme
   final Color primaryColor = const Color(0xFF2E7D32);
   final Color secondaryColor = const Color(0xFF4CAF50);
@@ -43,10 +48,11 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
   void initState() {
     super.initState();
     _isEditMode = widget.annonceToEdit != null;
-    _fetchCultures();
+    _loadTypesProduits();
     if (_isEditMode) {
       _populateForm();
     }
+    _fetchCultures();
   }
 
   void _populateForm() {
@@ -68,15 +74,33 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
   void _setCultureFromId(String cultureId) {
     final matchingCulture = _cultures.firstWhere(
       (c) => c['id'].toString() == cultureId,
-      orElse: () => {'id': '', 'libelle': ''},
+      orElse: () => {'id': '', 'libelle': '', 'type': ''},
     );
 
     if (matchingCulture['id'] != '') {
       setState(() {
         _selectedCultureId = matchingCulture['id'].toString();
         _selectedCultureLibelle = matchingCulture['libelle'];
+        // Set typeProduit based on culture type
+        if (matchingCulture['type'] != null) {
+          String type = matchingCulture['type'].toString().toLowerCase();
+          // Normalize type to match dropdown ids
+          if (type == 'vivrière') {
+            type = 'vivriere';
+          }
+          _typeProduit = type;
+        }
       });
     }
+  }
+
+  Future<void> _loadTypesProduits() async {
+    setState(() {
+      _typesProduits = [
+        {'id': 'rente', 'libelle': 'Culture de rente'},
+        {'id': 'vivriere', 'libelle': 'Culture vivrière'},
+      ];
+    });
   }
 
   Future<void> _fetchCultures() async {
@@ -84,7 +108,15 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
       _isLoading = true;
     });
     try {
-      final cultures = await _service.fetchCultures();
+      final allCultures = await _service.fetchCultures();
+
+      // Filter cultures based on typeProduit if set
+      List<Map<String, dynamic>> cultures;
+      if (_typeProduit != null && _typeProduit!.isNotEmpty) {
+        cultures = allCultures.where((c) => c['type']?.toString().toLowerCase() == _typeProduit).toList();
+      } else {
+        cultures = allCultures;
+      }
 
       // Remove duplicates by id
       final uniqueCultures = <String, Map<String, dynamic>>{};
@@ -100,10 +132,20 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
             (_selectedCultureId == null || _selectedCultureId!.isEmpty)) {
           final existingCulture = _cultures.firstWhere(
             (c) => c['libelle'] == widget.annonceToEdit?.cultureLibelle,
-            orElse: () => {'id': '', 'libelle': ''},
+            orElse: () => {'id': '', 'libelle': '', 'type': ''},
           );
           if (existingCulture['id'] != '') {
             _selectedCultureId = existingCulture['id'].toString();
+            _selectedCultureLibelle = existingCulture['libelle'];
+            // Set typeProduit based on culture type
+            if (existingCulture['type'] != null) {
+              String type = existingCulture['type'].toString().toLowerCase();
+              // Normalize type to match dropdown ids
+              if (type == 'vivrière') {
+                type = 'vivriere';
+              }
+              _typeProduit = type;
+            }
           }
         }
       });
@@ -159,6 +201,7 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
           description: _descriptionController.text.trim(),
           cultureId: _selectedCultureId!,
           quantite: quantityInKg,
+          unite: _quantityUnit,
           prix: _prix,
           statut: 'active',
         );
@@ -173,6 +216,7 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
           description: _descriptionController.text.trim(),
           cultureId: _selectedCultureId!,
           quantite: quantityInKg,
+          unite: _quantityUnit,
           prix: _prix,
           statut: 'active',
         );
@@ -237,7 +281,7 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
               HapticFeedback.lightImpact();
             },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -276,6 +320,7 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
                 contentPadding: EdgeInsets.zero,
               ),
               value: _selectedCultureId,
+              menuMaxHeight: 200.0, // Limite la hauteur à environ 5 éléments et active le scroll
               items: [
                 const DropdownMenuItem(
                   value: null,
@@ -317,7 +362,7 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
 
   Widget _buildQuantityInput() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -352,12 +397,12 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
               Text(
                 _quantity.toStringAsFixed(0),
                 style: TextStyle(
-                  fontSize: 26,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Colors.grey[700],
                 ),
               ),
-              const SizedBox(width: 60),
+              const SizedBox(width: 40),
               ToggleButtons(
                 borderColor: primaryColor,
                 selectedBorderColor: primaryColor,
@@ -403,7 +448,7 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
 
   Widget _buildDescriptionInput() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -435,7 +480,7 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
           ),
           TextFormField(
             controller: _descriptionController,
-            maxLines: 4,
+            maxLines: 3,
             decoration: InputDecoration(
               hintText:
                   'Faites une brève description de ce que vous voulez ...',
@@ -458,7 +503,7 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
 
   Widget _buildPrixInput() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -519,6 +564,80 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
     );
   }
 
+  Widget _buildTypeProduitDropdown() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Type de culture',
+            style: TextStyle(
+              color: primaryColor,
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
+          Container(
+            margin: const EdgeInsets.only(top: 4),
+            height: 2,
+            width: 40,
+            color: primaryColor,
+          ),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            decoration: InputDecoration(
+              hintText: 'Sélectionner une culture',
+              hintStyle: TextStyle(color: Colors.grey[400]),
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.zero,
+            ),
+            value: _typeProduit,
+            items: [
+              const DropdownMenuItem(
+                value: null,
+                child: Text('Sélectionner une culture'),
+              ),
+              ..._typesProduits.map((type) {
+                return DropdownMenuItem<String>(
+                  value: type['id'].toString(),
+                  child: Text(
+                    type['libelle'],
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                );
+              }),
+            ],
+            onChanged: _isLoading
+                ? null
+                : (value) {
+                    setState(() {
+                      _typeProduit = value;
+                      // When typeProduit changes, reload cultures accordingly
+                      _fetchCultures();
+                      _selectedCultureId = null;
+                    });
+                  },
+            validator: (value) =>
+                value == null ? 'Sélectionnez une culture' : null,
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -547,53 +666,65 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
             )
           : Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _buildCultureDropdown(),
-                      const SizedBox(height: 20),
-                      _buildQuantityInput(),
-                      const SizedBox(height: 20),
-                      _buildPrixInput(),
-                      const SizedBox(height: 20),
-                      _buildDescriptionInput(),
-                      const SizedBox(height: 20),
-                      // _buildStatusDropdown(),
-                      // const SizedBox(height: 32),
-                      OutlinedButton(
-                        onPressed: _isLoading ? null : _submitForm,
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: primaryColor),
-                          foregroundColor: primaryColor,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : Text(
-                                _isEditMode ? 'Modifier une offre' : 'Proposer une offre d\'achat',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+              child: _isEditMode
+                  ? Form(
+                      key: _formKey,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _buildTypeProduitDropdown(),
+                            const SizedBox(height: 12),
+                            _buildCultureDropdown(),
+                            const SizedBox(height: 12),
+                            _buildQuantityInput(),
+                            const SizedBox(height: 12),
+                            _buildPrixInput(),
+                            const SizedBox(height: 12),
+                            _buildDescriptionInput(),
+                            const SizedBox(height: 12),
+                            OutlinedButton(
+                              onPressed: _isLoading ? null : _submitForm,
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(color: primaryColor),
+                                foregroundColor: primaryColor,
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
+                              child: _isLoading
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : Text(
+                                      'Modifier une offre',
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
+                    )
+                  : SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildTypeProduitDropdown(),
+                          const SizedBox(height: 20),
+                          if (_typeProduit == 'rente') FormRenteAchat(),
+                          if (_typeProduit == 'vivriere') FormVivrierAchat(),
+                        ],
+                      ),
+                    ),
             ),
     );
   }
