@@ -202,7 +202,7 @@ class _AnnonceAchatPageState extends State<AnnonceAchatPage> {
                                           Text(
                                             annonce.cultureLibelle.isNotEmpty 
                                               ? annonce.cultureLibelle
-                                              : 'Type de culture non spécifié',
+                                              : 'Culture non spécifié',
                                             style: AppTextStyles.heading.copyWith(
                                               fontSize: 16,
                                               color: annonce.cultureLibelle.isNotEmpty
