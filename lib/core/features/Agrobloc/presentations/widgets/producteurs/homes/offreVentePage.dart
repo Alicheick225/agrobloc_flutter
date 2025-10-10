@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/AnnonceForm.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/prefinancementForm.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/annonce_widget/editAnnonceForm.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/annonceVenteService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/AnnoncePrefinancementService.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
@@ -259,12 +260,23 @@ class _OffreVentePageState extends State<OffreVentePage> {
 
     if (_selectedButtonIndex == 1) {
       // Offres de vente
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => DynamicAnnonceForm(), // Edition si annonce != null
-        ),
-      ).then((_) => _loadAnnonces());
+      if (annonce != null) {
+        // Edition
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => EditAnnonceForm(annonceToEdit: annonce),
+          ),
+        ).then((_) => _loadAnnonces());
+      } else {
+        // Création
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => DynamicAnnonceForm(),
+          ),
+        ).then((_) => _loadAnnonces());
+      }
     } else {
       // Préfinancements
       Navigator.push(

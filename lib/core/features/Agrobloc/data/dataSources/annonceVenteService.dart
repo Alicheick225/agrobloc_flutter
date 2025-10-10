@@ -121,6 +121,7 @@ class AnnonceService {
         cultureLibelle: enrichedLibelle,
         cultureId: annonce.cultureId,
         cultureType: annonce.cultureType,
+        parcelleId: annonce.parcelleId,
         parcelleAdresse: annonce.parcelleAdresse,
         createdAt: annonce.createdAt,
         note: annonce.note,

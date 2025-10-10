@@ -674,15 +674,15 @@ class _AnnonceFormPageState extends State<AnnonceFormPage> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             _buildTypeProduitDropdown(),
-                            const SizedBox(height: 10),
+                            const SizedBox(height: 12),
                             _buildCultureDropdown(),
-                            const SizedBox(height: 10),
+                            const SizedBox(height: 12),
                             _buildQuantityInput(),
-                            const SizedBox(height: 10),
+                            const SizedBox(height: 12),
                             _buildPrixInput(),
-                            const SizedBox(height: 10),
+                            const SizedBox(height: 12),
                             _buildDescriptionInput(),
-                            const SizedBox(height: 10),
+                            const SizedBox(height: 12),
                             OutlinedButton(
                               onPressed: _isLoading ? null : _submitForm,
                               style: OutlinedButton.styleFrom(
