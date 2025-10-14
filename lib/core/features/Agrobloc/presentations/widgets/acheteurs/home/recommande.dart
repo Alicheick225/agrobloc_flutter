@@ -196,33 +196,33 @@ class RecommendationCard extends StatelessWidget {
                           ),
                         ],
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(5),
-                          border: Border.all(
-                            color: isDisponible
-                                ? AppColors.primaryGreen
-                                : isPrevisionnel
-                                    ? Colors.blue
-                                    : Colors.orange,
-                          ),
-                        ),
-                        child: Text(
-                          StringExtension(recommendation.statut).capitalize(),
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                            color: isDisponible
-                                ? AppColors.primaryGreen
-                                : isPrevisionnel
-                                    ? Colors.blue
-                                    : Colors.orange,
-                          ),
-                        ),
-                      )
+                      //Container(
+                        //padding: const EdgeInsets.symmetric(
+                            //horizontal: 8, vertical: 4),
+                        //decoration: BoxDecoration(
+                          //color: Colors.white,
+                          //borderRadius: BorderRadius.circular(5),
+                          //border: Border.all(
+                            //color: isDisponible
+                                //? AppColors.primaryGreen
+                                //: isPrevisionnel
+                                    //? Colors.blue
+                                    //: Colors.orange,
+                          //),
+                        //),
+                        //child: Text(
+                          //StringExtension(recommendation.statut).capitalize(),
+                          //style: TextStyle(
+                            //fontSize: 11,
+                            //fontWeight: FontWeight.w500,
+                            //color: isDisponible
+                                //? AppColors.primaryGreen
+                                //: isPrevisionnel
+                                //    ? Colors.blue
+                                  //  : Colors.orange,
+                          //),
+                        //),
+                     // )
                     ],
                   ),
                 ],
