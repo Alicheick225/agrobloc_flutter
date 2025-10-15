@@ -25,7 +25,7 @@ class ApiConfig {
   static const String devParcellesBaseUrl = 'http://192.168.252.199:8004';
   static const String devCommandesBaseUrl =
       'http://192.168.252.199:3001/commandes';
-  static const String devMessagerieBaseUrl = 'http://192.168.252.183:8087';
+  static const String devMessagerieBaseUrl = 'http://192.168.252.199:8087';
 
   // Service-specific base URLs for prod environment
   static const String prodAnnoncesBaseUrl =

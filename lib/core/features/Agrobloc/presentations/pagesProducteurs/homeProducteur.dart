@@ -7,6 +7,7 @@ import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/nav
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/AnnonceAchat.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceAchatModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
+import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 // Importez le fichier MessagePage.dart
@@ -56,7 +57,14 @@ class _HomeProducteurState extends State<HomeProducteur> {
       // Mise à jour de la liste 'pages' avec les pages réelles
       pages = [
         const HomeProducteurContent(),
-        MessagesPage(currentUserId: _currentUserId),
+        MessagesPage(
+          currentUserId: _currentUserId,
+          onBackPressed: () {
+            setState(() {
+              _selectedIndex = 0;
+            });
+          },
+        ),
         const TransactionProducteur(),
         const ProfilPage(),
       ];
@@ -64,16 +72,25 @@ class _HomeProducteurState extends State<HomeProducteur> {
   }
 
   void _onNavBarTap(int index) {
-    // Si l'index est 2 (Transactions), naviguez vers une nouvelle page.
+    // Navigation logic for different tabs
     if (index == 2) {
+      // Transactions - navigate to transaction page
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => const TransactionProducteur(),
         ),
       );
+    } else if (index == 3) {
+      // Profil - navigate to profile page
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const ProfilPage(),
+        ),
+      );
     } else {
-      // Sinon, changez simplement l'index de la page affichée
+      // For other tabs, just change the selected index
       setState(() {
         _selectedIndex = index;
       });
@@ -235,20 +252,20 @@ class _HomeProducteurContentState extends State<HomeProducteurContent> {
                           CircleAvatar(
                             backgroundColor: Colors.white,
                             radius: 24.r,
-                            child: Icon(Icons.eco, color: const Color(0xFF4CAF50), size: 28.sp),
+                            child: Icon(Icons.eco, color: AppColors.primaryGreen, size: 28.sp),
                           ),
                           SizedBox(width: 12.w),
                           RichText(
                             text: TextSpan(
                               text: 'Bonjour, ',
-                              style: TextStyle(color: const Color(0xFF4CAF50), fontSize: 14.sp),
+                              style: TextStyle(color: AppColors.primaryGreen, fontSize: 14.sp),
                               children: [
                                 TextSpan(
                                   text: 'Kouassi Bernard',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 18.sp,
-                                    color: const Color(0xFF4CAF50),
+                                    color: AppColors.primaryGreen,
                                   ),
                                 ),
                               ],
@@ -258,9 +275,9 @@ class _HomeProducteurContentState extends State<HomeProducteurContent> {
                       ),
                       Row(
                         children: [
-                          Icon(Icons.search, color: const Color(0xFF4CAF50), size: 28.sp),
+                          Icon(Icons.search, color: AppColors.primaryGreen, size: 28.sp),
                           SizedBox(width: 20.w),
-                          Icon(Icons.notifications, color: const Color(0xFF4CAF50), size: 28.sp),
+                          Icon(Icons.notifications, color: AppColors.primaryGreen, size: 28.sp),
                         ],
                       ),
                     ],
@@ -269,7 +286,7 @@ class _HomeProducteurContentState extends State<HomeProducteurContent> {
                   Container(
                     padding: EdgeInsets.all(20.w),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF4CAF50),
+                      color: AppColors.primaryGreen,
                       borderRadius: BorderRadius.circular(20.r),
                     ),
                     child: Column(
@@ -348,7 +365,7 @@ class _HomeProducteurContentState extends State<HomeProducteurContent> {
                             Navigator.push(context, MaterialPageRoute(builder: (context) => const OffreVentePage(initialTabIndex: 1)));
                           },
                           style: OutlinedButton.styleFrom(
-                            backgroundColor: Color(0xFF4CAF50),
+                            backgroundColor: AppColors.primaryGreen,
                             side: const BorderSide(color: Color.fromARGB(255, 255, 255, 255)),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10.r),
@@ -356,8 +373,8 @@ class _HomeProducteurContentState extends State<HomeProducteurContent> {
                             padding: EdgeInsets.symmetric(vertical: 14.h),
                           ),
                           child: Text(
-                            "Mes demandes d'offre",
-                            style: TextStyle(color: Colors.white, fontSize: 14.sp),
+                            "Voir mes offres",
+                            style: TextStyle(color: Colors.white, fontSize: 10.sp),
                           ),
                         ),
                       ),
@@ -376,8 +393,8 @@ class _HomeProducteurContentState extends State<HomeProducteurContent> {
                             padding: EdgeInsets.symmetric(vertical: 14.h),
                           ),
                           child: Text(
-                            "+ Préfinancement",
-                            style: TextStyle(color: const Color(0xFF4CAF50), fontSize: 14.sp),
+                            "+ Demande de financement",
+                            style: TextStyle(color: AppColors.primaryGreen, fontSize: 10.sp),
                           ),
                         ),
                       ),
@@ -400,7 +417,7 @@ class _HomeProducteurContentState extends State<HomeProducteurContent> {
                   onPressed: () {
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const AnnonceAchatPage()));
                   },
-                  child: Text("Voir tout", style: TextStyle(color: const Color(0xFF4CAF50))),
+                  child: Text("Voir tout", style: TextStyle(color: AppColors.primaryGreen)),
                 ),
               ],
             ),
@@ -445,7 +462,7 @@ class _HomeProducteurContentState extends State<HomeProducteurContent> {
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF4CAF50),
+                    color: AppColors.primaryGreen,
                   ),
                 ),
                 Text(
@@ -472,7 +489,7 @@ class _HomeProducteurContentState extends State<HomeProducteurContent> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.favorite_border),
-                  color: const Color(0xFF4CAF50),
+                  color: AppColors.primaryGreen,
                   onPressed: () {
                     // TODO: Implement favorite functionality
                   },

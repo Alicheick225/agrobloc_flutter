@@ -39,10 +39,10 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
 
 // Dans _CommandeProduitPageState
   Future<void> _enregistrerCommande() async {
-    if (quantite < 1) {
+    if (quantite < 2) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Quantité minimale : 1")),
+        const SnackBar(content: Text("Quantité minimale : 2 kg")),
       );
       return;
     }
@@ -247,8 +247,9 @@ class _CommandeProduitPageState extends State<CommandeProduitPage> {
                                       fontWeight: FontWeight.bold),
                                   onChanged: (val) {
                                     setState(() {
-                                      quantite = int.tryParse(val) ?? 1;
-                                      if (quantite < 1) quantite = 1;
+                                      quantite = int.tryParse(val) ?? 2;
+                                      if (quantite < 2) quantite = 2;
+                                      // Ne pas remplacer automatiquement par la quantité disponible si dépassée
                                     });
                                   },
                                 ),

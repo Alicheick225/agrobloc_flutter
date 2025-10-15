@@ -1,5 +1,6 @@
 // lib/core/features/Agrobloc/presentations/pagesProducteurs/profilPage.dart
 
+import 'package:agrobloc/core/features/Agrobloc/presentations/pagesProducteurs/homeProducteur.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/profils/mes_informations_lecture.dart';
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
@@ -11,6 +12,8 @@ import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/profils/mes_informations_lecture.dart';
 // Importez la nouvelle page de modification
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/profils/mes_informations_edition.dart';
+// Import HomeProducteur
+import 'package:agrobloc/core/features/Agrobloc/presentations/pagesProducteurs/homeProducteur.dart';
 
 
 class ProfilPage extends StatefulWidget {
@@ -22,6 +25,16 @@ class ProfilPage extends StatefulWidget {
 
 class _ProfilPageState extends State<ProfilPage> {
   AuthentificationModel? user;
+
+  // Method to get the profile type based on profilId
+  String? _getProfileType(String? profilId) {
+    const Map<String, String> profilIdToName = {
+      'f23423d4-ca9e-409b-b3fb-26126ab66581': 'Producteur',
+      '7b74a4f6-67b6-474a-9bf5-d63e04d2a804': 'Coopérative',
+      '35a3c32a-17f8-4771-a0d8-9295b1bc5917': 'Acheteur',
+    };
+    return profilIdToName[profilId];
+  }
 
   @override
   void initState() {
@@ -59,8 +72,8 @@ class _ProfilPageState extends State<ProfilPage> {
         Navigator.push(context, MaterialPageRoute(builder: (context) => const ConditionsPage()));
         break;
       case "Se déconnecter":
-        // ✅ Ici on passe bien "producteur" comme profileId
-        showLogoutDialog(context, "producteur");
+        // ✅ Ici on passe le profilId réel de l'utilisateur
+        showLogoutDialog(context, user?.profilId ?? "producteur");
         break;
       default:
         ScaffoldMessenger.of(context).showSnackBar(
@@ -80,7 +93,14 @@ class _ProfilPageState extends State<ProfilPage> {
         backgroundColor: AppColors.primaryGreen,
         title: const Text("Mon Profil", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
         centerTitle: true,
-        automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const HomeProducteur()),
+            );
+          },
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings, color: Colors.white),
@@ -116,7 +136,7 @@ class _ProfilPageState extends State<ProfilPage> {
                 ),
                 const SizedBox(height: 10),
                 Text(user?.nom ?? "Nom d'utilisateur", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                Text("#${user?.profilId ?? "Agrobloc-1ZKZKE"}", style: const TextStyle(color: Colors.grey)),
+                Text(_getProfileType(user?.profilId) ?? "Profil non défini", style: const TextStyle(color: Colors.grey)),
                 const SizedBox(height: 10),
                 ElevatedButton(
                   // ⚠️ Modification ici : redirige vers la page d'édition

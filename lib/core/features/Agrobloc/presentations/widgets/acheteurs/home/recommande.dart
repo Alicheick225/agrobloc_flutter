@@ -1,7 +1,7 @@
 import 'package:agrobloc/core/utils/image.dart';
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
-import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/home/offreDetail.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/home/offreDetail.dart'; 
 import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:agrobloc/core/utils/app_text_styles.dart';
 
@@ -20,11 +20,6 @@ class RecommendationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final imageUrl = getImageUrl(recommendation.photo) ?? 'https://via.placeholder.com/400x200?text=No+Image';
-
-    final statutLower = recommendation.statut.toLowerCase();
-    final isDisponible = statutLower == "disponible";
-    final isPrevisionnel =
-        statutLower == "prévisionnel" || statutLower == "previsionnel";
 
     /// ✅ Texte pour la date de publication
     String getTimeText() {

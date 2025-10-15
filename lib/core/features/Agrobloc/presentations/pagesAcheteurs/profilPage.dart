@@ -1,5 +1,6 @@
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/profils/avispage.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/transactions/order%20tracking/sequestre.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/connexion/logout_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
@@ -86,7 +87,7 @@ class _ProfilPageState extends State<ProfilPage> {
         );
         break;
       case "Se déconnecter":
-        _showLogoutDialog();
+        showLogoutDialog(context, user?.profilId ?? 'acheteur');
         break;
       default:
         ScaffoldMessenger.of(context).showSnackBar(
@@ -98,42 +99,7 @@ class _ProfilPageState extends State<ProfilPage> {
     }
   }
 
-  // Dialogue de confirmation pour la déconnexion
-  void _showLogoutDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Déconnexion'),
-          content: const Text('Êtes-vous sûr de vouloir vous déconnecter ?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Annuler'),
-            ),
-            TextButton(
-              onPressed: () async {
-                // Logique de déconnexion
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.clear();
 
-                Navigator.of(context).pop(); // Fermer le dialogue
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/login',
-                  (route) => false,
-                );
-              },
-              child: const Text(
-                'Se déconnecter',
-                style: TextStyle(color: Colors.red),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   // Method to get the profile type based on profilId
   String? _getProfileType(String? profilId) {

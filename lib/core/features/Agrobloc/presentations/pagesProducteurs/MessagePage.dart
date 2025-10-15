@@ -3,13 +3,16 @@ import 'package:agrobloc/core/features/Agrobloc/data/dataSources/ConversationVie
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/home/discussionPage.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/MessageModel.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/pagesProducteurs/homeProducteur.dart';
 
 class MessagesPage extends StatefulWidget {
   final String currentUserId;
+  final VoidCallback? onBackPressed;
 
   const MessagesPage({
     super.key,
     required this.currentUserId,
+    this.onBackPressed,
   });
 
   @override
@@ -128,6 +131,7 @@ class _MessagesPageState extends State<MessagesPage> {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text(
           'Messages',
           style: TextStyle(
@@ -139,7 +143,7 @@ class _MessagesPageState extends State<MessagesPage> {
         elevation: 1,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+          onPressed: widget.onBackPressed ?? () => Navigator.pop(context),
         ),
         actions: [
           IconButton(

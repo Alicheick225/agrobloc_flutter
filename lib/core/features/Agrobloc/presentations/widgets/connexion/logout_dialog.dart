@@ -23,16 +23,22 @@ Future<void> showLogoutDialog(BuildContext context, String profileId) async {
                 await UserService().logoutUser();
 
                 // 🔀 Redirection en fonction du rôle
-                if (profileId == "producteur") {
+                if (profileId == "producteur" || profileId == "f23423d4-ca9e-409b-b3fb-26126ab66581") {
                   Navigator.pushNamedAndRemoveUntil(
                     context,
                     "/loginProducteur",
                     (route) => false,
                   );
-                } else if (profileId == "acheteur") {
+                } else if (profileId == "acheteur" || profileId == "35a3c32a-17f8-4771-a0d8-9295b1bc5917") {
                   Navigator.pushNamedAndRemoveUntil(
                     context,
                     "/loginAcheteur",
+                    (route) => false,
+                  );
+                } else if (profileId == "cooperative" || profileId == "7b74a4f6-67b6-474a-9bf5-d63e04d2a804") {
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    "/loginCooperative",
                     (route) => false,
                   );
                 } else {

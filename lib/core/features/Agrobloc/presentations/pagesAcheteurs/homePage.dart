@@ -163,7 +163,6 @@ class _HomePageState extends State<HomePage> {
             ),
     );
   }
-
   Widget _buildFilteredContent() {
     switch (_selectedFilterIndex) {
       case 0:

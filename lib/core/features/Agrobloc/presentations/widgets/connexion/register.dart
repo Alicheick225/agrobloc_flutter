@@ -38,7 +38,10 @@ class _SignUpPageState extends State<SignUpPage> {
   Future<void> _signUp() async {
     if (passwordController.text != confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Les mots de passe ne correspondent pas')),
+        const SnackBar(
+          content: Text('Les mots de passe ne correspondent pas'),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
@@ -47,13 +50,19 @@ class _SignUpPageState extends State<SignUpPage> {
     if ((widget.profile == 'acheteur' || widget.profile == 'cooperative') &&
         emailController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez saisir un email valide')),
+        const SnackBar(
+          content: Text('Veuillez saisir un email valide'),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
     if (widget.profile == 'planteur' && phoneController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez saisir un numéro valide')),
+        const SnackBar(
+          content: Text('Veuillez saisir un numéro valide'),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }

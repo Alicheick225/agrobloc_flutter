@@ -83,8 +83,27 @@ Future<void> main() async {
         await userService.clearCurrentUser();
         debugPrint('✅ main() - Session utilisateur nettoyée');
 
-        // The navigation will be handled by the widget tree when tokens become invalid
-        // This callback ensures cleanup happens when refresh fails
+        // Navigate to appropriate login page based on user's profile
+        final lastProfile = await userService.getLastProfile();
+        final profileId = lastProfile ?? 'producteur';
+
+        // Determine the correct login route based on profile
+        String loginRoute;
+        if (profileId == 'producteur' || profileId == 'f23423d4-ca9e-409b-b3fb-26126ab66581') {
+          loginRoute = '/loginProducteur';
+        } else if (profileId == 'acheteur' || profileId == '35a3c32a-17f8-4771-a0d8-9295b1bc5917') {
+          loginRoute = '/loginAcheteur';
+        } else if (profileId == 'cooperative' || profileId == '7b74a4f6-67b6-474a-9bf5-d63e04d2a804') {
+          loginRoute = '/loginCooperative';
+        } else {
+          loginRoute = '/login';
+        }
+
+        // Navigate to the appropriate login page
+        MyApp.navigatorKey.currentState?.pushNamedAndRemoveUntil(loginRoute, (route) => false);
+
+        debugPrint('🔄 main() - Redirection vers la page de connexion: $loginRoute');
+
       } catch (e) {
         debugPrint(
             '❌ main() - Erreur lors du nettoyage de session dans callback: $e');
@@ -116,6 +135,9 @@ class MyApp extends StatefulWidget {
       {super.key,
       required this.modeSombreInitial,
       required this.isFirstLaunch});
+
+  // Global navigator key for navigation from callbacks
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -154,6 +176,26 @@ class _MyAppState extends State<MyApp> {
           _forceLogin = true;
         });
       }
+
+      // Navigate to appropriate login page based on user's profile
+      final lastProfile = await userService.getLastProfile();
+      final profileId = lastProfile ?? 'producteur';
+
+      // Determine the correct login route based on profile
+      String loginRoute;
+      if (profileId == 'producteur' || profileId == 'f23423d4-ca9e-409b-b3fb-26126ab66581') {
+        loginRoute = '/loginProducteur';
+      } else if (profileId == 'acheteur' || profileId == '35a3c32a-17f8-4771-a0d8-9295b1bc5917') {
+        loginRoute = '/loginAcheteur';
+      } else if (profileId == 'cooperative' || profileId == '7b74a4f6-67b6-474a-9bf5-d63e04d2a804') {
+        loginRoute = '/loginCooperative';
+      } else {
+        loginRoute = '/login';
+      }
+
+      // Navigate to the appropriate login page
+      MyApp.navigatorKey.currentState?.pushNamedAndRemoveUntil(loginRoute, (route) => false);
+      debugPrint('🔄 MyApp - Redirection vers la page de connexion: $loginRoute');
     });
   }
 
@@ -170,6 +212,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: MyApp.navigatorKey, // Add navigator key
       debugShowCheckedModeBanner: false,
       title: 'Agrobloc',
       theme: ThemeData.light().copyWith(
@@ -224,6 +267,8 @@ class _MyAppState extends State<MyApp> {
         '/homeProducteur': (context) => const HomeProducteur(),
         '/login': (context) => const LoginPage(profile: 'producteur'),
         '/loginProducteur': (context) => const LoginPage(profile: 'producteur'),
+        '/loginAcheteur': (context) => const LoginPage(profile: 'acheteur'),
+        '/loginCooperative': (context) => const LoginPage(profile: 'cooperative'),
         '/detailOffreVente': (context) {
           final args =
               ModalRoute.of(context)!.settings.arguments as AnnonceAchat;

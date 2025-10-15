@@ -120,7 +120,7 @@ class _LoginPageState extends State<LoginPage> {
           }
       }
     } catch (e) {
-      String errorMessage = 'Erreur de connexion';
+      String errorMessage;
       final errorString = e.toString();
       if (errorString.contains('Erreur de connexion:')) {
         errorMessage = errorString.replaceFirst('Exception: ', '');
@@ -128,6 +128,13 @@ class _LoginPageState extends State<LoginPage> {
         errorMessage = errorString.replaceFirst('Exception: ', '');
       } else {
         errorMessage = 'Erreur de connexion: ${errorString.replaceFirst('Exception: ', '')}';
+      }
+
+      // Customize error message based on profile
+      if (internalProfile == 'producteur') {
+        errorMessage = 'Numéro ou mot de passe incorrect';
+      } else if (internalProfile == 'acheteur' || internalProfile == 'cooperative') {
+        errorMessage = 'Email ou mot de passe incorrect';
       }
 
       if (mounted) {
