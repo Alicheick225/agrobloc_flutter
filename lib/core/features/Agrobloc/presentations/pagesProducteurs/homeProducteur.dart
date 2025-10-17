@@ -4,6 +4,7 @@ import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteur
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/offreVentePage.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/pagesProducteurs/transactionProducteur.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/navBarProducteur.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/navBarAll.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/AnnonceAchat.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceAchatModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/userService.dart';
@@ -106,6 +107,10 @@ class _HomeProducteurState extends State<HomeProducteur> {
       builder: (context, child) {
         return Scaffold(
           backgroundColor: Colors.white,
+          appBar: _selectedIndex != 3 ? PreferredSize(
+            preferredSize: const Size.fromHeight(80),
+            child: const NavBarAll(),
+          ) : null,
           body: pages[_selectedIndex],
           bottomNavigationBar: BottomBarProducteur(
             selectedIndex: _selectedIndex,
@@ -244,44 +249,7 @@ class _HomeProducteurContentState extends State<HomeProducteurContent> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          CircleAvatar(
-                            backgroundColor: Colors.white,
-                            radius: 24.r,
-                            child: Icon(Icons.eco, color: AppColors.primaryGreen, size: 28.sp),
-                          ),
-                          SizedBox(width: 12.w),
-                          RichText(
-                            text: TextSpan(
-                              text: 'Bonjour, ',
-                              style: TextStyle(color: AppColors.primaryGreen, fontSize: 14.sp),
-                              children: [
-                                TextSpan(
-                                  text: 'Kouassi Bernard',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18.sp,
-                                    color: AppColors.primaryGreen,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Icon(Icons.search, color: AppColors.primaryGreen, size: 28.sp),
-                          SizedBox(width: 20.w),
-                          Icon(Icons.notifications, color: AppColors.primaryGreen, size: 28.sp),
-                        ],
-                      ),
-                    ],
-                  ),
+                  
                   SizedBox(height: 20.h),
                   Container(
                     padding: EdgeInsets.all(20.w),

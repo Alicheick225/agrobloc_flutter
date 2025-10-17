@@ -27,14 +27,17 @@ class NavBarAll extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  CircleAvatar(
-                    backgroundColor: Colors.white,
-                    radius: 24.r,
-                    backgroundImage: AssetImage('assets/images/profile_placeholder.png'), // Assuming avatar image
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.primaryGreen, width: 2), // Green border for avatar
+                  Padding(
+                    padding: EdgeInsets.only(top: 12.h),
+                    child: CircleAvatar(
+                      backgroundColor: Colors.white,
+                      radius: 24.r,
+                      backgroundImage: AssetImage('assets/images/profile_placeholder.png'), // Assuming avatar image
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: AppColors.primaryGreen, width: 2), // Green border for avatar
+                        ),
                       ),
                     ),
                   ),

@@ -401,10 +401,10 @@ class _HomePageState extends State<HomePage> {
     return SafeArea(
       child: Scaffold(
         backgroundColor: AppColors.background,
-        appBar: PreferredSize(
+        appBar: _selectedIndex != 3 ? PreferredSize(
           preferredSize: const Size.fromHeight(80),
           child: const NavBarAll(),
-        ),
+        ) : null,
         body: pages[_selectedIndex],
         bottomNavigationBar: BottomNavBar(
           currentIndex: _selectedIndex,
