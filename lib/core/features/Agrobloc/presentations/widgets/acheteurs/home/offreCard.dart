@@ -27,8 +27,6 @@ class OffreCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final imageUrl = getImageUrl(data.photo) ?? 'https://via.placeholder.com/400x200?text=No+Image';
     final statutLower = data.statut.toLowerCase();
-    final isDisponible = statutLower == "disponible";
-    final isEnCours = statutLower == "en cours";
 
     /// ✅ Date de publication en texte lisible
     String getTimeText() {
@@ -56,7 +54,7 @@ class OffreCard extends StatelessWidget {
             );
           },
       child: Container(
-        height: 320,
+        height: 116,
         constraints: const BoxConstraints(
           maxWidth: double.infinity,
         ),
@@ -78,13 +76,13 @@ class OffreCard extends StatelessWidget {
                       const BorderRadius.vertical(top: Radius.circular(12)),
                   child: SizedBox(
                     width: double.infinity,
-                    height: 80,
+                    height: 60,
                     child: Image.network(
                       imageUrl,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) => Container(
                         width: double.maxFinite,
-                        height: 80,
+                        height: 60,
                         color: Colors.grey[300],
                         child: const Icon(Icons.broken_image,
                             size: 50, color: Colors.grey),
@@ -92,37 +90,7 @@ class OffreCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                Positioned(
-                  top: 8,
-                  left: 8,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(5),
-                      border: Border.all(
-                        color: isDisponible
-                            ? AppColors.primaryGreen
-                            : isEnCours
-                                ? Colors.orange
-                                : Colors.grey,
-                      ),
-                    ),
-                    child: Text(
-                      StringExtension(data.statut).capitalize(),
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: isDisponible
-                            ? AppColors.primaryGreen
-                            : isEnCours
-                                ? Colors.orange
-                                : Colors.grey,
-                      ),
-                    ),
-                  ),
-                ),
+               
                 Positioned(
                   top: 0,
                   right: 0,

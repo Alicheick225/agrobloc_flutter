@@ -17,6 +17,9 @@ import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/connexion/
 // ignore: unused_import
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/parametre.dart';
 
+// 🆕 AJOUT : Import ScreenUtil pour l'initialisation
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 // 🆕 AJOUT : Imports pour la route detailOffreVente
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/producteurs/homes/detailOffreVente.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceAchatModel.dart';
@@ -31,6 +34,10 @@ Future<void> main() async {
     anonKey: SupabaseConfig.anonKey,
   );
   debugPrint('✅ Supabase initialisé');
+
+  // 🆕 AJOUT : Initialisation ScreenUtil
+  await ScreenUtil.ensureScreenSize();
+  debugPrint('✅ ScreenUtil initialisé');
 
   final prefs = await SharedPreferences.getInstance();
   bool modeSombreInitial = prefs.getBool('modeSombre') ?? false;
@@ -211,71 +218,78 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      navigatorKey: MyApp.navigatorKey, // Add navigator key
-      debugShowCheckedModeBanner: false,
-      title: 'Agrobloc',
-      theme: ThemeData.light().copyWith(
-        primaryColor: const Color(0xFF5d9643),
-        scaffoldBackgroundColor: Colors.white,
-      ),
-      home: FutureBuilder<Map<String, dynamic>>(
-        future: _getAuthenticationStatus(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(),
-              ),
-            );
-          }
-
-          final data =
-              snapshot.data ?? {'isAuthenticated': false, 'lastProfile': null};
-          final isAuthenticated = data['isAuthenticated'] as bool;
-          final lastProfile = data['lastProfile'] as String?;
-
-          Widget homePage;
-
-          if (_forceLogin) {
-            homePage = LoginPage(profile: lastProfile ?? 'producteur');
-          } else if (widget.isFirstLaunch) {
-            homePage = const SelectProfilePage();
-          } else {
-            final userService = UserService();
-
-            if (isAuthenticated && userService.currentUser != null) {
-              final profileId = userService.currentUser!.profilId;
-              if (profileId == 'producteur' ||
-                  profileId == 'f23423d4-ca9e-409b-b3fb-26126ab66581') {
-                homePage = const HomeProducteur();
-              } else {
-                homePage = const HomePage(acheteurId: 'acheteur');
-              }
-              debugPrint(
-                  '✅ MyApp - Utilisateur authentifié: ${userService.currentUser!.nom} (${profileId})');
-            } else {
-              homePage = LoginPage(profile: lastProfile ?? 'producteur');
+  return ScreenUtilInit(
+    designSize: const Size(375, 812), // iPhone X size as base
+    minTextAdapt: true,
+    splitScreenMode: true,
+    builder: (context, child) {
+      return MaterialApp(
+        navigatorKey: MyApp.navigatorKey, // Add navigator key
+        debugShowCheckedModeBanner: false,
+        title: 'Agrobloc',
+        theme: ThemeData.light().copyWith(
+          primaryColor: const Color(0xFF5d9643),
+          scaffoldBackgroundColor: Colors.white,
+        ),
+        home: FutureBuilder<Map<String, dynamic>>(
+          future: _getAuthenticationStatus(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Scaffold(
+                body: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
             }
-          }
 
-          return homePage;
+            final data =
+                snapshot.data ?? {'isAuthenticated': false, 'lastProfile': null};
+            final isAuthenticated = data['isAuthenticated'] as bool;
+            final lastProfile = data['lastProfile'] as String?;
+
+            Widget homePage;
+
+            if (_forceLogin) {
+              homePage = LoginPage(profile: lastProfile ?? 'producteur');
+            } else if (widget.isFirstLaunch) {
+              homePage = const SelectProfilePage();
+            } else {
+              final userService = UserService();
+
+              if (isAuthenticated && userService.currentUser != null) {
+                final profileId = userService.currentUser!.profilId;
+                if (profileId == 'producteur' ||
+                    profileId == 'f23423d4-ca9e-409b-b3fb-26126ab66581') {
+                  homePage = const HomeProducteur();
+                } else {
+                  homePage = const HomePage(acheteurId: 'acheteur');
+                }
+                debugPrint(
+                    '✅ MyApp - Utilisateur authentifié: ${userService.currentUser!.nom} (${profileId})');
+              } else {
+                homePage = LoginPage(profile: lastProfile ?? 'producteur');
+              }
+            }
+
+            return homePage;
+          },
+        ),
+        routes: {
+          '/homePage': (context) => const HomePage(acheteurId: 'acheteur'),
+          '/homeProducteur': (context) => const HomeProducteur(),
+          '/login': (context) => const LoginPage(profile: 'producteur'),
+          '/loginProducteur': (context) => const LoginPage(profile: 'producteur'),
+          '/loginAcheteur': (context) => const LoginPage(profile: 'acheteur'),
+          '/loginCooperative': (context) => const LoginPage(profile: 'cooperative'),
+          '/detailOffreVente': (context) {
+            final args =
+                ModalRoute.of(context)!.settings.arguments as AnnonceAchat;
+            return DetailOffreVente(annonce: args);
+          },
         },
-      ),
-      routes: {
-        '/homePage': (context) => const HomePage(acheteurId: 'acheteur'),
-        '/homeProducteur': (context) => const HomeProducteur(),
-        '/login': (context) => const LoginPage(profile: 'producteur'),
-        '/loginProducteur': (context) => const LoginPage(profile: 'producteur'),
-        '/loginAcheteur': (context) => const LoginPage(profile: 'acheteur'),
-        '/loginCooperative': (context) => const LoginPage(profile: 'cooperative'),
-        '/detailOffreVente': (context) {
-          final args =
-              ModalRoute.of(context)!.settings.arguments as AnnonceAchat;
-          return DetailOffreVente(annonce: args);
-        },
-      },
-    );
+      );
+    },
+  );
   }
 
   Future<Map<String, dynamic>> _getAuthenticationStatus() async {

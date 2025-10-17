@@ -137,7 +137,7 @@ class AnnonceService {
 
   /// ---------------- CRUD ANNONCES ----------------
 
-  /// 🔹 Récupérer toutes les annonces avec filtres optionnels
+  /// 🔹 Récupérer toutes les annonces avec filtres optionnels et pagination
   Future<List<AnnonceVente>> getAllAnnonces({
     String? userId,
     String? statut,
@@ -150,6 +150,8 @@ class AnnonceService {
     double? priceMax,
     double? quantMin,
     double? quantMax,
+    int? limit,
+    int? offset,
   }) async {
     // Check authentication before making request
     if (!UserService().isLoggedIn) {
@@ -170,6 +172,8 @@ class AnnonceService {
       if (priceMax != null) queryParams['price_max'] = priceMax.toString();
       if (quantMin != null) queryParams['quantite_min'] = quantMin.toString();
       if (quantMax != null) queryParams['quantite_max'] = quantMax.toString();
+      if (limit != null) queryParams['limit'] = limit.toString();
+      if (offset != null) queryParams['offset'] = offset.toString();
 
       final uri = Uri.parse('${ApiConfig.devAnnoncesVenteBaseUrl}/annonces_vente').replace(queryParameters: queryParams);
       final response = await http.get(uri, headers: await _getHeaders());

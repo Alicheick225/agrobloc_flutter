@@ -2,6 +2,7 @@ import 'package:agrobloc/core/features/Agrobloc/data/dataSources/AnnoncePrefinan
 import 'package:flutter/material.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/annoncePrefinancementModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/home/commande_enregistree.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/home/compteSequestre.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/home/detailFinancement.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/models/AnnonceVenteModel.dart';
 import 'package:agrobloc/core/features/Agrobloc/data/dataSources/annonceVenteService.dart';
@@ -11,6 +12,7 @@ import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/acheteurs/home/statut_commande.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/filter_boutton.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/nav_bar.dart';
+import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/navBarAll.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/widgets/layout/recherche_bar.dart';
 import 'package:agrobloc/core/themes/app_colors.dart';
 import 'package:agrobloc/core/features/Agrobloc/presentations/pagesAcheteurs/transactionPage.dart';
@@ -37,6 +39,15 @@ class _HomePageState extends State<HomePage> {
   List<AnnoncePrefinancement> financements = [];
   List<AnnonceVente> paginatedAnnonces = [];
 
+  // Infinite scroll for Recommandé section
+  List<AnnonceVente> recommandeAnnonces = [];
+  bool isLoadingRecommande = false;
+  bool hasMoreRecommande = true;
+  int recommandeOffset = 0;
+  final int recommandeLimit = 10;
+  final ScrollController _scrollController = ScrollController();
+  final FocusNode _searchFocusNode = FocusNode();
+
   bool isLoading = true;
   final UserService _userService = UserService();
 
@@ -44,16 +55,74 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _checkAuthenticationAndLoadData();
+    _scrollController.addListener(_onScroll);
+    _searchFocusNode.addListener(_onFocusChange);
+  }
+
+  void _onFocusChange() {
+    setState(() {});
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent &&
+        !isLoadingRecommande &&
+        hasMoreRecommande) {
+      _loadMoreRecommande();
+    }
   }
 
   Future<void> _checkAuthenticationAndLoadData() async {
     final isAuthenticated = await _userService.isUserAuthenticated();
     if (isAuthenticated) {
       _loadAllData();
+      _loadInitialRecommande();
     } else {
       // User is not authenticated, don't load data
       debugPrint('⚠️ HomePage - Utilisateur non authentifié, chargement des données annulé');
       setState(() => isLoading = false);
+    }
+  }
+
+  Future<void> _loadInitialRecommande() async {
+    try {
+      final initialAnnonces = await AnnonceService().getAllAnnonces(
+        limit: recommandeLimit,
+        offset: 0,
+      );
+
+      setState(() {
+        recommandeAnnonces = initialAnnonces;
+        recommandeOffset = recommandeLimit;
+        hasMoreRecommande = initialAnnonces.length == recommandeLimit;
+      });
+    } catch (e) {
+      debugPrint('Erreur lors du chargement initial des annonces recommandées: $e');
+    }
+  }
+
+  Future<void> _loadMoreRecommande() async {
+    if (isLoadingRecommande || !hasMoreRecommande) return;
+
+    setState(() => isLoadingRecommande = true);
+
+    try {
+      final newAnnonces = await AnnonceService().getAllAnnonces(
+        limit: recommandeLimit,
+        offset: recommandeOffset,
+      );
+
+      if (newAnnonces.length < recommandeLimit) {
+        hasMoreRecommande = false;
+      }
+
+      setState(() {
+        recommandeAnnonces.addAll(newAnnonces);
+        recommandeOffset += recommandeLimit;
+        isLoadingRecommande = false;
+      });
+    } catch (e) {
+      debugPrint('Erreur lors du chargement des annonces recommandées: $e');
+      setState(() => isLoadingRecommande = false);
     }
   }
 
@@ -141,24 +210,29 @@ class _HomePageState extends State<HomePage> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SearchBarWidget(),
-                  const SizedBox(height: 16),
-                  FilterButtons(
-                    onFilterSelected: (index) {
-                      setState(() {
-                        _selectedFilterIndex = index;
-                        _currentPage = 0;
-                        _updatePagination();
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                  _buildFilteredContent(),
-                ],
+          : GestureDetector(
+              onTap: () => FocusScope.of(context).unfocus(),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const CompteSequestre(),
+                    //const SizedBox(height: 16),
+                    //SearchBarWidget(),
+                    const SizedBox(height: 16),
+                    FilterButtons(
+                      onFilterSelected: (index) {
+                        setState(() {
+                          _selectedFilterIndex = index;
+                          _currentPage = 0;
+                          _updatePagination();
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 24),
+                    _buildFilteredContent(),
+                  ],
+                ),
               ),
             ),
     );
@@ -172,8 +246,11 @@ class _HomePageState extends State<HomePage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Top offres",
-                    style: Theme.of(context).textTheme.titleLarge),
+                Padding(
+                  padding: const EdgeInsets.only(top: 1),
+                  child: Text("Top offres",
+                      style: Theme.of(context).textTheme.titleMedium),
+                ),
                 TextButton(
                   onPressed: () {
                     if (annonces.isNotEmpty) {
@@ -192,9 +269,9 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 1),
             SizedBox(
-              height: 200,
+              height: 180,
               child: paginatedAnnonces.isEmpty
                   ? const Center(child: Text("Aucune offre disponible"))
                   : ListView.builder(
@@ -213,17 +290,66 @@ class _HomePageState extends State<HomePage> {
                       },
                     ),
             ),
-            const SizedBox(height: 30),
-            Text("Recommandé", style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("Recommandé", style: Theme.of(context).textTheme.titleMedium),
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 100,
+                      child: TextField(
+                        focusNode: _searchFocusNode,
+                        decoration: InputDecoration(
+                          hintText: 'Rechercher...',
+                          hintStyle: const TextStyle(fontSize: 12),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: const BorderSide(color: Colors.green, width: 2),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                        ),
+                        style: const TextStyle(fontSize: 12),
+                        onChanged: (value) {
+                          // TODO: Implement search functionality
+                        },
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.tune, color: Colors.green),
+                      onPressed: () {
+                        // TODO: Implement filter functionality
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
             const SizedBox(height: 5),
-            Column(
-              children: annonces
-                  .map((a) => RecommendationCard(
-                        recommendation: a,
-                        acheteurId: widget.acheteurId,
-                        annonceVenteId: a.id,
-                      ))
-                  .toList(),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: recommandeAnnonces.length + (isLoadingRecommande ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index == recommandeAnnonces.length) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }
+                final a = recommandeAnnonces[index];
+                return RecommendationCard(
+                  recommendation: a,
+                  acheteurId: widget.acheteurId,
+                  annonceVenteId: a.id,
+                );
+              },
             ),
           ],
         );
@@ -264,10 +390,21 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
+  void dispose() {
+    _scrollController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         backgroundColor: AppColors.background,
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(80),
+          child: const NavBarAll(),
+        ),
         body: pages[_selectedIndex],
         bottomNavigationBar: BottomNavBar(
           currentIndex: _selectedIndex,
