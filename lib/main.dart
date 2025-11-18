@@ -1,6 +1,9 @@
 import 'package:agrobloc/core/features/Agrobloc/presentations/pagesProducteurs/homeProducteur.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart';
+import 'package:timezone/data/latest_all.dart';
 
 // 🆕 Import Supabase
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -96,21 +99,25 @@ Future<void> main() async {
 
         // Determine the correct login route based on profile
         String loginRoute;
-        if (profileId == 'producteur' || profileId == 'f23423d4-ca9e-409b-b3fb-26126ab66581') {
+        if (profileId == 'producteur' ||
+            profileId == 'f23423d4-ca9e-409b-b3fb-26126ab66581') {
           loginRoute = '/loginProducteur';
-        } else if (profileId == 'acheteur' || profileId == '35a3c32a-17f8-4771-a0d8-9295b1bc5917') {
+        } else if (profileId == 'acheteur' ||
+            profileId == '35a3c32a-17f8-4771-a0d8-9295b1bc5917') {
           loginRoute = '/loginAcheteur';
-        } else if (profileId == 'cooperative' || profileId == '7b74a4f6-67b6-474a-9bf5-d63e04d2a804') {
+        } else if (profileId == 'cooperative' ||
+            profileId == '7b74a4f6-67b6-474a-9bf5-d63e04d2a804') {
           loginRoute = '/loginCooperative';
         } else {
           loginRoute = '/login';
         }
 
         // Navigate to the appropriate login page
-        MyApp.navigatorKey.currentState?.pushNamedAndRemoveUntil(loginRoute, (route) => false);
+        MyApp.navigatorKey.currentState
+            ?.pushNamedAndRemoveUntil(loginRoute, (route) => false);
 
-        debugPrint('🔄 main() - Redirection vers la page de connexion: $loginRoute');
-
+        debugPrint(
+            '🔄 main() - Redirection vers la page de connexion: $loginRoute');
       } catch (e) {
         debugPrint(
             '❌ main() - Erreur lors du nettoyage de session dans callback: $e');
@@ -144,7 +151,8 @@ class MyApp extends StatefulWidget {
       required this.isFirstLaunch});
 
   // Global navigator key for navigation from callbacks
-  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -153,6 +161,8 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   late bool _modeSombre;
   final NotificationService _notificationService = NotificationService();
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
   bool _forceLogin = false;
 
   @override
@@ -161,6 +171,26 @@ class _MyAppState extends State<MyApp> {
     _modeSombre = widget.modeSombreInitial;
     _initializeNotifications();
     _setupAuthStateListener();
+  }
+
+  Future<void> init() async {
+    initializeTimeZones();
+
+    //! https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+    setLocalLocation(getLocation('Africa/Douala'));
+
+    const androidSettings =
+        AndroidInitializationSettings('@mipmap/launcher_icon');
+    const DarwinInitializationSettings iosSettings =
+        DarwinInitializationSettings();
+
+    const InitializationSettings initializationSettings =
+        InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+    );
+    await flutterLocalNotificationsPlugin
+        .initialize(initializationSettings); // Set to your local time zone
   }
 
   Future<void> _initializeNotifications() async {
@@ -190,19 +220,24 @@ class _MyAppState extends State<MyApp> {
 
       // Determine the correct login route based on profile
       String loginRoute;
-      if (profileId == 'producteur' || profileId == 'f23423d4-ca9e-409b-b3fb-26126ab66581') {
+      if (profileId == 'producteur' ||
+          profileId == 'f23423d4-ca9e-409b-b3fb-26126ab66581') {
         loginRoute = '/loginProducteur';
-      } else if (profileId == 'acheteur' || profileId == '35a3c32a-17f8-4771-a0d8-9295b1bc5917') {
+      } else if (profileId == 'acheteur' ||
+          profileId == '35a3c32a-17f8-4771-a0d8-9295b1bc5917') {
         loginRoute = '/loginAcheteur';
-      } else if (profileId == 'cooperative' || profileId == '7b74a4f6-67b6-474a-9bf5-d63e04d2a804') {
+      } else if (profileId == 'cooperative' ||
+          profileId == '7b74a4f6-67b6-474a-9bf5-d63e04d2a804') {
         loginRoute = '/loginCooperative';
       } else {
         loginRoute = '/login';
       }
 
       // Navigate to the appropriate login page
-      MyApp.navigatorKey.currentState?.pushNamedAndRemoveUntil(loginRoute, (route) => false);
-      debugPrint('🔄 MyApp - Redirection vers la page de connexion: $loginRoute');
+      MyApp.navigatorKey.currentState
+          ?.pushNamedAndRemoveUntil(loginRoute, (route) => false);
+      debugPrint(
+          '🔄 MyApp - Redirection vers la page de connexion: $loginRoute');
     });
   }
 
@@ -218,78 +253,80 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-  return ScreenUtilInit(
-    designSize: const Size(375, 812), // iPhone X size as base
-    minTextAdapt: true,
-    splitScreenMode: true,
-    builder: (context, child) {
-      return MaterialApp(
-        navigatorKey: MyApp.navigatorKey, // Add navigator key
-        debugShowCheckedModeBanner: false,
-        title: 'Agrobloc',
-        theme: ThemeData.light().copyWith(
-          primaryColor: const Color(0xFF5d9643),
-          scaffoldBackgroundColor: Colors.white,
-        ),
-        home: FutureBuilder<Map<String, dynamic>>(
-          future: _getAuthenticationStatus(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Scaffold(
-                body: Center(
-                  child: CircularProgressIndicator(),
-                ),
-              );
-            }
-
-            final data =
-                snapshot.data ?? {'isAuthenticated': false, 'lastProfile': null};
-            final isAuthenticated = data['isAuthenticated'] as bool;
-            final lastProfile = data['lastProfile'] as String?;
-
-            Widget homePage;
-
-            if (_forceLogin) {
-              homePage = LoginPage(profile: lastProfile ?? 'producteur');
-            } else if (widget.isFirstLaunch) {
-              homePage = const SelectProfilePage();
-            } else {
-              final userService = UserService();
-
-              if (isAuthenticated && userService.currentUser != null) {
-                final profileId = userService.currentUser!.profilId;
-                if (profileId == 'producteur' ||
-                    profileId == 'f23423d4-ca9e-409b-b3fb-26126ab66581') {
-                  homePage = const HomeProducteur();
-                } else {
-                  homePage = const HomePage(acheteurId: 'acheteur');
-                }
-                debugPrint(
-                    '✅ MyApp - Utilisateur authentifié: ${userService.currentUser!.nom} (${profileId})');
-              } else {
-                homePage = LoginPage(profile: lastProfile ?? 'producteur');
+    return ScreenUtilInit(
+      designSize: const Size(375, 812), // iPhone X size as base
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (context, child) {
+        return MaterialApp(
+          navigatorKey: MyApp.navigatorKey, // Add navigator key
+          debugShowCheckedModeBanner: false,
+          title: 'Agrobloc',
+          theme: ThemeData.light().copyWith(
+            primaryColor: const Color(0xFF5d9643),
+            scaffoldBackgroundColor: Colors.white,
+          ),
+          home: FutureBuilder<Map<String, dynamic>>(
+            future: _getAuthenticationStatus(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(
+                  body: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
               }
-            }
 
-            return homePage;
+              final data = snapshot.data ??
+                  {'isAuthenticated': false, 'lastProfile': null};
+              final isAuthenticated = data['isAuthenticated'] as bool;
+              final lastProfile = data['lastProfile'] as String?;
+
+              Widget homePage;
+
+              if (_forceLogin) {
+                homePage = LoginPage(profile: lastProfile ?? 'producteur');
+              } else if (widget.isFirstLaunch) {
+                homePage = const SelectProfilePage();
+              } else {
+                final userService = UserService();
+
+                if (isAuthenticated && userService.currentUser != null) {
+                  final profileId = userService.currentUser!.profilId;
+                  if (profileId == 'producteur' ||
+                      profileId == 'f23423d4-ca9e-409b-b3fb-26126ab66581') {
+                    homePage = const HomeProducteur();
+                  } else {
+                    homePage = const HomePage(acheteurId: 'acheteur');
+                  }
+                  debugPrint(
+                      '✅ MyApp - Utilisateur authentifié: ${userService.currentUser!.nom} (${profileId})');
+                } else {
+                  homePage = LoginPage(profile: lastProfile ?? 'producteur');
+                }
+              }
+
+              return homePage;
+            },
+          ),
+          routes: {
+            '/homePage': (context) => const HomePage(acheteurId: 'acheteur'),
+            '/homeProducteur': (context) => const HomeProducteur(),
+            '/login': (context) => const LoginPage(profile: 'producteur'),
+            '/loginProducteur': (context) =>
+                const LoginPage(profile: 'producteur'),
+            '/loginAcheteur': (context) => const LoginPage(profile: 'acheteur'),
+            '/loginCooperative': (context) =>
+                const LoginPage(profile: 'cooperative'),
+            '/detailOffreVente': (context) {
+              final args =
+                  ModalRoute.of(context)!.settings.arguments as AnnonceAchat;
+              return DetailOffreVente(annonce: args);
+            },
           },
-        ),
-        routes: {
-          '/homePage': (context) => const HomePage(acheteurId: 'acheteur'),
-          '/homeProducteur': (context) => const HomeProducteur(),
-          '/login': (context) => const LoginPage(profile: 'producteur'),
-          '/loginProducteur': (context) => const LoginPage(profile: 'producteur'),
-          '/loginAcheteur': (context) => const LoginPage(profile: 'acheteur'),
-          '/loginCooperative': (context) => const LoginPage(profile: 'cooperative'),
-          '/detailOffreVente': (context) {
-            final args =
-                ModalRoute.of(context)!.settings.arguments as AnnonceAchat;
-            return DetailOffreVente(annonce: args);
-          },
-        },
-      );
-    },
-  );
+        );
+      },
+    );
   }
 
   Future<Map<String, dynamic>> _getAuthenticationStatus() async {
